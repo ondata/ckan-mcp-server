@@ -51,6 +51,18 @@ ckan_package_search({
 })
 ```
 
+### Cerca organizzazioni con wildcard
+```typescript
+// Trova tutte le organizzazioni che contengono "salute" nel nome
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "organization:*salute*",
+  rows: 0,
+  facet_field: ["organization"],
+  facet_limit: 100
+})
+```
+
 ### Statistiche per organizzazione
 ```typescript
 ckan_package_search({
