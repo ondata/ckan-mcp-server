@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "ckan-mcp": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "/home/aborruso/git/idee/ckan-mcp-server/dist/index.js"
+      ],
+      "env": {}
+    }
+  }
+}
