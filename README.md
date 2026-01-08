@@ -11,7 +11,8 @@ MCP (Model Context Protocol) server for interacting with CKAN-based open data po
 - 📦 Complete dataset and resource metadata
 - 🎨 Output in Markdown or JSON format
 - ⚡ Pagination and faceting support
-- 🧪 Comprehensive test suite (79 tests, 100% passing)
+- 📄 MCP Resource Templates for direct data access
+- 🧪 Comprehensive test suite (101 tests, 100% passing)
 
 ## Installation
 
@@ -25,7 +26,7 @@ npm install
 # Build with esbuild (fast, ~4ms)
 npm run build
 
-# Run tests (79 tests)
+# Run tests (101 tests)
 npm test
 ```
 
@@ -85,6 +86,22 @@ Su Linux: `~/.config/Claude/claude_desktop_config.json`
 ### Utilities
 
 - **ckan_status_show**: Verify server status
+
+## MCP Resource Templates
+
+Direct data access via `ckan://` URI scheme:
+
+- `ckan://{server}/dataset/{id}` - Dataset metadata
+- `ckan://{server}/resource/{id}` - Resource metadata and download URL
+- `ckan://{server}/organization/{name}` - Organization details
+
+Examples:
+
+```
+ckan://dati.gov.it/dataset/vaccini-covid
+ckan://demo.ckan.org/resource/abc-123
+ckan://data.gov/organization/sample-org
+```
 
 ## Usage Examples
 

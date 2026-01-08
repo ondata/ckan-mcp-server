@@ -68,7 +68,7 @@ npm run dev
 The project uses **esbuild** for compilation and **vitest** for testing:
 
 - **Build**: Ultra-fast builds (milliseconds instead of minutes)
-- **Tests**: 79 tests (unit + integration) with 100% success rate
+- **Tests**: 101 tests (unit + integration) with 100% success rate
 - **Coverage**: Available via vitest with v8 coverage engine
 
 The `build:tsc` script is available as a fallback but can cause memory issues in some environments (particularly WSL). Always use `npm run build` which uses esbuild.
@@ -83,18 +83,20 @@ The project has a comprehensive test suite using **Vitest**:
 tests/
 ├── unit/
 │   ├── formatting.test.ts    # Utility functions (19 tests)
-│   └── http.test.ts           # HTTP client (6 tests)
+│   ├── http.test.ts           # HTTP client (6 tests)
+│   └── uri.test.ts            # URI parsing (11 tests)
 ├── integration/
 │   ├── package.test.ts        # Package tools (29 tests)
 │   ├── organization.test.ts   # Organization tools (6 tests)
 │   ├── datastore.test.ts      # DataStore tools (17 tests)
+│   ├── resources.test.ts      # MCP Resources (11 tests)
 │   └── status.test.ts         # Status tools (2 tests)
 └── fixtures/
     ├── responses/             # Success response mocks
     └── errors/                # Error scenario mocks
 ```
 
-**Test Coverage**: 79 tests total (25 unit + 54 integration)
+**Test Coverage**: 101 tests total (36 unit + 65 integration)
 
 When making changes:
 1. Run tests before committing: `npm test`
@@ -110,7 +112,7 @@ The server is implemented with a modular structure to improve maintainability an
 
 ```
 src/
-├── index.ts              # Entry point (39 lines)
+├── index.ts              # Entry point (42 lines)
 ├── server.ts             # MCP server setup (12 lines)
 ├── types.ts              # Types & schemas (16 lines)
 ├── utils/
@@ -121,12 +123,18 @@ src/
 │   ├── organization.ts   # Organization tools (341 lines)
 │   ├── datastore.ts      # DataStore tools (146 lines)
 │   └── status.ts         # Status tools (66 lines)
+├── resources/            # MCP Resource Templates
+│   ├── index.ts          # Resource registration (19 lines)
+│   ├── uri.ts            # URI parsing utilities (50 lines)
+│   ├── dataset.ts        # Dataset resource (56 lines)
+│   ├── resource.ts       # Resource resource (56 lines)
+│   └── organization.ts   # Organization resource (58 lines)
 └── transport/
     ├── stdio.ts          # Stdio transport (12 lines)
     └── http.ts           # HTTP transport (27 lines)
 ```
 
-**Total**: 1097 lines (modularized from single file of 1021 lines)
+**Total**: ~1350 lines (including new resources module)
 
 The server (`src/index.ts`):
 
@@ -141,11 +149,16 @@ The server (`src/index.ts`):
    - `tools/datastore.ts`: `ckan_datastore_search`
    - `tools/status.ts`: `ckan_status_show`
 
-3. **Utility Functions** (`utils/`)
+3. **MCP Resource Templates** (`resources/`)
+   - `ckan://{server}/dataset/{id}` - Dataset metadata
+   - `ckan://{server}/resource/{id}` - Resource metadata
+   - `ckan://{server}/organization/{name}` - Organization metadata
+
+4. **Utility Functions** (`utils/`)
    - `http.ts`: `makeCkanRequest<T>()` - HTTP client for CKAN API v3
    - `formatting.ts`: `truncateText()`, `formatDate()`, `formatBytes()`
 
-4. **Type Definitions** (`types.ts`)
+5. **Type Definitions** (`types.ts`)
    - `ResponseFormat` enum (MARKDOWN, JSON)
    - `ResponseFormatSchema` Zod validator
    - `CHARACTER_LIMIT` constant

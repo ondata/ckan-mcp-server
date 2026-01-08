@@ -2,7 +2,22 @@
 
 ## 2026-01-08
 
-### Version 0.2.0 🎉
+### Version 0.3.0
+- **MCP Resource Templates**: Direct data access via `ckan://` URI scheme
+  - `ckan://{server}/dataset/{id}` - Dataset metadata
+  - `ckan://{server}/resource/{id}` - Resource metadata
+  - `ckan://{server}/organization/{name}` - Organization metadata
+  - New `src/resources/` module (5 files, ~240 lines)
+- **Tests**: 101 tests total (was 79), 100% passing
+- **Cleanup**: Removed `src/index-old.ts`, standardized to English
+
+### Project Evaluation
+- **Overall Rating**: 8.5/10 - Production-ready with excellent architecture
+- **Strengths**: Clean modular structure, comprehensive testing (79 tests), fast build system
+- **Areas for improvement**: Add caching layer
+- See `docs/evaluation-v0.2.0.md` for full assessment
+
+### Version 0.2.0
 - **Test Suite**: Added comprehensive automated testing infrastructure
   - **79 tests total**: 100% passing
   - **Unit tests** (25): formatting utilities, HTTP client
@@ -20,10 +35,10 @@
 
 ## 2026-01-08 (earlier)
 
-### Code Refactoring ✨
-- **Major refactoring**: Ristrutturato codebase da file monolitico a struttura modulare
-  - **Before**: 1 file (`src/index.ts`) - 1021 righe
-  - **After**: 11 moduli organizzati - 1097 righe totali
+### Code Refactoring
+- **Major refactoring**: Restructured codebase from monolithic file to modular structure
+  - **Before**: 1 file (`src/index.ts`) - 1021 lines
+  - **After**: 11 organized modules - 1097 total lines
   - **Structure**:
     ```
     src/
@@ -43,33 +58,33 @@
         └── http.ts
     ```
   - **Benefits**:
-    - File più piccoli (max 350 righe vs 1021)
-    - Modifiche localizzate e sicure
-    - Testing isolato possibile
-    - Manutenzione semplificata
+    - Smaller files (max 350 lines vs 1021)
+    - Localized and safe changes
+    - Isolated testing possible
+    - Simplified maintenance
     - Zero breaking changes
-  - **Performance**: Build time 16ms, bundle 33KB (invariato)
-  - **Testing**: ✅ Tutti i 7 tool funzionanti
+  - **Performance**: Build time 16ms, bundle 33KB (unchanged)
+  - **Testing**: All 7 tools working
 
-### Documentation Updates 📚
-- Created `REFACTORING.md` - Documentazione completa del refactoring
-- Updated `CLAUDE.md` - Aggiornato con nuova struttura modulare
-- Updated `PRD.md` - Aggiunto requisito npm publication
-  - Goal: Installazione semplice come PyPI in Python
+### Documentation Updates
+- Created `REFACTORING.md` - Complete refactoring documentation
+- Updated `CLAUDE.md` - Updated with new modular structure
+- Updated `PRD.md` - Added npm publication requirement
+  - Goal: Simple installation like PyPI in Python
   - `npm install -g ckan-mcp-server`
   - `npx ckan-mcp-server`
 
-### Testing 🧪
-- **Comprehensive testing** su https://www.dati.gov.it/opendata
-  - ✅ Server status: CKAN 2.10.3, 66,937 datasets
-  - ✅ COVID search: 90 datasets trovati
-  - ✅ Organization search: Regione Toscana (10,988 datasets)
-  - ✅ Faceting statistics: Top orgs, formats, tags
-  - ✅ Dataset details: Vaccini COVID-19 2024 (Puglia)
-  - Response times: 3-5 secondi (network + CKAN API)
+### Testing
+- **Comprehensive testing** on https://www.dati.gov.it/opendata
+  - Server status: CKAN 2.10.3, 66,937 datasets
+  - COVID search: 90 datasets found
+  - Organization search: Regione Toscana (10,988 datasets)
+  - Faceting statistics: Top orgs, formats, tags
+  - Dataset details: Vaccini COVID-19 2024 (Puglia)
+  - Response times: 3-5 seconds (network + CKAN API)
   - All 7 tools working perfectly
 
-### Status: Production Ready 🚀
+### Status: Production Ready
 - Code refactored and modular
 - Fully tested and functional
 - Documentation complete
@@ -77,11 +92,11 @@
 
 ## 2026-01-07
 
-- **Nuovo tool**: `ckan_organization_search` - ricerca organizzazioni per pattern nome
-  - Input semplice: solo `pattern` (wildcard automatici)
-  - Output: solo organizzazioni matchate (zero dataset scaricati)
-  - Efficiente: filtraggio lato server, risparmio token
-  - Esempio: pattern "toscana" → 2 org, 11K dataset totali
+- **New tool**: `ckan_organization_search` - search organizations by name pattern
+  - Simple input: only `pattern` (automatic wildcards)
+  - Output: only matching organizations (zero datasets downloaded)
+  - Efficient: server-side filtering, token savings
+  - Example: pattern "toscana" -> 2 orgs, 11K total datasets
 - Initial release
 - MCP server for CKAN open data portals
 - 7 tools: package_search, package_show, organization_list, organization_show, organization_search, datastore_search, status_show

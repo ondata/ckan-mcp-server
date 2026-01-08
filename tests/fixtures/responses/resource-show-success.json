@@ -1,0 +1,21 @@
+{
+  "help": "http://demo.ckan.org/api/3/action/help_show?name=resource_show",
+  "success": true,
+  "result": {
+    "id": "res-1",
+    "name": "example-resource.csv",
+    "url": "http://example.com/resource.csv",
+    "format": "CSV",
+    "description": "Example CSV resource with tabular data",
+    "size": 10240,
+    "mimetype": "text/csv",
+    "hash": "abc123def456",
+    "created": "2024-01-01T10:00:00Z",
+    "last_modified": "2024-01-15T15:30:00Z",
+    "state": "active",
+    "package_id": "pkg-1",
+    "resource_type": "file",
+    "position": 0,
+    "datastore_active": true
+  }
+}

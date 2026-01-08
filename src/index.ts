@@ -12,6 +12,7 @@ import { registerPackageTools } from "./tools/package.js";
 import { registerOrganizationTools } from "./tools/organization.js";
 import { registerDatastoreTools } from "./tools/datastore.js";
 import { registerStatusTools } from "./tools/status.js";
+import { registerAllResources } from "./resources/index.js";
 import { runStdio } from "./transport/stdio.js";
 import { runHTTP } from "./transport/http.js";
 
@@ -23,6 +24,9 @@ registerPackageTools(server);
 registerOrganizationTools(server);
 registerDatastoreTools(server);
 registerStatusTools(server);
+
+// Register all resources
+registerAllResources(server);
 
 // Choose transport based on environment
 const transport = process.env.TRANSPORT || 'stdio';
