@@ -64,7 +64,7 @@ ckan_group_show({
 
 - [x] Remove `src/index-old.ts`
 - [x] Standardize language to English throughout
-- [ ] Fix README project structure section
+- [x] Fix README project structure section
 
 ### Configuration
 

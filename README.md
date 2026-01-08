@@ -206,12 +206,30 @@ fq: "metadata_modified:[2023-01-01T00:00:00Z TO *]"
 ```
 ckan-mcp-server/
 ├── src/
-│   └── index.ts          # MCP server implementation
+│   ├── index.ts          # Entry point
+│   ├── server.ts         # MCP server setup
+│   ├── types.ts          # Types & schemas
+│   ├── utils/
+│   │   ├── http.ts       # CKAN API client
+│   │   └── formatting.ts # Output formatting
+│   ├── tools/
+│   │   ├── package.ts    # Package search/show
+│   │   ├── organization.ts # Organization tools
+│   │   ├── datastore.ts  # DataStore queries
+│   │   └── status.ts     # Server status
+│   ├── resources/        # MCP Resource Templates
+│   │   ├── index.ts
+│   │   ├── uri.ts        # URI parsing
+│   │   ├── dataset.ts
+│   │   ├── resource.ts
+│   │   └── organization.ts
+│   └── transport/
+│       ├── stdio.ts      # Stdio transport
+│       └── http.ts       # HTTP transport
+├── tests/                # Test suite (101 tests)
 ├── dist/                 # Compiled files (generated)
-├── package.json          # npm dependencies
-├── tsconfig.json         # TypeScript configuration
-├── README.md             # This file
-└── SKILL.md             # Detailed skill documentation
+├── package.json
+└── README.md
 ```
 
 ## Development
