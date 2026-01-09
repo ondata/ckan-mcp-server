@@ -1,5 +1,28 @@
 # LOG
 
+## 2026-01-09
+
+### Documentation Enhancement - Advanced Solr Queries
+- **Tool Description**: Enhanced `ckan_package_search` tool description with comprehensive Solr query syntax
+  - Added boolean operators (AND, OR, NOT, +, -, grouping)
+  - Added wildcards, fuzzy search, proximity search
+  - Added range queries (inclusive/exclusive bounds)
+  - Added date math (NOW-1YEAR, NOW/DAY, etc.)
+  - Added field existence checks
+  - Added boosting/relevance scoring (^, ^=)
+  - 15+ inline examples in tool description
+- **EXAMPLES.md**: New "Advanced Solr Query Features" section (~280 lines)
+  - Fuzzy search examples (edit distance matching)
+  - Proximity search (words within N positions)
+  - Boosting examples (relevance scoring)
+  - Field existence checks
+  - Date math with relative dates
+  - Complex nested queries
+  - Range queries with different bounds
+  - Wildcard patterns
+  - Practical advanced examples
+- **Impact**: LLMs calling MCP server now have comprehensive query syntax reference
+
 ## 2026-01-08
 
 ### Configuration & URL Management
