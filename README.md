@@ -16,6 +16,14 @@ MCP (Model Context Protocol) server for interacting with CKAN-based open data po
 
 ## Installation
 
+### From npm (recommended)
+
+```bash
+npm install ckan-mcp-server
+```
+
+### From source
+
 ```bash
 # Clone or copy the project
 cd ckan-mcp-server
@@ -48,22 +56,68 @@ The server will be available at `http://localhost:3000/mcp`
 
 ## Claude Desktop Configuration
 
-Add to Claude Desktop configuration file (`claude_desktop_config.json`):
+Configuration file location:
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
+
+### Option 1: Global Installation (Recommended)
+
+Install globally to use across all projects:
+
+```bash
+npm install -g @aborruso/ckan-mcp-server
+```
+
+Then add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "ckan": {
+      "command": "ckan-mcp-server"
+    }
+  }
+}
+```
+
+### Option 2: Local Installation
+
+Install in a specific project:
+
+```bash
+npm install @aborruso/ckan-mcp-server
+```
+
+Then add to `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "ckan": {
       "command": "node",
-      "args": ["/path/to/ckan-mcp-server/dist/index.js"]
+      "args": ["/absolute/path/to/project/node_modules/@aborruso/ckan-mcp-server/dist/index.js"]
     }
   }
 }
 ```
 
-Su macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-Su Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-Su Linux: `~/.config/Claude/claude_desktop_config.json`
+Replace `/absolute/path/to/project` with your actual project path.
+
+### Option 3: From Source
+
+If you cloned the repository:
+
+```json
+{
+  "mcpServers": {
+    "ckan": {
+      "command": "node",
+      "args": ["/absolute/path/to/ckan-mcp-server/dist/index.js"]
+    }
+  }
+}
+```
 
 ## Available Tools
 
@@ -439,7 +493,7 @@ Contributions are welcome! Please:
 
 ## License
 
-MIT License - See SKILL.md file for complete details.
+MIT License - See LICENSE.txt file for complete details.
 
 ## Useful Links
 

@@ -2,6 +2,17 @@
 
 ## 2026-01-09
 
+### NPM Global Installation Support
+- **package.json**: Added `bin` field for global command support
+  - Users can now install globally: `npm install -g @aborruso/ckan-mcp-server`
+  - Direct command: `ckan-mcp-server` (no need for node path)
+- **README.md**: Enhanced Claude Desktop configuration section
+  - Option 1: Global installation (recommended) - single command
+  - Option 2: Local installation - project-specific
+  - Option 3: From source - development
+  - Clear path instructions for all platforms (macOS, Windows, Linux)
+- **Impact**: Simplified setup for end users, better npm ecosystem integration
+
 ### README Enhancement - Real-World Advanced Examples
 - **New Section**: "Advanced Query Examples" in README.md
   - 4 real-world examples tested on dati.gov.it portal

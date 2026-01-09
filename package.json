@@ -1,9 +1,12 @@
 {
-  "name": "ckan-mcp-server",
-  "version": "0.3.1",
+  "name": "@aborruso/ckan-mcp-server",
+  "version": "0.3.2",
   "description": "MCP server for interacting with CKAN open data portals",
   "main": "dist/index.js",
   "type": "module",
+  "bin": {
+    "ckan-mcp-server": "dist/index.js"
+  },
   "scripts": {
     "build": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dist/index.js --external:@modelcontextprotocol/sdk --external:axios --external:express --external:zod",
     "build:tsc": "node --max-old-space-size=8192 ./node_modules/typescript/bin/tsc",
@@ -21,7 +24,7 @@
     "api",
     "data-portal"
   ],
-  "author": "onData",
+  "author": "Andrea Borruso <aborruso@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
@@ -36,6 +39,9 @@
     "esbuild": "^0.27.2",
     "typescript": "^5.4.5",
     "vitest": "^4.0.16"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "engines": {
     "node": ">=18.0.0"
