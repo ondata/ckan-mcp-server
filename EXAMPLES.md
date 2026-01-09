@@ -285,6 +285,287 @@ ckan_package_search({
 })
 ```
 
+## Advanced Solr Query Features
+
+CKAN uses Apache Solr for search. The `q` parameter supports advanced Solr query syntax including fuzzy matching, proximity search, boosting, and complex boolean logic.
+
+### Fuzzy Search
+
+Find terms with similar spelling (edit distance matching). Useful for typos or variations.
+
+```typescript
+// Find datasets with title similar to "environment" (e.g., "enviroment", "environnement")
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "title:environment~2",
+  rows: 20
+})
+```
+
+```typescript
+// Fuzzy search on multiple fields
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "title:health~1 OR notes:sanità~1",
+  rows: 20
+})
+```
+
+### Proximity Search
+
+Find phrases where words appear within N positions of each other.
+
+```typescript
+// Find "climate" and "change" within 5 words of each other in notes
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "notes:\"climate change\"~5",
+  rows: 20
+})
+```
+
+```typescript
+// Proximity search in title
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "title:\"open data\"~3",
+  rows: 20
+})
+```
+
+### Boosting (Relevance Scoring)
+
+Control which terms have more weight in scoring results.
+
+```typescript
+// Prioritize matches in title over notes
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "title:climate^2 OR notes:climate",
+  sort: "score desc",
+  rows: 20
+})
+```
+
+```typescript
+// Complex boosting with multiple fields
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "title:water^3 OR notes:water^1.5 OR tags:water",
+  sort: "score desc",
+  rows: 20
+})
+```
+
+```typescript
+// Constant score boosting
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "title:environment^=2.0 OR notes:sustainability^=1.0",
+  rows: 20
+})
+```
+
+### Field Existence Checks
+
+Find datasets where specific fields exist or don't exist.
+
+```typescript
+// Find datasets that have organization set
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "organization:*",
+  rows: 20
+})
+```
+
+```typescript
+// Find datasets with at least one resource
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "num_resources:[1 TO *]",
+  rows: 20
+})
+```
+
+```typescript
+// Find datasets WITHOUT a specific field
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "*:* AND NOT author:*",
+  rows: 20
+})
+```
+
+### Date Math
+
+Use relative dates for dynamic queries.
+
+```typescript
+// Datasets created in the last year
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "metadata_created:[NOW-1YEAR TO NOW]",
+  sort: "metadata_created desc",
+  rows: 20
+})
+```
+
+```typescript
+// Datasets modified in the last 6 months
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "metadata_modified:[NOW-6MONTHS TO NOW]",
+  rows: 20
+})
+```
+
+```typescript
+// Datasets created today
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "metadata_created:[NOW/DAY TO NOW]",
+  rows: 20
+})
+```
+
+```typescript
+// Datasets modified between 2 months ago and 1 month ago
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "metadata_modified:[NOW-2MONTHS TO NOW-1MONTH]",
+  rows: 20
+})
+```
+
+### Complex Nested Queries
+
+Combine multiple operators for sophisticated searches.
+
+```typescript
+// Find water or climate datasets, excluding those about sea, with recent modifications
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "(title:water^2 OR title:climate^2) AND NOT title:sea AND metadata_modified:[NOW-1YEAR TO *]",
+  sort: "metadata_modified desc",
+  rows: 20
+})
+```
+
+```typescript
+// Find health datasets with specific resource count range
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "(title:health OR title:sanità) AND num_resources:[5 TO 50]",
+  rows: 20
+})
+```
+
+```typescript
+// PNRR datasets modified in specific date range with boosting
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "(title:pnrr^3 OR notes:pnrr^1.5 OR tags:pnrr) AND metadata_modified:[2025-07-01T00:00:00Z TO 2025-10-31T23:59:59Z]",
+  sort: "score desc, metadata_modified desc",
+  rows: 50
+})
+```
+
+### Range Queries with Different Bounds
+
+Use inclusive `[a TO b]` or exclusive `{a TO b}` bounds.
+
+```typescript
+// Inclusive range: datasets with 10 to 50 resources (includes 10 and 50)
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "num_resources:[10 TO 50]",
+  rows: 20
+})
+```
+
+```typescript
+// Exclusive range: datasets with more than 10 but less than 50 resources
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "num_resources:{10 TO 50}",
+  rows: 20
+})
+```
+
+```typescript
+// Mixed bounds: more than 5 resources, up to and including 100
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "num_resources:{5 TO 100]",
+  rows: 20
+})
+```
+
+### Wildcard Patterns
+
+Use `*` for pattern matching within terms.
+
+```typescript
+// Find all terms starting with "popola" (popolazione, popolamento, etc.)
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "popola*",
+  rows: 20
+})
+```
+
+```typescript
+// Wildcard in middle of term
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "title:env*mental",
+  rows: 20
+})
+```
+
+```typescript
+// Combine wildcards with boolean operators
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "title:ambient* OR title:clima*",
+  rows: 20
+})
+```
+
+### Practical Advanced Examples
+
+```typescript
+// Find recent environmental datasets from regional organizations
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "(title:ambiente* OR notes:ambiente*) AND organization:regione* AND metadata_modified:[NOW-6MONTHS TO *]",
+  facet_field: ["organization"],
+  rows: 50
+})
+```
+
+```typescript
+// High-quality datasets: many resources, recently updated, specific topic
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "title:istat AND num_resources:[5 TO *] AND metadata_modified:[NOW-1YEAR TO *]",
+  sort: "num_resources desc, metadata_modified desc",
+  rows: 20
+})
+```
+
+```typescript
+// Datasets with CSV resources, excluding drafts, recent updates
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  fq: "res_format:CSV AND state:active",
+  q: "metadata_modified:[NOW-3MONTHS TO *]",
+  sort: "metadata_modified desc",
+  rows: 30
+})
+```
+
 ## Complete Workflows
 
 ### Workflow 1: Regional Dataset Analysis

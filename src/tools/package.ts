@@ -41,11 +41,56 @@ Returns:
   - facets: Facet counts (if facet_field specified)
   - search_facets: Detailed facet information
 
+Query Syntax (parameter q):
+  Boolean operators:
+    - AND / &&: "water AND climate"
+    - OR / ||: "health OR sanità"
+    - NOT / !: "data NOT personal"
+    - +required -excluded: "+title:water -title:sea"
+    - Grouping: "(title:water OR title:climate) AND tags:environment"
+
+  Wildcards:
+    - *: "title:environment*" (matches environmental, environments, etc.)
+    - Note: Left truncation (*water) not supported
+
+  Fuzzy search (edit distance):
+    - ~: "title:rest~" or "title:rest~1" (finds "test", "best", "rest")
+
+  Proximity search (words within N positions):
+    - "phrase"~N: "title:\"climate change\"~5"
+
+  Range queries:
+    - Inclusive [a TO b]: "num_resources:[5 TO 10]"
+    - Exclusive {a TO b}: "num_resources:{0 TO 100}"
+    - One side open: "metadata_modified:[2024-01-01T00:00:00Z TO *]"
+
+  Date math:
+    - NOW-1YEAR, NOW-6MONTHS, NOW-7DAYS, NOW-1HOUR
+    - NOW/DAY, NOW/MONTH (round down)
+    - Combined: "metadata_modified:[NOW-2MONTHS TO NOW]"
+    - Example: "metadata_created:[NOW-1YEAR TO *]"
+
+  Field existence:
+    - Exists: "field:*" or "field:[* TO *]"
+    - Not exists: "NOT field:*" or "-field:*"
+
+  Boosting (relevance scoring):
+    - Boost term: "title:water^2 OR notes:water" (title matches score higher)
+    - Constant score: "title:water^=1.5"
+
 Examples:
-  - Search all: { server_url: "https://dati.gov.it", q: "*:*" }
-  - By tag: { server_url: "...", q: "tags:sanità" }
-  - Filter org: { server_url: "...", fq: "organization:regione-siciliana" }
-  - Get facets: { server_url: "...", facet_field: ["organization"], rows: 0 }`,
+  - Search all: { q: "*:*" }
+  - By tag: { q: "tags:sanità" }
+  - Boolean: { q: "(title:water OR title:climate) AND NOT title:sea" }
+  - Wildcard: { q: "title:environment*" }
+  - Fuzzy: { q: "title:health~2" }
+  - Proximity: { q: "notes:\"open data\"~3" }
+  - Date range: { q: "metadata_modified:[2024-01-01T00:00:00Z TO 2024-12-31T23:59:59Z]" }
+  - Date math: { q: "metadata_modified:[NOW-6MONTHS TO *]" }
+  - Field exists: { q: "organization:* AND num_resources:[1 TO *]" }
+  - Boosting: { q: "title:climate^2 OR notes:climate" }
+  - Filter org: { fq: "organization:regione-siciliana" }
+  - Get facets: { facet_field: ["organization"], rows: 0 }`,
       inputSchema: z.object({
         server_url: z.string()
           .url("Must be a valid URL")
