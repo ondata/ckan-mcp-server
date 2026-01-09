@@ -172,6 +172,17 @@ Some of the main compatible portals:
 - 🌍 **demo.ckan.org** - CKAN Demo
 - And 500+ more portals worldwide
 
+### Portal View URL Templates
+
+Some CKAN portals expose non-standard web URLs for viewing datasets or organizations. To support those cases, this project ships with `src/portals.json`, which maps known portal API URLs (and aliases) to custom view URL templates.
+
+When generating a dataset or organization view link, the server:
+- matches the `server_url` against `api_url` and `api_url_aliases` in `src/portals.json`
+- uses the portal-specific `dataset_view_url` / `organization_view_url` template when available
+- falls back to the generic defaults (`{server_url}/dataset/{name}` and `{server_url}/organization/{name}`)
+
+You can extend `src/portals.json` by adding new entries under `portals` if a portal uses different web URL patterns.
+
 ## Advanced Solr Queries
 
 CKAN uses Apache Solr for search. Examples:
