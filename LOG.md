@@ -2,6 +2,21 @@
 
 ## 2026-01-10
 
+### Web GUI intelligent tool selection
+- **MCP tool awareness**: Gemini now selects appropriate tool from 15 available
+  - Loads tool list on startup via `tools/list`
+  - Passes available tools to Gemini with descriptions
+  - Gemini chooses tool and generates arguments based on query type
+  - Examples: `ckan_organization_list` for "organizations with most datasets"
+  - `ckan_find_relevant_datasets` for smart searches
+  - `ckan_tag_list` for tag statistics
+- **Multi-type results**: UI handles datasets, organizations, tags
+  - Organization cards show package count
+  - Dataset cards show resources and org name
+  - Status shows tool being used ("Using ckan_organization_list...")
+- **Fallback**: Defaults to `ckan_package_search` if Gemini fails
+- **Fix**: Query "quali organizzazioni con il maggior numero di dataset" now works correctly
+
 ### Web GUI redesign + conversation context
 - **UI redesign**: Dark theme with data editorial aesthetic
   - Typography: DM Serif Display + IBM Plex Sans

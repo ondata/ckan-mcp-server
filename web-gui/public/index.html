@@ -374,7 +374,8 @@
         geminiKey: localStorage.getItem("geminiApiKey") || "",
         busy: false,
         conversationHistory: [],
-        settingsExpanded: false
+        settingsExpanded: false,
+        availableTools: []
       };
 
       elements.endpoint.value = state.endpoint;
@@ -469,6 +470,40 @@
         return card;
       };
 
+      const createOrganizationCard = (org) => {
+        const card = document.createElement("div");
+        card.className = "dataset-card rounded-xl p-5 cursor-pointer";
+        card.style.cssText = "background: var(--bg-secondary);";
+
+        const title = document.createElement("h3");
+        title.className = "text-base font-semibold mb-2";
+        title.style.color = "var(--text-primary)";
+        title.textContent = org.title || org.display_name || org.name || "Organization";
+
+        const desc = document.createElement("p");
+        desc.className = "text-sm mb-3 line-clamp-2";
+        desc.style.color = "var(--text-secondary)";
+        desc.textContent = org.description || "No description available.";
+
+        const meta = document.createElement("div");
+        meta.className = "flex items-center gap-4 text-xs";
+        meta.style.color = "var(--text-muted)";
+
+        const packageCount = org.package_count || org.packages?.length || 0;
+
+        meta.innerHTML = `
+          <span class="flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+            </svg>
+            ${packageCount.toLocaleString()} dataset${packageCount !== 1 ? 's' : ''}
+          </span>
+        `;
+
+        card.append(title, desc, meta);
+        return card;
+      };
+
       const extractStructured = (result) => {
         if (!result) return null;
         if (result.structuredContent) return result.structuredContent;
@@ -519,10 +554,12 @@
       const checkMcp = async () => {
         setStatus("checking", "Checking...");
         try {
-          await callMcp("tools/list", {});
-          setStatus("ok", "Online");
+          const result = await callMcp("tools/list", {});
+          state.availableTools = result.tools || [];
+          setStatus("ok", `Online (${state.availableTools.length} tools)`);
         } catch (error) {
           setStatus("error", "Offline");
+          state.availableTools = [];
         }
       };
 
@@ -549,14 +586,40 @@
         if (!state.geminiKey) {
           throw new Error("Missing Gemini API key");
         }
-        const systemPrompt = "Convert requests to Solr queries for CKAN. Respond only with JSON: {\"q\":\"...\"}. Use conversation context to refine searches.";
+
+        // Build tool list for prompt
+        const toolList = state.availableTools.map(t =>
+          `- ${t.name}: ${t.description?.substring(0, 100) || 'No description'}`
+        ).join('\n');
+
+        const systemPrompt = `You are an assistant for CKAN open data queries.
+Available MCP tools:
+${toolList}
+
+Choose the most appropriate tool and generate its arguments.
+Respond ONLY with JSON in this format:
+{
+  "tool": "tool_name",
+  "arguments": {
+    "server_url": "CKAN_SERVER",
+    ...other params based on tool schema
+  }
+}
+
+For dataset searches use ckan_package_search or ckan_find_relevant_datasets.
+For organization queries use ckan_organization_list, ckan_organization_show, or ckan_organization_search.
+For tags use ckan_tag_list.
+Always include server_url parameter.
+Use conversation context to refine queries.`;
+
         const contents = [
           ...history,
           {
             role: "user",
-            parts: [{ text: `${systemPrompt}\nRequest: ${userQuery}` }]
+            parts: [{ text: `${systemPrompt}\n\nCKAN Server: ${state.ckanServer}\nUser request: ${userQuery}` }]
           }
         ];
+
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.geminiKey}`,
           {
@@ -567,13 +630,15 @@
             },
             body: JSON.stringify({
               contents: contents,
-              generationConfig: { temperature: 0.2, maxOutputTokens: 200 }
+              generationConfig: { temperature: 0.2, maxOutputTokens: 500 }
             })
           }
         );
+
         if (!response.ok) {
           throw new Error(`Gemini HTTP ${response.status}`);
         }
+
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
         const jsonStart = text.indexOf("{");
@@ -581,28 +646,56 @@
         if (jsonStart === -1 || jsonEnd === -1) {
           throw new Error("Invalid Gemini response");
         }
+
         const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
-        if (!parsed.q) {
-          throw new Error("Gemini did not return q");
+        if (!parsed.tool || !parsed.arguments) {
+          throw new Error("Gemini did not return tool and arguments");
         }
-        return parsed.q;
+
+        return parsed;
       };
 
       const runSearch = async (query) => {
-        const normalizedQuery = normalizeQuery(query);
-        const solrQuery = await callGemini(query, state.conversationHistory).catch(() => normalizedQuery);
-        setToolStatus("⚡ Searching datasets...");
+        // Try Gemini to select tool and arguments
+        let toolCall;
+        try {
+          toolCall = await callGemini(query, state.conversationHistory);
+        } catch (error) {
+          // Fallback: use ckan_package_search with normalized query
+          const normalizedQuery = normalizeQuery(query);
+          toolCall = {
+            tool: "ckan_package_search",
+            arguments: {
+              server_url: state.ckanServer,
+              q: normalizedQuery,
+              rows: 5,
+              response_format: "json"
+            }
+          };
+        }
+
+        // Ensure server_url is set
+        if (!toolCall.arguments.server_url) {
+          toolCall.arguments.server_url = state.ckanServer;
+        }
+
+        // Ensure response_format is json for programmatic parsing
+        if (!toolCall.arguments.response_format) {
+          toolCall.arguments.response_format = "json";
+        }
+
+        setToolStatus(`⚡ Using ${toolCall.tool}...`);
         const result = await callMcp("tools/call", {
-          name: "ckan_package_search",
-          arguments: {
-            server_url: state.ckanServer,
-            q: solrQuery,
-            rows: 5,
-            response_format: "json"
-          }
+          name: toolCall.tool,
+          arguments: toolCall.arguments
         });
         setToolStatus("");
-        return extractStructured(result);
+
+        const data = extractStructured(result);
+        return {
+          tool: toolCall.tool,
+          data: data
+        };
       };
 
       const handleSend = async () => {
@@ -622,8 +715,10 @@
         });
 
         try {
-          const data = await runSearch(query);
-          if (!data || !Array.isArray(data.results)) {
+          const response = await runSearch(query);
+          const { tool, data } = response;
+
+          if (!data) {
             addMessage("assistant", "No results found.");
             state.conversationHistory.push({
               role: "model",
@@ -635,19 +730,40 @@
           const container = document.createElement("div");
           container.className = "flex flex-col gap-3";
 
-          const summary = document.createElement("p");
-          summary.className = "text-sm font-medium mb-1";
-          summary.style.color = "var(--primary)";
-          summary.textContent = `📊 Found ${data.count ?? data.results.length} dataset${(data.count ?? data.results.length) !== 1 ? 's' : ''}`;
-          container.appendChild(summary);
+          // Handle different tool types
+          if (tool.includes("organization")) {
+            // Organization tools
+            const items = data.results || data || [];
+            const summary = document.createElement("p");
+            summary.className = "text-sm font-medium mb-1";
+            summary.style.color = "var(--primary)";
+            summary.textContent = `🏢 Found ${data.count ?? items.length} organization${(data.count ?? items.length) !== 1 ? 's' : ''}`;
+            container.appendChild(summary);
 
-          data.results.forEach((dataset) => container.appendChild(createDatasetCard(dataset)));
-          addMessage("assistant", container);
+            items.slice(0, 10).forEach((org) => container.appendChild(createOrganizationCard(org)));
+            addMessage("assistant", container);
 
-          state.conversationHistory.push({
-            role: "model",
-            parts: [{ text: `Found ${data.count ?? data.results.length} datasets for "${query}"` }]
-          });
+            state.conversationHistory.push({
+              role: "model",
+              parts: [{ text: `Found ${data.count ?? items.length} organizations for "${query}"` }]
+            });
+          } else {
+            // Dataset tools (package_search, find_relevant_datasets, etc.)
+            const items = data.results || data || [];
+            const summary = document.createElement("p");
+            summary.className = "text-sm font-medium mb-1";
+            summary.style.color = "var(--primary)";
+            summary.textContent = `📊 Found ${data.count ?? items.length} dataset${(data.count ?? items.length) !== 1 ? 's' : ''}`;
+            container.appendChild(summary);
+
+            items.slice(0, 10).forEach((dataset) => container.appendChild(createDatasetCard(dataset)));
+            addMessage("assistant", container);
+
+            state.conversationHistory.push({
+              role: "model",
+              parts: [{ text: `Found ${data.count ?? items.length} datasets for "${query}"` }]
+            });
+          }
         } catch (error) {
           addMessage("assistant", `❌ Error: ${error.message || "Could not contact MCP"}`);
           state.conversationHistory.push({
