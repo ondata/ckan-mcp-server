@@ -5,6 +5,7 @@
 ### Web GUI chat MVP
 - **Web GUI**: Replaced landing with MCP-backed chat UI (vanilla + Tailwind)
 - **MCP**: Added JSON-RPC search flow with dataset cards
+- **Fix**: Added `Accept` header for MCP 406 requirement
 
 ### Web GUI landing + Pages deploy
 - **Web GUI**: Added static landing page in `web-gui/public`
