@@ -6,6 +6,8 @@
 - **Web GUI**: Replaced landing with MCP-backed chat UI (vanilla + Tailwind)
 - **MCP**: Added JSON-RPC search flow with dataset cards
 - **Fix**: Added `Accept` header for MCP 406 requirement
+- **Fix**: Normalize natural-language queries before search
+- **Gemini**: Added API key input and NL→Solr query call
 
 ### Web GUI landing + Pages deploy
 - **Web GUI**: Added static landing page in `web-gui/public`

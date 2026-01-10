@@ -21,7 +21,7 @@
             <span id="status-text" class="text-slate-500">Verifica MCP...</span>
           </div>
         </div>
-        <div class="grid gap-4 md:grid-cols-2">
+        <div class="grid gap-4 md:grid-cols-3">
           <label class="flex flex-col gap-2 text-sm font-medium">
             Endpoint MCP
             <input
@@ -38,6 +38,15 @@
               placeholder="https://www.dati.gov.it/opendata"
             />
           </label>
+          <label class="flex flex-col gap-2 text-sm font-medium">
+            API key Gemini
+            <input
+              id="gemini-key"
+              type="password"
+              class="rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              placeholder="AIza..."
+            />
+          </label>
         </div>
         <div class="flex flex-wrap items-center justify-between gap-4 text-sm">
           <button
@@ -47,7 +56,7 @@
             Applica impostazioni
           </button>
           <p class="text-slate-500">
-            Nessuna integrazione Gemini: solo MCP JSON-RPC.
+            Query in linguaggio naturale via Gemini 2.5 Flash.
           </p>
         </div>
       </header>
@@ -87,6 +96,7 @@
       const elements = {
         endpoint: document.getElementById("mcp-endpoint"),
         ckan: document.getElementById("ckan-server"),
+        geminiKey: document.getElementById("gemini-key"),
         save: document.getElementById("save-settings"),
         statusDot: document.getElementById("status-dot"),
         statusText: document.getElementById("status-text"),
@@ -99,11 +109,13 @@
       const state = {
         endpoint: localStorage.getItem("mcpEndpoint") || DEFAULT_ENDPOINT,
         ckanServer: localStorage.getItem("ckanServer") || DEFAULT_CKAN,
+        geminiKey: localStorage.getItem("geminiApiKey") || "",
         busy: false
       };
 
       elements.endpoint.value = state.endpoint;
       elements.ckan.value = state.ckanServer;
+      elements.geminiKey.value = state.geminiKey;
 
       const setStatus = (status, text) => {
         elements.statusText.textContent = text;
@@ -223,13 +235,102 @@
         }
       };
 
+      const stopwords = new Set([
+        "a",
+        "al",
+        "allo",
+        "alla",
+        "alle",
+        "ai",
+        "agli",
+        "da",
+        "dal",
+        "dallo",
+        "dalla",
+        "delle",
+        "dei",
+        "del",
+        "della",
+        "di",
+        "e",
+        "ed",
+        "il",
+        "lo",
+        "la",
+        "le",
+        "i",
+        "gli",
+        "in",
+        "su",
+        "per",
+        "con",
+        "che",
+        "quali",
+        "quale",
+        "quanti",
+        "quanto",
+        "tema",
+        "dataset"
+      ]);
+
+      const normalizeQuery = (query) => {
+        if (/["*:]|\bAND\b|\bOR\b|\bNOT\b/i.test(query)) {
+          return query;
+        }
+        const tokens = query
+          .toLowerCase()
+          .match(/[\p{L}\p{N}]+/gu)
+          ?.filter((token) => token.length > 1 && !stopwords.has(token));
+        if (!tokens || tokens.length === 0) return "*:*";
+        return tokens.join(" ");
+      };
+
+      const callGemini = async (userQuery) => {
+        if (!state.geminiKey) {
+          throw new Error("API key Gemini mancante");
+        }
+        const prompt = `Converti la richiesta in una query Solr per CKAN. Rispondi solo con JSON: {"q":"..."}.
+Richiesta: ${userQuery}`;
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.geminiKey}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json"
+            },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.2, maxOutputTokens: 200 }
+            })
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`Gemini HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        const jsonStart = text.indexOf("{");
+        const jsonEnd = text.lastIndexOf("}");
+        if (jsonStart === -1 || jsonEnd === -1) {
+          throw new Error("Risposta Gemini non valida");
+        }
+        const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+        if (!parsed.q) {
+          throw new Error("Gemini non ha restituito q");
+        }
+        return parsed.q;
+      };
+
       const runSearch = async (query) => {
+        const normalizedQuery = normalizeQuery(query);
+        const solrQuery = await callGemini(query).catch(() => normalizedQuery);
         setToolStatus("Uso tool: ckan_package_search");
         const result = await callMcp("tools/call", {
           name: "ckan_package_search",
           arguments: {
             server_url: state.ckanServer,
-            q: query,
+            q: solrQuery,
             rows: 5,
             response_format: "json"
           }
@@ -278,8 +379,10 @@
       elements.save.addEventListener("click", async () => {
         state.endpoint = elements.endpoint.value.trim() || DEFAULT_ENDPOINT;
         state.ckanServer = elements.ckan.value.trim() || DEFAULT_CKAN;
+        state.geminiKey = elements.geminiKey.value.trim();
         localStorage.setItem("mcpEndpoint", state.endpoint);
         localStorage.setItem("ckanServer", state.ckanServer);
+        localStorage.setItem("geminiApiKey", state.geminiKey);
         await checkMcp();
       });
 
