@@ -74,6 +74,8 @@ Use the public Workers endpoint (no local install required):
 }
 ```
 
+**NOTE**: This service uses the Cloudflare Workers free tier which has a limit of 100,000 requests per month.
+
 Want your own deployment? See [DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ### Claude Desktop Configuration
@@ -149,6 +151,8 @@ Use the public Cloudflare Workers deployment (no local installation required):
   }
 }
 ```
+
+**NOTE**: This service uses the Cloudflare Workers free tier which has a limit of 100,000 requests per month.
 
 **Note**: This uses the public endpoint. You can also deploy your own Workers instance and use that URL instead.
 
