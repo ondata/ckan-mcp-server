@@ -556,8 +556,10 @@
         try {
           const result = await callMcp("tools/list", {});
           state.availableTools = result.tools || [];
+          console.log("Available MCP tools:", state.availableTools.map(t => t.name));
           setStatus("ok", `Online (${state.availableTools.length} tools)`);
         } catch (error) {
+          console.error("MCP check error:", error);
           setStatus("error", "Offline");
           state.availableTools = [];
         }
@@ -641,14 +643,21 @@ Use conversation context to refine queries.`;
 
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+        console.log("Gemini raw response:", text);
         const jsonStart = text.indexOf("{");
         const jsonEnd = text.lastIndexOf("}");
         if (jsonStart === -1 || jsonEnd === -1) {
+          console.error("No JSON found in Gemini response");
           throw new Error("Invalid Gemini response");
         }
 
-        const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+        const jsonText = text.slice(jsonStart, jsonEnd + 1);
+        console.log("Extracted JSON:", jsonText);
+        const parsed = JSON.parse(jsonText);
+        console.log("Parsed Gemini response:", parsed);
+
         if (!parsed.tool || !parsed.arguments) {
+          console.error("Missing tool or arguments in response");
           throw new Error("Gemini did not return tool and arguments");
         }
 
@@ -660,7 +669,9 @@ Use conversation context to refine queries.`;
         let toolCall;
         try {
           toolCall = await callGemini(query, state.conversationHistory);
+          console.log("Gemini selected tool:", toolCall);
         } catch (error) {
+          console.error("Gemini error:", error);
           // Fallback: use ckan_package_search with normalized query
           const normalizedQuery = normalizeQuery(query);
           toolCall = {
@@ -672,6 +683,7 @@ Use conversation context to refine queries.`;
               response_format: "json"
             }
           };
+          console.log("Using fallback tool:", toolCall);
         }
 
         // Ensure server_url is set
@@ -684,14 +696,17 @@ Use conversation context to refine queries.`;
           toolCall.arguments.response_format = "json";
         }
 
+        console.log("Final tool call:", toolCall);
         setToolStatus(`⚡ Using ${toolCall.tool}...`);
         const result = await callMcp("tools/call", {
           name: toolCall.tool,
           arguments: toolCall.arguments
         });
+        console.log("MCP result:", result);
         setToolStatus("");
 
         const data = extractStructured(result);
+        console.log("Extracted data:", data);
         return {
           tool: toolCall.tool,
           data: data
