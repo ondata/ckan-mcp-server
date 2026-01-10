@@ -9,6 +9,121 @@ import { truncateText, formatDate } from "../utils/formatting.js";
 import { getDatasetViewUrl } from "../utils/url-generator.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
+type RelevanceWeights = {
+  title: number;
+  notes: number;
+  tags: number;
+  organization: number;
+};
+
+type RelevanceBreakdown = {
+  title: number;
+  notes: number;
+  tags: number;
+  organization: number;
+  total: number;
+};
+
+const DEFAULT_RELEVANCE_WEIGHTS: RelevanceWeights = {
+  title: 4,
+  notes: 2,
+  tags: 3,
+  organization: 1
+};
+
+const QUERY_STOPWORDS = new Set([
+  "a",
+  "an",
+  "the",
+  "and",
+  "or",
+  "but",
+  "in",
+  "on",
+  "at",
+  "to",
+  "for",
+  "of",
+  "with",
+  "by",
+  "from",
+  "as",
+  "is",
+  "was",
+  "are",
+  "were",
+  "be",
+  "been",
+  "being",
+  "have",
+  "has",
+  "had",
+  "do",
+  "does",
+  "did",
+  "will",
+  "would",
+  "could",
+  "should",
+  "may",
+  "might",
+  "must",
+  "can",
+  "this",
+  "that",
+  "these",
+  "those"
+]);
+
+const extractQueryTerms = (query: string): string[] => {
+  const matches = query.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
+  const terms = matches.filter((term) => term.length > 1 && !QUERY_STOPWORDS.has(term));
+  return Array.from(new Set(terms));
+};
+
+const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const textMatchesTerms = (text: string | undefined, terms: string[]): boolean => {
+  if (!text || terms.length === 0) return false;
+  const normalized = text.toLowerCase().replace(/_/g, " ");
+  return terms.some((term) => new RegExp(`\\b${escapeRegExp(term)}\\b`, "i").test(normalized));
+};
+
+const scoreTextField = (text: string | undefined, terms: string[], weight: number): number => {
+  return textMatchesTerms(text, terms) ? weight : 0;
+};
+
+export const scoreDatasetRelevance = (
+  query: string,
+  dataset: any,
+  weights: RelevanceWeights = DEFAULT_RELEVANCE_WEIGHTS
+): { total: number; breakdown: RelevanceBreakdown; terms: string[] } => {
+  const terms = extractQueryTerms(query);
+  const titleText = dataset.title || dataset.name || "";
+  const notesText = dataset.notes || "";
+  const orgText = dataset.organization?.title || dataset.organization?.name || dataset.owner_org || "";
+
+  const breakdown = {
+    title: scoreTextField(titleText, terms, weights.title),
+    notes: scoreTextField(notesText, terms, weights.notes),
+    tags: 0,
+    organization: scoreTextField(orgText, terms, weights.organization),
+    total: 0
+  };
+
+  if (Array.isArray(dataset.tags) && dataset.tags.length > 0 && terms.length > 0) {
+    const tagMatch = dataset.tags.some((tag: any) => {
+      const tagValue = typeof tag === "string" ? tag : tag?.name;
+      return textMatchesTerms(tagValue, terms);
+    });
+    breakdown.tags = tagMatch ? weights.tags : 0;
+  }
+
+  breakdown.total = breakdown.title + breakdown.notes + breakdown.tags + breakdown.organization;
+
+  return { total: breakdown.total, breakdown, terms };
+};
+
 export function registerPackageTools(server: McpServer) {
   /**
    * Search for datasets on a CKAN server
@@ -23,7 +138,7 @@ Supports full Solr search capabilities including filters, facets, and sorting.
 Use this to discover datasets matching specific criteria.
 
 Args:
-  - server_url (string): Base URL of CKAN server (e.g., "https://dati.gov.it")
+  - server_url (string): Base URL of CKAN server (e.g., "https://dati.gov.it/opendata")
   - q (string): Search query using Solr syntax (default: "*:*" for all)
   - fq (string): Filter query (e.g., "organization:comune-palermo")
   - rows (number): Number of results to return (default: 10, max: 1000)
@@ -243,6 +358,175 @@ ${params.fq ? `**Filter**: ${params.fq}\n` : ''}
   );
 
   /**
+   * Find relevant datasets with weighted scoring
+   */
+  server.registerTool(
+    "ckan_find_relevant_datasets",
+    {
+      title: "Find Relevant CKAN Datasets",
+      description: `Find and rank datasets by relevance to a query using weighted fields.
+
+Uses package_search for discovery and applies a local scoring model.
+
+Args:
+  - server_url (string): Base URL of CKAN server (e.g., "https://dati.gov.it/opendata")
+  - query (string): Search query text
+  - limit (number): Number of datasets to return (default: 10)
+  - weights (object): Optional weights for title/notes/tags/organization
+  - response_format ('markdown' | 'json'): Output format
+
+Returns:
+  Ranked datasets with relevance scores and breakdowns
+
+Examples:
+  - { server_url: "https://dati.gov.it/opendata", query: "mobilità" }
+  - { server_url: "...", query: "trasporti", limit: 5, weights: { title: 5, notes: 2 } }`,
+      inputSchema: z.object({
+        server_url: z.string()
+          .url()
+          .describe("Base URL of the CKAN server (e.g., https://dati.gov.it/opendata)"),
+        query: z.string()
+          .min(2)
+          .describe("Search query text"),
+        limit: z.number()
+          .int()
+          .min(1)
+          .max(50)
+          .optional()
+          .default(10)
+          .describe("Number of datasets to return"),
+        weights: z.object({
+          title: z.number().min(0).optional(),
+          notes: z.number().min(0).optional(),
+          tags: z.number().min(0).optional(),
+          organization: z.number().min(0).optional()
+        }).optional().describe("Optional weights per field"),
+        response_format: ResponseFormatSchema
+      }).strict(),
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: true
+      }
+    },
+    async (params) => {
+      try {
+        const weights = {
+          ...DEFAULT_RELEVANCE_WEIGHTS,
+          ...(params.weights ?? {})
+        };
+
+        const rows = Math.min(Math.max(params.limit * 5, params.limit), 100);
+
+        const searchResult = await makeCkanRequest<any>(
+          params.server_url,
+          'package_search',
+          {
+            q: params.query,
+            rows,
+            start: 0
+          }
+        );
+
+        const scored = (searchResult.results || []).map((dataset: any) => {
+          const { total, breakdown } = scoreDatasetRelevance(
+            params.query,
+            dataset,
+            weights
+          );
+
+          return {
+            dataset,
+            score: total,
+            breakdown
+          };
+        });
+
+        scored.sort((a: any, b: any) => b.score - a.score);
+
+        const top = scored.slice(0, params.limit).map((item: any) => {
+          const dataset = item.dataset;
+          return {
+            id: dataset.id,
+            name: dataset.name,
+            title: dataset.title || dataset.name,
+            organization: dataset.organization?.title || dataset.organization?.name || dataset.owner_org,
+            tags: Array.isArray(dataset.tags) ? dataset.tags.map((tag: any) => tag.name) : [],
+            metadata_modified: dataset.metadata_modified,
+            score: item.score,
+            breakdown: item.breakdown
+          };
+        });
+
+        const payload = {
+          query: params.query,
+          terms: extractQueryTerms(params.query),
+          weights,
+          total_results: searchResult.count ?? 0,
+          returned: top.length,
+          results: top
+        };
+
+        if (params.response_format === ResponseFormat.JSON) {
+          return {
+            content: [{ type: "text", text: truncateText(JSON.stringify(payload, null, 2)) }],
+            structuredContent: payload
+          };
+        }
+
+        let markdown = `# Relevant CKAN Datasets\n\n`;
+        markdown += `**Server**: ${params.server_url}\n`;
+        markdown += `**Query**: ${params.query}\n`;
+        markdown += `**Terms**: ${payload.terms.length > 0 ? payload.terms.join(', ') : 'n/a'}\n`;
+        markdown += `**Total Results**: ${payload.total_results}\n`;
+        markdown += `**Returned**: ${payload.returned}\n\n`;
+
+        markdown += `## Weights\n\n`;
+        markdown += `- **Title**: ${weights.title}\n`;
+        markdown += `- **Notes**: ${weights.notes}\n`;
+        markdown += `- **Tags**: ${weights.tags}\n`;
+        markdown += `- **Organization**: ${weights.organization}\n\n`;
+
+        if (top.length === 0) {
+          markdown += 'No datasets matched the query terms.\n';
+        } else {
+          markdown += `## Results\n\n`;
+          markdown += `| Rank | Dataset | Score | Title | Org | Tags |\n`;
+          markdown += `| --- | --- | --- | --- | --- | --- |\n`;
+
+          top.forEach((dataset, index) => {
+            const tags = dataset.tags.slice(0, 3).join(', ');
+            markdown += `| ${index + 1} | ${dataset.name} | ${dataset.score} | ${dataset.title} | ${dataset.organization || '-'} | ${tags || '-'} |\n`;
+          });
+
+          markdown += `\n### Score Breakdown\n\n`;
+          top.forEach((dataset, index) => {
+            markdown += `**${index + 1}. ${dataset.title}**\n`;
+            markdown += `- Title: ${dataset.breakdown.title}\n`;
+            markdown += `- Notes: ${dataset.breakdown.notes}\n`;
+            markdown += `- Tags: ${dataset.breakdown.tags}\n`;
+            markdown += `- Organization: ${dataset.breakdown.organization}\n`;
+            markdown += `- Total: ${dataset.breakdown.total}\n\n`;
+          });
+        }
+
+        return {
+          content: [{ type: "text", text: truncateText(markdown) }]
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: "text",
+            text: `Error ranking datasets: ${error instanceof Error ? error.message : String(error)}`
+          }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  /**
    * Get details of a specific dataset
    */
   server.registerTool(
@@ -263,7 +547,7 @@ Returns:
   Complete dataset object with all metadata and resources
 
 Examples:
-  - { server_url: "https://dati.gov.it", id: "dataset-name" }
+  - { server_url: "https://dati.gov.it/opendata", id: "dataset-name" }
   - { server_url: "...", id: "abc-123-def", include_tracking: true }`,
       inputSchema: z.object({
         server_url: z.string()

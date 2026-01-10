@@ -2,6 +2,13 @@
 
 ## 2026-01-10
 
+### Version 0.4.6 - Relevance ranking
+- **Tool**: Added `ckan_find_relevant_datasets`
+- **Docs**: Updated README/EXAMPLES
+- **Tests**: Added relevance scoring checks
+
+## 2026-01-10
+
 ### Version 0.4.5 - Health version
 - **Workers**: /health version/tools updated
 

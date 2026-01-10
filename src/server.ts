@@ -14,7 +14,7 @@ import { registerAllResources } from "./resources/index.js";
 export function createServer(): McpServer {
   return new McpServer({
     name: "ckan-mcp-server",
-    version: "0.4.5"
+    version: "0.4.6"
   });
 }
 

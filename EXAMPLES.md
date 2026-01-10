@@ -20,6 +20,15 @@ ckan_package_search({
 })
 ```
 
+### Find relevant datasets
+```typescript
+ckan_find_relevant_datasets({
+  server_url: "https://demo.ckan.org",
+  query: "open data transport",
+  limit: 5
+})
+```
+
 ## Italy Examples - dati.gov.it
 
 ### Search recent datasets

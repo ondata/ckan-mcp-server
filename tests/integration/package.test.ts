@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axios from 'axios';
 import { makeCkanRequest } from '../../src/utils/http';
+import { scoreDatasetRelevance } from '../../src/tools/package';
 import packageSearchFixture from '../fixtures/responses/package-search-success.json';
 import packageShowFixture from '../fixtures/responses/package-show-success.json';
 import notFoundError from '../fixtures/errors/not-found.json';
@@ -317,6 +318,32 @@ describe('ckan_package_search', () => {
         expect(pkg).toHaveProperty('title');
       }
     });
+  });
+});
+
+describe('ckan_find_relevant_datasets', () => {
+  it('scores datasets with default weights', () => {
+    const dataset = packageSearchFixture.result.results[0];
+
+    const result = scoreDatasetRelevance('example dataset', dataset);
+
+    expect(result.total).toBeGreaterThan(0);
+    expect(result.breakdown.total).toBe(result.total);
+    expect(result.terms).toContain('example');
+  });
+
+  it('applies custom weights', () => {
+    const dataset = packageSearchFixture.result.results[0];
+
+    const defaultScore = scoreDatasetRelevance('example dataset', dataset);
+    const weightedScore = scoreDatasetRelevance('example dataset', dataset, {
+      title: 10,
+      notes: 0,
+      tags: 0,
+      organization: 0
+    });
+
+    expect(weightedScore.total).toBeGreaterThan(defaultScore.total);
   });
 });
 

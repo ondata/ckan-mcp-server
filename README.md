@@ -173,6 +173,7 @@ Use the public Cloudflare Workers deployment (no local installation required):
 ### Search and Discovery
 
 - **ckan_package_search**: Search datasets with Solr queries
+- **ckan_find_relevant_datasets**: Rank datasets by relevance score
 - **ckan_package_show**: Complete details of a dataset
 - **ckan_package_list**: List all datasets
 - **ckan_tag_list**: List tags with counts
@@ -222,6 +223,16 @@ ckan_package_search({
   server_url: "https://www.dati.gov.it/opendata",
   q: "popolazione",
   rows: 20
+})
+```
+
+### Rank datasets by relevance
+
+```typescript
+ckan_find_relevant_datasets({
+  server_url: "https://www.dati.gov.it/opendata",
+  query: "mobilità urbana",
+  limit: 5
 })
 ```
 

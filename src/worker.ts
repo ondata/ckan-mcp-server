@@ -28,8 +28,8 @@ export default {
     if (request.method === 'GET' && url.pathname === '/health') {
       return new Response(JSON.stringify({
         status: 'ok',
-        version: '0.4.5',
-        tools: 12,
+        version: '0.4.6',
+        tools: 13,
         resources: 3,
         runtime: 'cloudflare-workers'
       }), {
