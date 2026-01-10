@@ -50,6 +50,16 @@ ckan_package_search({
 })
 ```
 
+### Long OR query (force text-field parser)
+```typescript
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "hotel OR alberghi OR \"strutture ricettive\" OR ospitalità OR ricettività OR agriturismo OR \"bed and breakfast\"",
+  query_parser: "text",
+  rows: 0
+})
+```
+
 ### Regione Siciliana datasets
 ```typescript
 ckan_package_search({

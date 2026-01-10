@@ -2,6 +2,12 @@
 
 ## 2026-01-10
 
+### Version 0.4.7 - Portal search parser override
+- **Config**: Added per-portal search parser config
+- **Tool**: Added query parser override for package search and relevance
+
+## 2026-01-10
+
 ### Version 0.4.6 - Relevance ranking
 - **Tool**: Added `ckan_find_relevant_datasets`
 - **Docs**: Updated README/EXAMPLES

@@ -210,6 +210,17 @@ ckan_package_search({
 })
 ```
 
+### Force text-field parser for long OR queries
+
+```typescript
+ckan_package_search({
+  server_url: "https://www.dati.gov.it/opendata",
+  q: "hotel OR alberghi OR \"strutture ricettive\" OR ospitalità OR ricettività",
+  query_parser: "text",
+  rows: 0
+})
+```
+
 ### Rank datasets by relevance
 
 ```typescript

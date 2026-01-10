@@ -9,12 +9,18 @@
         "http://www.dati.gov.it/opendata",
         "http://dati.gov.it/opendata"
       ],
+      "search": {
+        "force_text_field": true
+      },
       "dataset_view_url": "https://www.dati.gov.it/view-dataset/dataset?id={id}",
       "organization_view_url": "https://www.dati.gov.it/view-dataset?organization={name}"
     }
   ],
   "defaults": {
     "dataset_view_url": "{server_url}/dataset/{name}",
-    "organization_view_url": "{server_url}/organization/{name}"
+    "organization_view_url": "{server_url}/organization/{name}",
+    "search": {
+      "force_text_field": false
+    }
   }
 }

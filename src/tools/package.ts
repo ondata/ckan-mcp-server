@@ -7,6 +7,7 @@ import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
 import { truncateText, formatDate } from "../utils/formatting.js";
 import { getDatasetViewUrl } from "../utils/url-generator.js";
+import { resolveSearchQuery } from "../utils/search.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type RelevanceWeights = {
@@ -137,6 +138,11 @@ export function registerPackageTools(server: McpServer) {
 Supports full Solr search capabilities including filters, facets, and sorting.
 Use this to discover datasets matching specific criteria.
 
+Note on parser behavior:
+Some CKAN portals use a restrictive default query parser that can break long OR queries.
+For those portals, this tool may force the query into 'text:(...)' based on per-portal config.
+You can override with 'query_parser' to force or disable this behavior per request.
+
 Args:
   - server_url (string): Base URL of CKAN server (e.g., "https://dati.gov.it/opendata")
   - q (string): Search query using Solr syntax (default: "*:*" for all)
@@ -147,6 +153,7 @@ Args:
   - facet_field (array): Fields to facet on (e.g., ["organization", "tags"])
   - facet_limit (number): Max facet values per field (default: 50)
   - include_drafts (boolean): Include draft datasets (default: false)
+  - query_parser ('default' | 'text'): Override search parser behavior
   - response_format ('markdown' | 'json'): Output format
 
 Returns:
@@ -246,6 +253,9 @@ Examples:
           .optional()
           .default(false)
           .describe("Include draft datasets"),
+        query_parser: z.enum(["default", "text"])
+          .optional()
+          .describe("Override search parser ('text' forces text:(...) on non-fielded queries)"),
         response_format: ResponseFormatSchema
       }).strict(),
       annotations: {
@@ -257,8 +267,14 @@ Examples:
     },
     async (params) => {
       try {
+        const { effectiveQuery } = resolveSearchQuery(
+          params.server_url,
+          params.q,
+          params.query_parser
+        );
+
         const apiParams: Record<string, any> = {
-          q: params.q,
+          q: effectiveQuery,
           rows: params.rows,
           start: params.start,
           include_private: params.include_drafts
@@ -289,6 +305,7 @@ Examples:
 
 **Server**: ${params.server_url}
 **Query**: ${params.q}
+${effectiveQuery !== params.q ? `**Effective Query**: ${effectiveQuery}\n` : ''}
 ${params.fq ? `**Filter**: ${params.fq}\n` : ''}
 **Total Results**: ${result.count}
 **Showing**: ${result.results.length} results (from ${params.start})
@@ -373,6 +390,7 @@ Args:
   - query (string): Search query text
   - limit (number): Number of datasets to return (default: 10)
   - weights (object): Optional weights for title/notes/tags/organization
+  - query_parser ('default' | 'text'): Override search parser behavior
   - response_format ('markdown' | 'json'): Output format
 
 Returns:
@@ -401,6 +419,9 @@ Examples:
           tags: z.number().min(0).optional(),
           organization: z.number().min(0).optional()
         }).optional().describe("Optional weights per field"),
+        query_parser: z.enum(["default", "text"])
+          .optional()
+          .describe("Override search parser ('text' forces text:(...) on non-fielded queries)"),
         response_format: ResponseFormatSchema
       }).strict(),
       annotations: {
@@ -418,12 +439,17 @@ Examples:
         };
 
         const rows = Math.min(Math.max(params.limit * 5, params.limit), 100);
+        const { effectiveQuery } = resolveSearchQuery(
+          params.server_url,
+          params.query,
+          params.query_parser
+        );
 
         const searchResult = await makeCkanRequest<any>(
           params.server_url,
           'package_search',
           {
-            q: params.query,
+            q: effectiveQuery,
             rows,
             start: 0
           }
