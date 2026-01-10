@@ -78,38 +78,19 @@ TRANSPORT=http PORT=3000 npm start
 
 **Best for**: Global access, zero infrastructure, free hosting
 
-Deploy to Cloudflare's edge network for worldwide low-latency access.
+Use the public Workers endpoint (no local install required):
 
-**Prerequisites**:
-- Cloudflare account (free): https://dash.cloudflare.com/sign-up
-- Wrangler CLI: `npm install -g wrangler`
-
-**Quick Deploy**:
-
-```bash
-# Clone repository
-git clone https://github.com/aborruso/ckan-mcp-server.git
-cd ckan-mcp-server
-
-# Install dependencies
-npm install
-
-# Authenticate with Cloudflare
-wrangler login
-
-# Deploy to Workers
-npm run deploy
+```json
+{
+  "mcpServers": {
+    "ckan": {
+      "url": "https://ckan-mcp-server.andy-pr.workers.dev/mcp"
+    }
+  }
+}
 ```
 
-Your server will be live at: `https://ckan-mcp-server.<your-account>.workers.dev`
-
-**Free tier includes**:
-- 100,000 requests/day
-- Global edge deployment
-- Automatic HTTPS
-- No cold starts
-
-For detailed deployment instructions, see [DEPLOYMENT.md](docs/DEPLOYMENT.md).
+Want your own deployment? See [DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 ## Claude Desktop Configuration
 
