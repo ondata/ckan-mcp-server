@@ -56,7 +56,7 @@ TRANSPORT=http PORT=3000 npm start
 
 The server will be available at `http://localhost:3000/mcp`
 
-## Deployment Options
+## Usage Options
 
 ### Option 1: Local Installation (stdio mode)
 
