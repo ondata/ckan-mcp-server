@@ -85,6 +85,32 @@ Note: Packaging exclusions are managed via `.npmignore`.
 
 ---
 
+### Step 4.5: Security Audit (Recommended)
+
+Before deploying, check for known vulnerabilities:
+
+```bash
+npm audit
+```
+
+Expected output: `found 0 vulnerabilities`
+
+If vulnerabilities are found:
+```bash
+# Review the report
+npm audit
+
+# Fix automatically if possible
+npm audit fix
+
+# Rerun tests after fixing
+npm test
+```
+
+**Important**: Always run `npm audit` before deploying to production.
+
+---
+
 ### Step 5: Test Locally (Optional but Recommended)
 
 Before deploying to production, test the worker locally:
@@ -509,6 +535,7 @@ Verify:
 Use this checklist to ensure nothing is missed:
 
 ### Pre-Release
+- [ ] Security audit clean: `npm audit` (0 vulnerabilities)
 - [ ] All tests passing: `npm test`
 - [ ] Code builds successfully: `npm run build`
 - [ ] Workers build works: `npm run build:worker`

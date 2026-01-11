@@ -41,7 +41,7 @@ The server exposes MCP tools for:
 # Build project (uses esbuild - fast and lightweight)
 npm run build
 
-# Run test suite (113 tests - unit + integration)
+# Run test suite (179 tests - unit + integration)
 npm test
 
 # Watch mode for tests during development
@@ -73,8 +73,8 @@ npm run deploy            # Deploy to Cloudflare Workers
 The project uses **esbuild** for compilation and **vitest** for testing:
 
 - **Build**: Ultra-fast builds (milliseconds instead of minutes)
-- **Tests**: 101 tests (unit + integration) with 100% success rate
-- **Coverage**: Available via vitest with v8 coverage engine
+- **Tests**: 179 tests (unit + integration) with 100% success rate
+- **Coverage**: ~39% overall (utils: 98%, tools: 15-20%) - available via vitest with v8 coverage engine
 
 The `build:tsc` script is available as a fallback but can cause memory issues in some environments (particularly WSL). Always use `npm run build` which uses esbuild.
 
@@ -101,7 +101,7 @@ tests/
     └── errors/                # Error scenario mocks
 ```
 
-**Test Coverage**: 101 tests total (36 unit + 65 integration)
+**Test Coverage**: 179 tests total (85 unit + 94 integration)
 
 When making changes:
 1. Run tests before committing: `npm test`
@@ -292,11 +292,14 @@ npm run test:watch
 npm run test:coverage
 ```
 
-Test coverage target is 80%. Current test suite includes:
-- Unit tests for utility functions (formatting, HTTP)
+Current test coverage: ~39% overall (utility modules: 98%, tool handlers: 15-20%).
+
+Test suite includes:
+- Unit tests for utility functions (formatting, HTTP, URI parsing, URL generation, search)
 - Integration tests for MCP tools with mocked CKAN API responses
 - Mock fixtures for CKAN API success and error scenarios
 
+Coverage is strong for utility modules but needs improvement for tool handlers.
 See `tests/README.md` for detailed testing guidelines and fixture structure.
 
 ### Manual Testing
@@ -338,8 +341,8 @@ To test with Claude Desktop, add the MCP configuration to the config file.
 - Direct data access for datasets, resources, organizations
 
 **v0.2.0 (2026-01-08)**: Comprehensive test suite
-- 113 tests (unit + integration)
-- 97%+ code coverage
+- 179 tests (unit + integration)
+- ~39% code coverage (utils well-tested, tools improving)
 
 **v0.1.0 (2026-01-08)**: Modular refactoring
 - Restructured from monolithic file to 11 modules

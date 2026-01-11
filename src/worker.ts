@@ -198,7 +198,7 @@ export default {
     <pre><code>curl ${url.origin}/health</code></pre>
 
     <div class="footer">
-      Version 0.4.8 • Running on Cloudflare Workers • <a href="https://github.com/aborruso/ckan-mcp-server/blob/main/LICENSE.txt" target="_blank">MIT License</a>
+      Version 0.4.9 • Running on Cloudflare Workers • <a href="https://github.com/aborruso/ckan-mcp-server/blob/main/LICENSE.txt" target="_blank">MIT License</a>
     </div>
   </div>
 </body>
@@ -214,7 +214,7 @@ export default {
     if (request.method === 'GET' && url.pathname === '/health') {
       return new Response(JSON.stringify({
         status: 'ok',
-        version: '0.4.8',
+        version: '0.4.9',
         tools: 13,
         resources: 3,
         runtime: 'cloudflare-workers'

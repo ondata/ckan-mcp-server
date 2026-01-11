@@ -1,5 +1,53 @@
 # LOG
 
+## 2026-01-11
+
+### Version 0.4.9 - Security, Testing & Documentation
+- **Security**: Updated @modelcontextprotocol/sdk from 1.25.1 to 1.25.2 (fixes HIGH severity ReDoS vulnerability)
+- **Testing**: Added 49 new unit tests for package.ts scoring functions
+- **Coverage**: Improved from 37.33% to 38.63% (package.ts: 12.5% to 15%)
+- **Total tests**: 179 tests (all passing, +49 from 130)
+- **Documentation**: Corrected test coverage claims (was "113 tests, 97%+" now accurate "179 tests, ~39%")
+- **Deployment**: Added npm audit check to DEPLOYMENT.md
+- **Files modified**: package.json, src/server.ts, src/worker.ts, README.md, CLAUDE.md, docs/DEPLOYMENT.md
+- **New file**: tests/unit/package-scoring.test.ts
+- **No breaking changes**: All existing functionality preserved
+
+### Test improvements - package scoring functions
+- **Added**: 49 new unit tests for package.ts scoring functions
+- **Coverage improvement**: package.ts from 12.5% to 15%
+- **Overall coverage**: 37.33% to 38.63%
+- **Total tests**: 130 to 179 tests (all passing)
+- **New test file**: tests/unit/package-scoring.test.ts
+- **Functions tested**:
+  - extractQueryTerms (10 tests)
+  - escapeRegExp (6 tests)
+  - textMatchesTerms (10 tests)
+  - scoreTextField (6 tests)
+  - scoreDatasetRelevance (17 tests with edge cases)
+- **Exports**: Made internal functions testable (extractQueryTerms, escapeRegExp, textMatchesTerms, scoreTextField)
+- **Impact**: Better coverage of dataset relevance scoring logic
+
+### Documentation corrections - test coverage accuracy
+- **Fix**: Corrected test coverage claims in README.md and CLAUDE.md
+- **Previous claim**: "113 tests, 97%+ coverage"
+- **Actual values**: 130 tests passing, ~37% overall coverage
+  - Utility modules: 98% coverage (excellent)
+  - Tool handlers: 12-20% coverage (needs improvement)
+- **Impact**: Documentation now accurately reflects project state
+- **Files modified**: README.md, CLAUDE.md
+
+### Documentation enhancement - deployment security
+- **Added**: npm audit check to DEPLOYMENT.md (Step 4.5)
+- **Added**: Security audit to pre-release checklist
+- **Recommendation**: Always run `npm audit` before production deployment
+
+### Security fix - MCP SDK update
+- **Fix**: Update @modelcontextprotocol/sdk from 1.25.1 to 1.25.2
+- **Reason**: Resolves HIGH severity ReDoS vulnerability (GHSA-8r9q-7v3j-jr4g)
+- **Tests**: All 130 tests passing
+- **Audit**: 0 vulnerabilities
+
 ## 2026-01-10
 
 ### Version 0.4.8 - Organization list fallback

@@ -76,21 +76,21 @@ const QUERY_STOPWORDS = new Set([
   "those"
 ]);
 
-const extractQueryTerms = (query: string): string[] => {
+export const extractQueryTerms = (query: string): string[] => {
   const matches = query.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
   const terms = matches.filter((term) => term.length > 1 && !QUERY_STOPWORDS.has(term));
   return Array.from(new Set(terms));
 };
 
-const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+export const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const textMatchesTerms = (text: string | undefined, terms: string[]): boolean => {
+export const textMatchesTerms = (text: string | undefined, terms: string[]): boolean => {
   if (!text || terms.length === 0) return false;
   const normalized = text.toLowerCase().replace(/_/g, " ");
   return terms.some((term) => new RegExp(`\\b${escapeRegExp(term)}\\b`, "i").test(normalized));
 };
 
-const scoreTextField = (text: string | undefined, terms: string[], weight: number): number => {
+export const scoreTextField = (text: string | undefined, terms: string[], weight: number): number => {
   return textMatchesTerms(text, terms) ? weight : 0;
 };
 
