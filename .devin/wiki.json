@@ -7,7 +7,7 @@
   "pages": [
     {
       "title": "Overview",
-      "purpose": "Introduce the CKAN MCP Server system, explaining its purpose as a Model Context Protocol server that enables AI agents and web users to interact with 500+ CKAN open data portals worldwide through natural language and structured queries",
+      "purpose": "Introduce the CKAN MCP Server system, explaining its purpose as a Model Context Protocol server that enables AI agents to interact with 500+ CKAN open data portals worldwide through natural language and structured queries",
       "page_notes": [
         {
           "content": ""
@@ -16,7 +16,7 @@
     },
     {
       "title": "Key Features",
-      "purpose": "Highlight the main capabilities: Web GUI with Gemini integration, 15+ CKAN tools, dual runtime support, MCP Resource Templates, and global edge deployment",
+      "purpose": "Highlight the main capabilities: 15+ CKAN tools, dual runtime support, MCP Resource Templates, and global edge deployment",
       "parent": "Overview",
       "page_notes": [
         {
@@ -26,7 +26,7 @@
     },
     {
       "title": "Architecture Overview",
-      "purpose": "Provide a high-level architectural diagram showing the three-tier system: Web GUI, MCP Server Core, and CKAN Portals, plus the dual deployment model",
+      "purpose": "Provide a high-level architectural diagram showing the two-tier system: MCP Server Core and CKAN Portals, plus the dual deployment model",
       "parent": "Overview",
       "page_notes": [
         {
@@ -37,16 +37,6 @@
     {
       "title": "Getting Started",
       "purpose": "Guide users through the fastest path to using the system based on their needs and technical expertise",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
-    },
-    {
-      "title": "Web GUI Quick Start",
-      "purpose": "Zero-installation quick start: navigate to GitHub Pages URL and start querying CKAN portals through natural language (lowest barrier entry point)",
-      "parent": "Getting Started",
       "page_notes": [
         {
           "content": ""
@@ -65,7 +55,7 @@
     },
     {
       "title": "Installation Options",
-      "purpose": "Compare the four deployment options: Web GUI (zero install), npm global install, Cloudflare Workers, and self-hosted HTTP server",
+      "purpose": "Compare the three deployment options: npm global install, Cloudflare Workers, and self-hosted HTTP server",
       "parent": "Getting Started",
       "page_notes": [
         {
@@ -85,16 +75,6 @@
     {
       "title": "System Components",
       "purpose": "Explain the modular architecture: entry points, transport layer, server core, tool handlers, resource templates, and utilities",
-      "parent": "Architecture",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
-    },
-    {
-      "title": "Web GUI Architecture",
-      "purpose": "Detail the Web GUI implementation: Gemini API integration for tool selection, conversation management, dual output formats, and CORS proxy fallback",
       "parent": "Architecture",
       "page_notes": [
         {
@@ -145,16 +125,6 @@
     {
       "title": "User Guides",
       "purpose": "Practical guides for end users interacting with CKAN data through the system",
-      "page_notes": [
-        {
-          "content": ""
-        }
-      ]
-    },
-    {
-      "title": "Using the Web GUI",
-      "purpose": "Complete guide to the Web GUI: natural language queries, conversation history, tool status display, settings configuration, and result visualization",
-      "parent": "User Guides",
       "page_notes": [
         {
           "content": ""
