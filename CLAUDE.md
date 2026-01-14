@@ -378,3 +378,21 @@ When releasing a new version:
 7. **Deploy to Cloudflare** (if code changed): `npm run deploy`
 
 See `docs/DEPLOYMENT.md` for detailed Cloudflare deployment instructions.
+
+## CSV Data Exploration
+
+For exploring CSV resources from datasets, use duckdb CLI (already installed) with direct HTTP URL:
+
+```bash
+duckdb -jsonlines -c "DESCRIBE SELECT * FROM read_csv('http://url/file.csv')"
+duckdb -jsonlines -c "SUMMARIZE SELECT * FROM read_csv('http://url/file.csv')"
+duckdb -jsonlines -c "SELECT * FROM read_csv('http://url/file.csv') USING SAMPLE 10"
+```
+
+Use direct resource URLs (http/https), not GitHub view/blob URLs. The `-jsonlines` parameter outputs in JSONL format, easier for AI to parse.
+
+For random sampling, use `USING SAMPLE N` syntax (where N is the number of rows):
+
+```bash
+duckdb -jsonlines -c "SELECT * FROM read_csv('http://url/file.csv') USING SAMPLE 10"
+```
