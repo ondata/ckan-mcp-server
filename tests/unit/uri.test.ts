@@ -7,7 +7,7 @@ describe('parseCkanUri', () => {
       const uri = new URL('ckan://dati.gov.it/dataset/vaccini-covid');
       const result = parseCkanUri(uri);
 
-      expect(result.server).toBe('https://dati.gov.it');
+      expect(result.server).toBe('https://www.dati.gov.it/opendata');
       expect(result.type).toBe('dataset');
       expect(result.id).toBe('vaccini-covid');
     });
@@ -34,7 +34,7 @@ describe('parseCkanUri', () => {
       const uri = new URL('ckan://www.dati.gov.it/dataset/test-id');
       const result = parseCkanUri(uri);
 
-      expect(result.server).toBe('https://www.dati.gov.it');
+      expect(result.server).toBe('https://www.dati.gov.it/opendata');
       expect(result.type).toBe('dataset');
       expect(result.id).toBe('test-id');
     });

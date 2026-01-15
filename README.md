@@ -202,6 +202,10 @@ Direct data access via `ckan://` URI scheme:
 - `ckan://{server}/dataset/{id}` - Dataset metadata
 - `ckan://{server}/resource/{id}` - Resource metadata and download URL
 - `ckan://{server}/organization/{name}` - Organization details
+- `ckan://{server}/group/{name}/datasets` - Datasets by group (theme)
+- `ckan://{server}/organization/{name}/datasets` - Datasets by organization
+- `ckan://{server}/tag/{name}/datasets` - Datasets by tag
+- `ckan://{server}/format/{format}/datasets` - Datasets by resource format (res_format + distribution_format)
 
 Examples:
 
@@ -209,6 +213,10 @@ Examples:
 ckan://dati.gov.it/dataset/vaccini-covid
 ckan://demo.ckan.org/resource/abc-123
 ckan://data.gov/organization/sample-org
+ckan://dati.gov.it/group/ambiente/datasets
+ckan://dati.gov.it/organization/regione-toscana/datasets
+ckan://dati.gov.it/tag/turismo/datasets
+ckan://dati.gov.it/format/csv/datasets
 ```
 
 ## Guided Prompts

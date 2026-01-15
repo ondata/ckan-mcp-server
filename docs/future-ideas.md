@@ -39,7 +39,11 @@ Implemented in v0.3.0 with three resource templates:
 - `ckan://{server}/resource/{id}` - Resource metadata
 - `ckan://{server}/organization/{name}` - Organization metadata
 
-Remaining: `ckan://{server}/group/{name}` (see Groups tools below)
+Extended with dataset filters:
+- `ckan://{server}/group/{name}/datasets` - Datasets by group
+- `ckan://{server}/organization/{name}/datasets` - Datasets by organization
+- `ckan://{server}/tag/{name}/datasets` - Datasets by tag
+- `ckan://{server}/format/{format}/datasets` - Datasets by resource format
 
 ### 2. Tool: `ckan_tag_list` (Medium Priority)
 

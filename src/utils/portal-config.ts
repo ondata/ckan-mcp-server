@@ -18,6 +18,14 @@ function normalizeUrl(url: string): string {
   return url.replace(/\/$/, '');
 }
 
+function extractHostname(url: string): string | null {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return null;
+  }
+}
+
 export function getPortalConfig(serverUrl: string): PortalConfig | null {
   const cleanServerUrl = normalizeUrl(serverUrl);
 
@@ -41,4 +49,13 @@ export function getPortalSearchConfig(serverUrl: string): PortalSearchConfig {
 
 export function normalizePortalUrl(serverUrl: string): string {
   return normalizeUrl(serverUrl);
+}
+
+export function getPortalApiUrlForHostname(hostname: string): string | null {
+  const portal = (portalsConfig.portals as PortalConfig[]).find((p) => {
+    const urls = [p.api_url, ...(p.api_url_aliases || [])];
+    return urls.some((url) => extractHostname(url) === hostname);
+  });
+
+  return portal ? normalizeUrl(portal.api_url) : null;
 }

@@ -2,6 +2,14 @@
 
 ## 2026-01-15
 
+### Version 0.4.12 - Dataset filter resources
+- **Feature**: Added `ckan://{server}/.../datasets` resource templates for group, organization, tag, and format filters
+- **Fix**: Map `ckan://` hostnames to portal API base URLs (e.g., dati.gov.it → /opendata)
+- **Fix**: Format filtering now matches `res_format` and `distribution_format` (with case variants)
+- **Docs**: Updated README and future ideas with new URI templates
+- **Tests**: Added unit tests for dataset filter resource templates
+- **Files**: New `src/resources/dataset-filters.ts`, updates in `src/resources/index.ts`, `src/worker.ts`
+
 ### Version 0.4.11 - Prompt argument coercion
 - **Fix**: Prompt arguments now coerce numeric strings (e.g., rows) for MCP prompt requests
 - **Docs**: Updated evaluation notes for 0.4.11

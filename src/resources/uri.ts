@@ -2,6 +2,8 @@
  * URI parsing utilities for ckan:// scheme
  */
 
+import { getPortalApiUrlForHostname } from "../utils/portal-config.js";
+
 export interface ParsedCkanUri {
   server: string;
   type: string;
@@ -24,7 +26,6 @@ export function parseCkanUri(uri: URL): ParsedCkanUri {
     throw new Error("Invalid ckan:// URI: missing server hostname");
   }
 
-  // pathname is like "/dataset/my-id" or "/resource/abc-123"
   const pathParts = uri.pathname.split("/").filter((p) => p.length > 0);
 
   if (pathParts.length < 2) {
@@ -34,16 +35,38 @@ export function parseCkanUri(uri: URL): ParsedCkanUri {
   }
 
   const [type, ...idParts] = pathParts;
-  const id = idParts.join("/"); // Handle IDs with slashes
+  const id = idParts.join("/");
 
   if (!type || !id) {
     throw new Error("Invalid ckan:// URI: missing type or id");
   }
 
-  // Build HTTPS server URL, preserving www. prefix if present
-  const server = `https://${hostname}`;
+  const server = getPortalApiUrlForHostname(hostname) || `https://${hostname}`;
 
   return { server, type, id };
+}
+
+/**
+ * Parse a ckan:// URI and extract server and path segments
+ *
+ * URI format: ckan://{server}/{segment1}/{segment2}/...
+ * Example: ckan://dati.gov.it/group/ambiente/datasets
+ */
+export function parseCkanPath(uri: URL): { server: string; pathParts: string[] } {
+  const hostname = uri.hostname;
+  if (!hostname) {
+    throw new Error("Invalid ckan:// URI: missing server hostname");
+  }
+
+  const pathParts = uri.pathname.split("/").filter((p) => p.length > 0);
+
+  if (pathParts.length === 0) {
+    throw new Error(`Invalid ckan:// URI: missing path, got ${uri.pathname}`);
+  }
+
+  const server = getPortalApiUrlForHostname(hostname) || `https://${hostname}`;
+
+  return { server, pathParts };
 }
 
 /**
