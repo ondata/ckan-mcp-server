@@ -1,5 +1,34 @@
 # LOG
 
+## 2026-01-17
+
+### GitHub Templates
+- **Issue templates**: Added bug report and feature request YAML forms
+  - Bug report: CKAN portal URL, steps, expected/actual, error, Node version
+  - Feature request: problem/use case, proposed solution, alternatives
+  - Auto-labels: `bug` and `enhancement`
+- **Issue chooser**: Routes questions to Discussions Q&A
+- **PR template**: Description, related issue, test/docs checklist
+- **Files**: `.github/ISSUE_TEMPLATE/{bug_report,feature_request,config}.yml`, `.github/PULL_REQUEST_TEMPLATE.md`
+
+## 2026-01-16
+
+### Demo Video Preparation
+- **Documentation**: Created complete demo video documentation suite in `docs/video/`
+  - `demo-script.md` - Commands and technical notes for 4 use cases
+  - `demo-expected-results.md` - Actual test results with data samples
+  - `demo-recording-guide.md` - Step-by-step recording guide with voiceover scripts
+  - `pre-recording-checklist.md` - Practical day-of checklist
+  - `demo-fallback-options.md` - Comprehensive fallback strategies for 8 scenarios
+  - `demo-timing-report.md` - Performance analysis and timing verification
+- **Testing**: Verified all demo commands working with dati.gov.it
+  - Portal overview: 67,614 datasets, top 10 organizations (~5s)
+  - Targeted search: 263 Milano transport datasets (~10s)
+  - Dataset details: Complete metadata with CSV/JSON resources (~10s)
+  - DuckDB analysis: DESCRIBE, SUMMARIZE, SAMPLE all working (~8s total)
+- **Target**: 5-7 minute video demonstrating MCP convenience for Italian open data
+- **Status**: Ready for recording with high confidence level
+
 ## 2026-01-15
 
 ### Version 0.4.12 - Dataset filter resources

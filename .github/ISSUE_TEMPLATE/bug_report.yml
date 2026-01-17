@@ -1,0 +1,59 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+labels: ["bug"]
+
+body:
+  - type: input
+    id: portal
+    attributes:
+      label: CKAN Portal URL
+      description: Which CKAN portal did you test against?
+      placeholder: "https://dati.gov.it/opendata"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1. Call `ckan_package_search` with...
+        2. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: error
+    attributes:
+      label: Error message
+      description: Paste any error logs or output
+      render: shell
+
+  - type: dropdown
+    id: node
+    attributes:
+      label: Node.js version
+      options:
+        - "18.x"
+        - "20.x"
+        - "22.x"
+        - Other
+    validations:
+      required: true
