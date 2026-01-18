@@ -174,6 +174,8 @@ Use the public Cloudflare Workers deployment (no local installation required):
 - [ChatGPT web](docs/guide/chatgpt/chatgpt_web.md)
 - [Claude web](docs/guide/claude/claude_web.md)
 
+These guides ara based o a public demo server, which has a limit of 100,000 calls per month. For reliable usage, it is recommended to install the CKAN MCP Server on your own machine.
+
 ## Available Tools
 
 ### Search and Discovery
