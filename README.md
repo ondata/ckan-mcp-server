@@ -87,6 +87,12 @@ Use the public Workers endpoint (no local install required):
 
 Want your own deployment? See [DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
+## Guides
+
+- [ChatGPT web](docs/guide/chatgpt/chatgpt_web.md)
+- [Claude web](docs/guide/claude/claude_web.md)
+- [Claude Code](https://github.com/aborruso/ckan-mcp-server/discussions/4#discussion-9359684)
+
 ### Claude Desktop Configuration
 
 Configuration file location:
