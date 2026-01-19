@@ -673,10 +673,7 @@ Third-party attributions: See [NOTICE.md](NOTICE.md) for third-party software no
 
 ## Support
 
-For issues or questions:
-
-- Open an issue on GitHub
-- Contact onData: https://www.ondata.it/
+For issues or questions, [open an issue on GitHub](https://github.com/ondata/ckan-mcp-server/issues/new/choose).
 
 ---
 
