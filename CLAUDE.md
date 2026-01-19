@@ -41,7 +41,7 @@ The server exposes MCP tools for:
 # Build project (uses esbuild - fast and lightweight)
 npm run build
 
-# Run test suite (179 tests - unit + integration)
+# Run test suite (191 tests - unit + integration)
 npm test
 
 # Watch mode for tests during development
@@ -73,7 +73,7 @@ npm run deploy            # Deploy to Cloudflare Workers
 The project uses **esbuild** for compilation and **vitest** for testing:
 
 - **Build**: Ultra-fast builds (milliseconds instead of minutes)
-- **Tests**: 179 tests (unit + integration) with 100% success rate
+- **Tests**: 191 tests (unit + integration) with 100% success rate
 - **Coverage**: ~39% overall (utils: 98%, tools: 15-20%) - available via vitest with v8 coverage engine
 
 The `build:tsc` script is available as a fallback but can cause memory issues in some environments (particularly WSL). Always use `npm run build` which uses esbuild.
@@ -88,12 +88,12 @@ The project has a comprehensive test suite using **Vitest**:
 tests/
 ├── unit/
 │   ├── formatting.test.ts    # Utility functions (19 tests)
-│   ├── http.test.ts           # HTTP client (6 tests)
+│   ├── http.test.ts           # HTTP client (11 tests)
 │   └── uri.test.ts            # URI parsing (11 tests)
 ├── integration/
-│   ├── package.test.ts        # Package tools (29 tests)
+│   ├── package.test.ts        # Package tools (31 tests)
 │   ├── organization.test.ts   # Organization tools (6 tests)
-│   ├── datastore.test.ts      # DataStore tools (17 tests)
+│   ├── datastore.test.ts      # DataStore tools (19 tests)
 │   ├── resources.test.ts      # MCP Resources (11 tests)
 │   └── status.test.ts         # Status tools (2 tests)
 └── fixtures/
@@ -101,7 +101,7 @@ tests/
     └── errors/                # Error scenario mocks
 ```
 
-**Test Coverage**: 179 tests total (85 unit + 94 integration)
+**Test Coverage**: 191 tests total (117 unit + 74 integration)
 
 When making changes:
 1. Run tests before committing: `npm test`
@@ -341,7 +341,7 @@ To test with Claude Desktop, add the MCP configuration to the config file.
 - Direct data access for datasets, resources, organizations
 
 **v0.2.0 (2026-01-08)**: Comprehensive test suite
-- 179 tests (unit + integration)
+- 191 tests (unit + integration)
 - ~39% code coverage (utils well-tested, tools improving)
 
 **v0.1.0 (2026-01-08)**: Modular refactoring

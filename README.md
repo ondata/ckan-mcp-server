@@ -17,7 +17,7 @@ MCP (Model Context Protocol) server for interacting with CKAN-based open data po
 - ⚡ Pagination and faceting support
 - 📄 MCP Resource Templates for direct data access
 - 🧭 Guided MCP prompts for common workflows
-- 🧪 Test suite with 186 tests (100% passing)
+- 🧪 Test suite with 191 tests (100% passing)
 
 ---
 
@@ -45,7 +45,7 @@ npm install
 # Build with esbuild (fast, ~4ms)
 npm run build
 
-# Run tests (186 tests)
+# Run tests (191 tests)
 npm test
 ```
 
@@ -559,7 +559,7 @@ ckan-mcp-server/
 │   └── transport/
 │       ├── stdio.ts        # Stdio transport
 │       └── http.ts         # HTTP transport
-├── tests/                  # Test suite (184 tests)
+├── tests/                  # Test suite (191 tests)
 ├── dist/                   # Compiled files (generated)
 ├── package.json
 └── README.md
