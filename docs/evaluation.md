@@ -75,7 +75,7 @@ CKAN MCP Server is a well-architected TypeScript project providing MCP integrati
 - Actual measured: 37.33% coverage, 130 tests
 
 **Current Status** (v0.4.11):
-- Documentation updated to accurate values: "184 tests, ~39% coverage"
+- Documentation updated to accurate values: "191 tests, ~39% coverage"
 - Test suite expanded with 49 new unit tests
 - Coverage improved: 37.33% → 38.63%
 - New test file: `tests/unit/package-scoring.test.ts`
@@ -92,7 +92,7 @@ CKAN MCP Server is a well-architected TypeScript project providing MCP integrati
 **Current Status** (v0.4.11):
 - Dependency updated: 1.25.1 → 1.25.2
 - Vulnerability eliminated: 0 vulnerabilities
-- All 184 tests passing
+- All 191 tests passing
 
 **Impact**: ✅ Production deployment now secure
 
@@ -229,7 +229,7 @@ CKAN MCP Server demonstrates excellent architectural design, innovative deployme
 **Version 0.4.11 Status**:
 - ✅ Security vulnerability resolved (0 vulnerabilities)
 - ✅ Documentation accuracy corrected (transparent coverage reporting)
-- ✅ Test coverage improved (37.33% → 38.63%, 184 tests)
+- ✅ Test coverage improved (37.33% → 38.63%, 191 tests)
 - ✅ Deployment workflow enhanced (npm audit check added)
 
 **Production Readiness**: The project is now production-ready with high confidence. All critical issues identified in the initial evaluation have been addressed. The current state is suitable for production deployments.
@@ -241,7 +241,7 @@ CKAN MCP Server demonstrates excellent architectural design, innovative deployme
 **Strengths**:
 - Zero security vulnerabilities
 - Honest and transparent documentation
-- Comprehensive test suite (184 tests, 100% passing)
+- Comprehensive test suite (191 tests, 100% passing)
 - Excellent utility module coverage (98%)
 - Multiple deployment options (stdio, HTTP, Cloudflare Workers)
 - Active development and maintenance
