@@ -188,7 +188,7 @@ export default {
 
     <h2>📚 Resources</h2>
     <ul>
-      <li><a href="https://github.com/aborruso/ckan-mcp-server" target="_blank">GitHub Repository</a></li>
+      <li><a href="https://github.com/ondata/ckan-mcp-server" target="_blank">GitHub Repository</a></li>
       <li><a href="https://www.npmjs.com/package/@aborruso/ckan-mcp-server" target="_blank">npm Package</a></li>
       <li><a href="https://modelcontextprotocol.io/" target="_blank">MCP Documentation</a></li>
       <li><a href="https://docs.ckan.org/en/latest/api/" target="_blank">CKAN API Reference</a></li>
@@ -198,7 +198,7 @@ export default {
     <pre><code>curl ${url.origin}/health</code></pre>
 
     <div class="footer">
-      Version 0.4.12 • Running on Cloudflare Workers • <a href="https://github.com/aborruso/ckan-mcp-server/blob/main/LICENSE.txt" target="_blank">MIT License</a>
+      Version 0.4.12 • Running on Cloudflare Workers • <a href="https://github.com/ondata/ckan-mcp-server/blob/main/LICENSE.txt" target="_blank">MIT License</a>
     </div>
   </div>
 </body>

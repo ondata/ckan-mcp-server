@@ -1,6 +1,6 @@
 [![npm version](https://img.shields.io/npm/v/@aborruso/ckan-mcp-server)](https://www.npmjs.com/package/@aborruso/ckan-mcp-server)
-[![GitHub](https://img.shields.io/badge/github-aborruso%2Fckan--mcp--server-blue?logo=github)](https://github.com/aborruso/ckan-mcp-server)
-[![deepwiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/aborruso/ckan-mcp-server)
+[![GitHub](https://img.shields.io/badge/github-ondata%2Fckan--mcp--server-blue?logo=github)](https://github.com/ondata/ckan-mcp-server)
+[![deepwiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ondata/ckan-mcp-server)
 
 # CKAN MCP Server
 
@@ -21,7 +21,7 @@ MCP (Model Context Protocol) server for interacting with CKAN-based open data po
 
 ---
 
-👉 If you want to dive deeper, the [**AI-generated DeepWiki**](https://deepwiki.com/aborruso/ckan-mcp-server) is very well done.
+👉 If you want to dive deeper, the [**AI-generated DeepWiki**](https://deepwiki.com/ondata/ckan-mcp-server) is very well done.
 
 ---
 
@@ -149,7 +149,7 @@ If you cloned the repository:
 }
 ```
 
-[A detailed guide](https://github.com/aborruso/ckan-mcp-server/discussions/4#discussion-9359684)
+[A detailed guide](https://github.com/ondata/ckan-mcp-server/discussions/4#discussion-9359684)
 
 #### Option 4: Cloudflare Workers (HTTP transport)
 

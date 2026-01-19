@@ -65,7 +65,7 @@ Expected output: Your Cloudflare email and account info
 ### Step 3: Clone Repository
 
 ```bash
-git clone https://github.com/aborruso/ckan-mcp-server.git
+git clone https://github.com/ondata/ckan-mcp-server.git
 cd ckan-mcp-server
 ```
 
@@ -335,7 +335,7 @@ Already configured in `src/worker.ts`. If issues persist, check browser console 
 Don't rely on public endpoints for production. Deploy your own Workers instance:
 
 ```bash
-git clone https://github.com/aborruso/ckan-mcp-server.git
+git clone https://github.com/ondata/ckan-mcp-server.git
 cd ckan-mcp-server
 npm install
 wrangler login
@@ -455,7 +455,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
 git push origin main
 ```
 
-Verify: Check https://github.com/aborruso/ckan-mcp-server commits
+Verify: Check https://github.com/ondata/ckan-mcp-server commits
 
 ### Step 5: Create Git Tag
 
@@ -474,7 +474,7 @@ git tag -a v0.5.0 -m "Feature name
 git push origin v0.5.0
 ```
 
-Verify: Tag appears in https://github.com/aborruso/ckan-mcp-server/tags
+Verify: Tag appears in https://github.com/ondata/ckan-mcp-server/tags
 
 ### Step 7: Create GitHub Release
 
@@ -499,10 +499,10 @@ gh release create v0.5.0 \
 - All existing functionality preserved
 - Backward compatible
 
-**Full Changelog**: https://github.com/aborruso/ckan-mcp-server/compare/v0.4.0...v0.5.0"
+**Full Changelog**: https://github.com/ondata/ckan-mcp-server/compare/v0.4.0...v0.5.0"
 ```
 
-Verify: Release appears as "Latest" at https://github.com/aborruso/ckan-mcp-server/releases
+Verify: Release appears as "Latest" at https://github.com/ondata/ckan-mcp-server/releases
 
 ### Step 8: Publish to npm
 
@@ -673,7 +673,7 @@ npm run deploy
 
 ## Support
 
-- **Issues**: https://github.com/aborruso/ckan-mcp-server/issues
+- **Issues**: https://github.com/ondata/ckan-mcp-server/issues
 - **Cloudflare Docs**: https://developers.cloudflare.com/workers/
 - **MCP SDK**: https://modelcontextprotocol.io/
 
