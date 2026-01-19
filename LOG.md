@@ -1,5 +1,12 @@
 # LOG
 
+## 2026-01-19
+
+### Search Parser Escaping
+- **Fix**: Escape Solr special characters when forcing `text:(...)` queries
+- **Tests**: Added unit coverage for escaping and forced parser output
+- **Files**: `src/utils/search.ts`, `tests/unit/search.test.ts`, `README.md`
+
 ## 2026-01-17
 
 ### Documentation Alignment

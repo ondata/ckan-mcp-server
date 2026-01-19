@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveSearchQuery } from '../../src/utils/search';
+import { resolveSearchQuery, escapeSolrQuery } from '../../src/utils/search';
 
 describe('resolveSearchQuery', () => {
   it('keeps query unchanged for non-configured portals', () => {
@@ -53,7 +53,7 @@ describe('resolveSearchQuery', () => {
       'text'
     );
 
-    expect(result.effectiveQuery).toBe('text:(title:hotel OR title:alberghi)');
+    expect(result.effectiveQuery).toBe('text:(title\\:hotel OR title\\:alberghi)');
     expect(result.forcedTextField).toBe(true);
   });
 
@@ -66,5 +66,19 @@ describe('resolveSearchQuery', () => {
 
     expect(result.effectiveQuery).toBe('hotel OR alberghi');
     expect(result.forcedTextField).toBe(false);
+  });
+
+  it('escapes Solr special characters for text field wrapping', () => {
+    const escaped = escapeSolrQuery('foo") (bar):baz\\qux');
+    expect(escaped).toBe('foo\\\"\\) \\(bar\\)\\:baz\\\\qux');
+
+    const result = resolveSearchQuery(
+      'https://www.dati.gov.it/opendata',
+      'foo") (bar):baz\\qux',
+      undefined
+    );
+
+    expect(result.effectiveQuery).toBe('text:(foo\\\"\\) \\(bar\\)\\:baz\\\\qux)');
+    expect(result.forcedTextField).toBe(true);
   });
 });

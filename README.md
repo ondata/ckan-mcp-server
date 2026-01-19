@@ -17,7 +17,7 @@ MCP (Model Context Protocol) server for interacting with CKAN-based open data po
 - ⚡ Pagination and faceting support
 - 📄 MCP Resource Templates for direct data access
 - 🧭 Guided MCP prompts for common workflows
-- 🧪 Test suite with 190 tests (100% passing)
+- 🧪 Test suite with 186 tests (100% passing)
 
 ---
 
@@ -45,7 +45,7 @@ npm install
 # Build with esbuild (fast, ~4ms)
 npm run build
 
-# Run tests (190 tests)
+# Run tests (186 tests)
 npm test
 ```
 
@@ -174,7 +174,7 @@ Use the public Cloudflare Workers deployment (no local installation required):
 - [ChatGPT web](docs/guide/chatgpt/chatgpt_web.md)
 - [Claude web](docs/guide/claude/claude_web.md)
 
-These guides ara based o a public demo server, which has a limit of 100,000 calls per month. For reliable usage, it is recommended to install the CKAN MCP Server on your own machine.
+These guides are based on a public demo server, which has a limit of 100,000 calls per month. For reliable usage, it is recommended to install the CKAN MCP Server on your own machine.
 
 ## Available Tools
 
@@ -275,6 +275,7 @@ ckan_package_search({
   rows: 0
 })
 ```
+Note: when `query_parser: "text"` is used, Solr special characters in the query are escaped automatically.
 
 ### Rank datasets by relevance (natural language: "find most relevant datasets about urban mobility")
 
