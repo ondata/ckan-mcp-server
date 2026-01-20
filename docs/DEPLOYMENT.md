@@ -504,6 +504,21 @@ gh release create v0.5.0 \
 
 Verify: Release appears as "Latest" at https://github.com/ondata/ckan-mcp-server/releases
 
+**Important**: Keep GitHub releases in sync with npm. Do not leave GitHub behind npmjs.
+
+After publishing to npm, verify versions match:
+
+```bash
+gh release list
+npm view @aborruso/ckan-mcp-server version
+```
+
+If npm is ahead, create the missing GitHub release(s) from existing tags:
+
+```bash
+gh release create v0.X.Y --generate-notes
+```
+
 ### Step 8: Publish to npm
 
 ```bash
@@ -556,6 +571,7 @@ Use this checklist to ensure nothing is missed:
 ### Publishing
 - [ ] GitHub Release created with notes
 - [ ] npm package published (check npmjs.com)
+- [ ] GitHub release not behind npm (verify `gh release list` + `npm view @aborruso/ckan-mcp-server version`)
 - [ ] Cloudflare Workers deployed (if code changed)
 
 ### Verification
