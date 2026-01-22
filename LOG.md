@@ -1,5 +1,19 @@
 # LOG
 
+## 2026-01-22
+
+### Date Query Auto-Conversion (v0.4.14)
+
+- **Feature**: Auto-convert NOW-based date math for `modified` and `issued` fields
+- **Problem**: CKAN Solr supports `NOW-XDAYS` syntax only on `metadata_modified` and `metadata_created` fields
+- **Solution**: New `convertDateMathForUnsupportedFields()` automatically converts queries like `modified:[NOW-30DAYS TO NOW]` to ISO dates `modified:[2025-12-23T... TO 2026-01-22T...]`
+- **Supported fields**: `modified`, `issued` (auto-converted) | `metadata_modified`, `metadata_created` (native NOW support)
+- **Supported units**: DAYS, MONTHS, YEARS (singular and plural forms)
+- **Tests**: +10 unit tests (201 total, all passing)
+- **Documentation**: Updated tool description with NOW syntax limitations and examples
+- **Files**: `src/utils/search.ts`, `src/tools/package.ts`, `tests/unit/search.test.ts`
+- **No breaking changes**: Backward compatible - existing queries work unchanged
+
 ## 2026-01-19
 
 ### Search Parser Escaping

@@ -191,6 +191,9 @@ Query Syntax (parameter q):
     - NOW/DAY, NOW/MONTH (round down)
     - Combined: "metadata_modified:[NOW-2MONTHS TO NOW]"
     - Example: "metadata_created:[NOW-1YEAR TO *]"
+    - IMPORTANT: NOW syntax works on metadata_modified and metadata_created fields
+    - For 'modified' and 'issued' fields, NOW syntax is auto-converted to ISO dates
+    - Manual ISO dates always work: "modified:[2026-01-15T00:00:00Z TO *]"
 
   Field existence:
     - Exists: "field:*" or "field:[* TO *]"
@@ -209,6 +212,7 @@ Examples:
   - Proximity: { q: "notes:\"open data\"~3" }
   - Date range: { q: "metadata_modified:[2024-01-01T00:00:00Z TO 2024-12-31T23:59:59Z]" }
   - Date math: { q: "metadata_modified:[NOW-6MONTHS TO *]" }
+  - Date math (auto-converted): { q: "modified:[NOW-30DAYS TO NOW]" }
   - Field exists: { q: "organization:* AND num_resources:[1 TO *]" }
   - Boosting: { q: "title:climate^2 OR notes:climate" }
   - Filter org: { fq: "organization:regione-siciliana" }

@@ -14,6 +14,41 @@ export function escapeSolrQuery(query: string): string {
   return query.replace(SOLR_SPECIAL_CHARS, "\\$&");
 }
 
+/**
+ * Convert NOW-based date expressions to ISO dates for fields that don't support them.
+ * CKAN Solr date math (NOW-XDAYS) only works on metadata_modified and metadata_created.
+ * For 'modified' and 'issued' fields, explicit ISO dates are required.
+ */
+export function convertDateMathForUnsupportedFields(query: string): string {
+  const now = new Date();
+  const nowIso = now.toISOString();
+
+  const pattern = /\b(?!metadata_)(modified|issued):\[NOW-(\d+)(DAYS?|MONTHS?|YEARS?)\s+TO\s+NOW\]/gi;
+
+  return query.replace(pattern, (match, field, amount, unit) => {
+    const amountNum = parseInt(amount, 10);
+    const startDate = new Date(now);
+
+    const normalizedUnit = unit.toLowerCase().replace(/s$/, '');
+    switch (normalizedUnit) {
+      case 'day':
+        startDate.setDate(startDate.getDate() - amountNum);
+        break;
+      case 'month':
+        startDate.setMonth(startDate.getMonth() - amountNum);
+        break;
+      case 'year':
+        startDate.setFullYear(startDate.getFullYear() - amountNum);
+        break;
+      default:
+        return match;
+    }
+
+    const startIso = startDate.toISOString();
+    return `${field}:[${startIso} TO ${nowIso}]`;
+  });
+}
+
 export function resolveSearchQuery(
   serverUrl: string,
   query: string,
@@ -33,7 +68,8 @@ export function resolveSearchQuery(
     forceTextField = trimmedQuery !== DEFAULT_SEARCH_QUERY && !isFieldedQuery(trimmedQuery);
   }
 
-  const effectiveQuery = forceTextField ? `text:(${escapeSolrQuery(query)})` : query;
+  let effectiveQuery = forceTextField ? `text:(${escapeSolrQuery(query)})` : query;
+  effectiveQuery = convertDateMathForUnsupportedFields(effectiveQuery);
 
   return { effectiveQuery, forcedTextField: forceTextField };
 }
