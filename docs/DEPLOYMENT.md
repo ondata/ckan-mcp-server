@@ -624,6 +624,16 @@ Not every change requires publishing to all platforms:
 2. Bump version in package.json
 3. Try again
 
+### npm cache EACCES in sandboxed environments
+
+**Problem**: `EACCES` errors writing to `~/.npm/_cacache`
+
+**Solution**: Use a writable cache directory:
+```bash
+NPM_CONFIG_CACHE=/tmp/npm-cache npm pack --dry-run
+NPM_CONFIG_CACHE=/tmp/npm-cache npm publish
+```
+
 ### GitHub Release shows old version as "Latest"
 
 **Problem**: New release not created, only tag pushed
