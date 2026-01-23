@@ -47,6 +47,15 @@
   "publishConfig": {
     "access": "public"
   },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE.txt",
+    "NOTICE.md",
+    "LOG.md",
+    "EXAMPLES.md",
+    "AGENTS.md"
+  ],
   "engines": {
     "node": ">=18.0.0"
   }

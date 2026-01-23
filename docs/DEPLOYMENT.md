@@ -81,7 +81,7 @@ This installs:
 - Project dependencies (@modelcontextprotocol/sdk, axios, zod, etc.)
 - Wrangler CLI (local copy for reproducible builds)
 
-Note: Packaging exclusions are managed via `.npmignore`.
+Note: Packaging exclusions are managed via `.npmignore`, but **do not** exclude `dist/` (the published build). Prefer using the `files` field in `package.json` to whitelist publishable artifacts.
 
 ---
 

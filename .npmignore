@@ -11,7 +11,7 @@
 /.github/
 
 # Build artifacts
-/dist/
+# Keep /dist/ included for npm publish.
 
 # Dependencies
 /node_modules/
