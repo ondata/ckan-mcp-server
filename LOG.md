@@ -1,5 +1,36 @@
 # LOG
 
+## 2026-01-23
+
+### MQA Quality Metrics Tool
+
+- **Feature**: Added `ckan_get_mqa_quality` tool for retrieving quality metrics from data.europa.eu MQA API
+- **Scope**: Only works with dati.gov.it datasets (server validation enforced)
+- **Data source**: Queries https://data.europa.eu/api/mqa/cache/datasets/{identifier}
+- **Identifier logic**: Uses `identifier` field from CKAN metadata, falls back to `name` if identifier is empty
+- **Metrics returned**:
+  - Overall score (max 405 points)
+  - Accessibility (URL status, download availability)
+  - Reusability (license, contact point, publisher)
+  - Interoperability (format, media type)
+  - Findability (keywords, category, spatial/temporal coverage)
+- **Output formats**: Markdown (default, human-readable) or JSON (structured data)
+- **Error handling**: Dataset not found, MQA API unavailable, invalid server URL
+- **Tests**: +11 integration tests (212 total, all passing)
+  - Server validation (www/non-www dati.gov.it URLs)
+  - Quality retrieval with identifier
+  - Fallback to name field
+  - Error scenarios (404, network errors)
+  - Markdown formatting (complete/partial data, availability indicators)
+- **Documentation**: README.md (new Quality Metrics section), EXAMPLES.md (usage example with expected metrics)
+- **Files**:
+  - `src/tools/quality.ts` (new, 194 lines)
+  - `src/server.ts` (register quality tools)
+  - `tests/integration/quality.test.ts` (new, 11 tests)
+  - `tests/fixtures/responses/mqa-quality-success.json` (new)
+  - `tests/fixtures/responses/package-show-{with,without}-identifier.json` (new)
+- **OpenSpec**: Proposal in `openspec/changes/add-mqa-quality-tool/` (4 requirements, 11 scenarios)
+
 ## 2026-01-22
 
 ### Date Query Auto-Conversion (v0.4.14)

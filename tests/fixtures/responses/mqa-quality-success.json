@@ -1,0 +1,49 @@
+{
+  "id": "332be8b7-89b9-4dfe-a252-7fccd3efda76",
+  "info": {
+    "score": 385
+  },
+  "accessibility": {
+    "accessUrl": {
+      "available": true,
+      "statusCode": 200
+    },
+    "downloadUrl": {
+      "available": true,
+      "statusCode": 200
+    }
+  },
+  "reusability": {
+    "licence": {
+      "available": true
+    },
+    "contactPoint": {
+      "available": true
+    },
+    "publisher": {
+      "available": true
+    }
+  },
+  "interoperability": {
+    "format": {
+      "available": true
+    },
+    "mediaType": {
+      "available": true
+    }
+  },
+  "findability": {
+    "keyword": {
+      "available": true
+    },
+    "category": {
+      "available": true
+    },
+    "spatial": {
+      "available": true
+    },
+    "temporal": {
+      "available": true
+    }
+  }
+}

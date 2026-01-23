@@ -1,0 +1,12 @@
+{
+  "help": "https://www.dati.gov.it/api/3/action/help_show?name=package_show",
+  "success": true,
+  "result": {
+    "id": "332be8b7-89b9-4dfe-a252-7fccd3efda76",
+    "name": "example-dataset-italia",
+    "identifier": "332be8b7-89b9-4dfe-a252-7fccd3efda76",
+    "title": "Dataset di Esempio Italia",
+    "notes": "Dataset di esempio dal portale dati.gov.it",
+    "state": "active"
+  }
+}

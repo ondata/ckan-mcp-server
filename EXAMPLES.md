@@ -151,6 +151,24 @@ ckan_package_search({
 })
 ```
 
+### Get MQA quality metrics for a dataset
+```typescript
+ckan_get_mqa_quality({
+  server_url: "https://www.dati.gov.it/opendata",
+  dataset_id: "332be8b7-89b9-4dfe-a252-7fccd3efda76",
+  response_format: "markdown"
+})
+```
+
+Returns quality score and detailed metrics from data.europa.eu MQA (Metadata Quality Assurance) system:
+- Overall score (max 405 points)
+- Accessibility (URL status, download availability)
+- Reusability (license, contact point, publisher)
+- Interoperability (format, media type)
+- Findability (keywords, category, spatial/temporal coverage)
+
+**Note**: Only works with dati.gov.it datasets. Uses the `identifier` field (or falls back to `name`) to query the European MQA API.
+
 ## USA Examples - data.gov
 
 ### Search government datasets

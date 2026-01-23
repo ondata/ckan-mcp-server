@@ -1,0 +1,11 @@
+{
+  "help": "https://www.dati.gov.it/api/3/action/help_show?name=package_show",
+  "success": true,
+  "result": {
+    "id": "pkg-2",
+    "name": "example-dataset-no-identifier",
+    "title": "Dataset Senza Identifier",
+    "notes": "Dataset che usa il campo name come fallback",
+    "state": "active"
+  }
+}

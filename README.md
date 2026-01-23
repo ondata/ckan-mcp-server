@@ -17,7 +17,7 @@ MCP (Model Context Protocol) server for interacting with CKAN-based open data po
 - ⚡ Pagination and faceting support
 - 📄 MCP Resource Templates for direct data access
 - 🧭 Guided MCP prompts for common workflows
-- 🧪 Test suite with 191 tests (100% passing)
+- 🧪 Test suite with 212 tests (100% passing)
 
 ---
 
@@ -45,7 +45,7 @@ npm install
 # Build with esbuild (fast, ~4ms)
 npm run build
 
-# Run tests (191 tests)
+# Run tests (212 tests)
 npm test
 ```
 
@@ -208,6 +208,10 @@ These guides are based on a public demo server, which has a limit of 100,000 cal
 - **ckan_group_list**: List groups
 - **ckan_group_show**: Show group details
 - **ckan_group_search**: Search groups by name
+
+### Quality Metrics
+
+- **ckan_get_mqa_quality**: Get MQA quality score and metrics for dati.gov.it datasets (accessibility, reusability, interoperability, findability)
 
 ### Utilities
 
@@ -566,7 +570,7 @@ ckan-mcp-server/
 │   └── transport/
 │       ├── stdio.ts        # Stdio transport
 │       └── http.ts         # HTTP transport
-├── tests/                  # Test suite (191 tests)
+├── tests/                  # Test suite (212 tests)
 ├── dist/                   # Compiled files (generated)
 ├── package.json
 └── README.md
