@@ -2,6 +2,17 @@
 
 ## 2026-01-23
 
+### MQA Quality Metrics - Fix identifier format
+
+- **Bug fix**: Identifier transformation for data.europa.eu API compatibility
+- **Issue**: CKAN identifiers with colon separator (e.g., `c_f158:224c373e...`) were not recognized by MQA API
+- **Root cause**: data.europa.eu uses hyphen-separated identifiers (`c_f158-224c373e...`)
+- **Solution**: Replace colons with hyphens before API call: `.replace(/:/g, '-')`
+- **Impact**: MQA quality metrics now work for all dati.gov.it datasets, including municipal portals
+- **Example**: Messina air quality dataset now returns score 405/560 (Eccellente)
+- **File modified**: `src/tools/quality.ts` (line 41)
+- **Deployed**: Cloudflare Workers v0.4.16
+
 ### MQA Quality Metrics Tool
 
 - **Feature**: Added `ckan_get_mqa_quality` tool for retrieving quality metrics from data.europa.eu MQA API

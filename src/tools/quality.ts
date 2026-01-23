@@ -37,7 +37,8 @@ export async function getMqaQuality(serverUrl: string, datasetId: string): Promi
   );
 
   // Step 2: Use identifier field, fallback to name
-  const europeanId = dataset.identifier || dataset.name;
+  // Replace colons with hyphens for data.europa.eu API compatibility
+  const europeanId = (dataset.identifier || dataset.name).replace(/:/g, '-');
 
   // Step 3: Query MQA API
   const mqaUrl = `${MQA_API_BASE}/${europeanId}`;
