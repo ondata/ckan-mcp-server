@@ -1,5 +1,14 @@
 # LOG
 
+## 2026-01-25
+
+### Documentation - MCP Inspector
+- **README**: Added "Exploring the Server" section before "Manual Testing"
+- **Tool**: MCP Inspector for interactive server exploration
+- **Usage**: `npx @modelcontextprotocol/inspector node dist/index.js`
+- **Features**: Browse tools/resources, test calls with auto-complete, real-time responses, debug errors
+- **Impact**: Developers can quickly explore and test server without manual JSON-RPC
+
 ## 2026-01-23
 
 ### Release v0.4.17

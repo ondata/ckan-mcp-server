@@ -666,6 +666,27 @@ npm run build
 npm run watch
 ```
 
+### Exploring the Server
+
+If you want to explore and test the server interactively, use the MCP Inspector:
+
+```bash
+# Install MCP Inspector globally (one-time setup)
+npm install -g @modelcontextprotocol/inspector
+
+# Build the server
+npm run build
+
+# Launch Inspector with your server
+npx @modelcontextprotocol/inspector node dist/index.js
+```
+
+This opens a web interface (usually at `http://localhost:5173`) where you can:
+- Browse all registered tools and resources
+- Test tool calls with auto-complete for parameters
+- See real-time responses in both JSON and rendered format
+- Debug errors with detailed stack traces
+
 ### Manual Testing
 
 ```bash
