@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ondata.github.io/ckan-mcp-server/sitemap-index.xml

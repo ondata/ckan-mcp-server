@@ -2,6 +2,34 @@
 
 ## 2026-01-25
 
+### Website - Landing Page
+- **Website**: Created production-ready landing page in `website/` directory
+- **Stack**: Astro v5 + React + Tailwind CSS + TypeScript strict mode
+- **Deployment**: GitHub Actions workflow for automatic GitHub Pages deployment
+- **URL**: https://ondata.github.io/ckan-mcp-server/
+- **Content**:
+  - Hero section with value proposition for open data researchers
+  - Features section (6 key capabilities)
+  - Quick start with copy-paste configs (Claude Desktop, VS Code, Cloudflare Workers, global npm)
+  - Use cases (researchers, data scientists, students, journalists, etc.)
+  - Supported portals showcase (dati.gov.it, data.gov, data.europa.eu, etc.)
+  - SEO optimized (meta tags, Open Graph, sitemap)
+  - Responsive design (mobile-first, accessible WCAG AA)
+- **Assets**:
+  - SVG favicon with network graph icon
+  - manifest.json for PWA support
+  - robots.txt and sitemap
+  - Script for PNG favicon generation (`generate-favicons.sh`)
+- **Files**:
+  - `website/src/pages/index.astro` (main landing page)
+  - `website/src/layouts/Layout.astro` (SEO layout)
+  - `website/src/components/Footer.astro`
+  - `website/public/favicon.svg`, `manifest.json`, `robots.txt`
+  - `.github/workflows/deploy-website.yml` (deployment automation)
+  - `website/README.md` (documentation)
+- **Build**: 396 packages, builds successfully in ~1s
+- **Deployment trigger**: Push to main branch with changes in `website/` directory
+
 ### Documentation - MCP Inspector
 - **README**: Added "Exploring the Server" section before "Manual Testing"
 - **Tool**: MCP Inspector for interactive server exploration
