@@ -67,7 +67,7 @@ Deploy on your own server using Node.js:
 TRANSPORT=http PORT=3000 npm start
 ```
 
-### Option 3: Cloudflare Workers ⭐ NEW
+### Option 3: Cloudflare Workers
 
 **Best for**: Global access, zero infrastructure, free hosting
 
@@ -83,7 +83,7 @@ Use the public Workers endpoint (no local install required):
 }
 ```
 
-**NOTE**: This service uses the Cloudflare Workers free tier which has a limit of 100,000 requests per month.
+**NOTE**: This service uses the Cloudflare Workers free tier which has a limit of 100,000 requests per month. **ITS OPERATION IS THEREFORE NOT GUARANTEED**. With local installation, you will not have any problems.
 
 Want your own deployment? See [DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
