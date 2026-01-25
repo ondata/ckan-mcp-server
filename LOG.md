@@ -1,5 +1,14 @@
 # LOG
 
+## 2026-01-26
+
+### Website - Fix color contrast issues
+- **Fix**: Added custom color definitions to `tailwind.config.mjs`
+- **Colors**: navy (#0A1628), data-blue (#0066CC), teal (#0D9488), coral (#F97316), amber (#F59E0B), cream (#FFFEF9)
+- **Impact**: CTA section and all custom-colored elements now render correctly with proper contrast
+- **Before**: Custom Tailwind classes (bg-navy, text-data-blue, etc.) were ignored, causing transparent backgrounds and unreadable text
+- **After**: All colors apply correctly, navy CTA section has proper dark background with white/gray text
+
 ## 2026-01-25
 
 ### Website - Landing Page
