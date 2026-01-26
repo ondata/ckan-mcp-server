@@ -25,6 +25,7 @@ function normalizeMqaIdentifier(identifier: string): string {
   return identifier
     .trim()
     .replace(/:/g, "-")
+    .replace(/\./g, "-")
     .replace(/-+/g, "-")
     .toLowerCase();
 }

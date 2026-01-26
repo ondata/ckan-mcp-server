@@ -2,6 +2,10 @@
 
 ## 2026-01-26
 
+### Release v0.4.22
+
+- Fix MQA identifier normalization to handle dot separators (e.g. `c_g273:D.1727` -> `c_g273-d-1727`)
+
 ### Release v0.4.21
 
 - Fix metrics parsing in Workers by switching to fetch and mocking fetch in tests
