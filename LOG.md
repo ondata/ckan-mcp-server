@@ -2,6 +2,11 @@
 
 ## 2026-01-26
 
+### Release v0.4.19
+
+- Fix metrics JSON-LD parsing in Workers to restore dimension score breakdown
+- Ensure ld+json responses are parsed even when returned as strings
+
 ### Release v0.4.18
 
 - MQA quality output now includes dimension score breakdown with ✅/⚠️ indicators

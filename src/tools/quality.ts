@@ -90,11 +90,19 @@ function parseScoreValue(value: unknown): number | undefined {
 
 function extractMetricsScores(metricsData: unknown): MqaScores {
   const scores: MqaScores = {};
-  if (!metricsData || typeof metricsData !== "object") {
+  let parsed = metricsData;
+  if (typeof metricsData === "string") {
+    try {
+      parsed = JSON.parse(metricsData);
+    } catch {
+      return scores;
+    }
+  }
+  if (!parsed || typeof parsed !== "object") {
     return scores;
   }
 
-  const graph = (metricsData as Record<string, unknown>)["@graph"];
+  const graph = (parsed as Record<string, unknown>)["@graph"];
   if (!Array.isArray(graph)) {
     return scores;
   }
@@ -184,6 +192,7 @@ export async function getMqaQuality(serverUrl: string, datasetId: string): Promi
       let metricsResponse;
       try {
         metricsResponse = await axios.get(metricsUrl, {
+          responseType: "json",
           timeout: 30000,
           headers: {
             'User-Agent': 'CKAN-MCP-Server/1.0'
