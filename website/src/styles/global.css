@@ -7,3 +7,12 @@
     @apply text-gray-900;
   }
 }
+
+@layer utilities {
+  .emoji-flag {
+    font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Twemoji Mozilla", "Segoe UI Symbol",
+      sans-serif;
+    font-variant-emoji: emoji;
+    line-height: 1;
+  }
+}
