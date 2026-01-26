@@ -276,7 +276,7 @@ describe('ckan_get_mqa_quality integration', () => {
 
       expect(result).toContain('# Quality Metrics');
       expect(result).toContain('test-dataset');
-      expect(result).toContain('**Overall Score**: 395/450');
+      expect(result).toContain('**Overall Score**: 395/405');
       expect(result).toContain('## Dimension Scores');
       expect(result).toContain('Accessibility: 90/100 ⚠️ (max 100)');
       expect(result).toContain('Findability: 100/100 ✅');
@@ -299,7 +299,7 @@ describe('ckan_get_mqa_quality integration', () => {
 
       const result = formatQualityMarkdown(partialData, 'partial-dataset');
 
-      expect(result).toContain('**Overall Score**: 200/450');
+      expect(result).toContain('**Overall Score**: 200/405');
       expect(result).toContain('## Accessibility');
       expect(result).not.toContain('## Reusability');
     });

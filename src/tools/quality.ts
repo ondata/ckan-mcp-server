@@ -439,7 +439,7 @@ export function formatQualityMarkdown(data: any, datasetId: string): string {
   lines.push("");
 
   if (normalized.info?.score !== undefined) {
-    lines.push(`**Overall Score**: ${normalized.info.score}/450`);
+    lines.push(`**Overall Score**: ${normalized.info.score}/405`);
     lines.push("");
   }
 

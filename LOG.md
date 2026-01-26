@@ -2,9 +2,15 @@
 
 ## 2026-01-26
 
+### Release v0.4.23
+
+- Fix MQA quality score maximum from 450 to 405 (correct max: 100+100+110+75+20)
+- Files modified: `src/tools/quality.ts:442`, `tests/integration/quality.test.ts:279,302`
+
 ### Release v0.4.22
 
 - Fix MQA identifier normalization to handle dot separators (e.g. `c_g273:D.1727` -> `c_g273-d-1727`)
+- Workers deploy: https://ckan-mcp-server.andy-pr.workers.dev (2026-01-26)
 
 ### Release v0.4.21
 
