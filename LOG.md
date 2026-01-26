@@ -2,6 +2,13 @@
 
 ## 2026-01-26
 
+### Release v0.4.18
+
+- MQA quality output now includes dimension score breakdown with ✅/⚠️ indicators
+- Metrics endpoint link added for direct score inspection
+- Non-max dimension(s) highlighted for quick diagnosis
+- Files: `src/tools/quality.ts`, `tests/integration/quality.test.ts`, `tests/fixtures/responses/mqa-metrics-success.json`
+
 ### MQA Quality Metrics - Readable dimension scores
 - **Feature**: Add dimension score breakdown with ✅/⚠️ indicators and non-max dimensions
 - **Source**: Fetch metrics JSON-LD from data.europa.eu for scoring details
