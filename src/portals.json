@@ -14,6 +14,16 @@
       },
       "dataset_view_url": "https://www.dati.gov.it/view-dataset/dataset?id={id}",
       "organization_view_url": "https://www.dati.gov.it/view-dataset?organization={name}"
+    },
+    {
+      "id": "anac-opendata",
+      "name": "dati.anticorruzione.it/opendata",
+      "api_url": "https://dati.anticorruzione.it/opendata",
+      "api_url_aliases": [
+        "http://dati.anticorruzione.it/opendata",
+        "https://dati.anticorruzione.it",
+        "http://dati.anticorruzione.it"
+      ]
     }
   ],
   "defaults": {
