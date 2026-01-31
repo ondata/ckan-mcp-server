@@ -2,8 +2,8 @@
 
 ## CKAN MCP Server
 
-**Version**: 0.4.12
-**Last Updated**: 2026-01-17
+**Version**: 0.4.27
+**Last Updated**: 2026-01-31
 **Author**: onData
 **Status**: Production
 
@@ -78,6 +78,8 @@ An MCP server that exposes tools to interact with CKAN API v3, enabling AI agent
   - Search by ID or name
   - Basic metadata (title, description, author, license)
   - Resource list with details (format, size, URL, DataStore status)
+  - Access service endpoints and effective download URL when available
+  - Issued/modified content dates and harvested metadata timestamp
   - Organization and tags
   - Custom extra fields
   - Optional tracking statistics
@@ -146,6 +148,17 @@ An MCP server that exposes tools to interact with CKAN API v3, enabling AI agent
   - Site title and URL
 - **Implementation Status**: ✅ Implemented (`ckan_status_show`)
 
+#### FR-9: Quality Metrics (MQA)
+- **Priority**: Medium
+- **Description**: Retrieve quality metrics for datasets from data.europa.eu MQA API
+- **Acceptance Criteria**:
+  - Query MQA API for dati.gov.it datasets
+  - Return overall score and dimension breakdown (accessibility, reusability, interoperability, findability)
+  - Visual indicators (✅/⚠️) for dimension scores
+  - Handle identifier normalization (colons to hyphens, dot separators)
+  - Support disambiguation suffixes (~~1, ~~2)
+- **Implementation Status**: ✅ Implemented (`ckan_get_mqa_quality`)
+
 ### 3.2 Non-Functional Requirements
 
 #### NFR-1: Performance
@@ -162,6 +175,8 @@ An MCP server that exposes tools to interact with CKAN API v3, enabling AI agent
   - HTTP error management (404, 500, timeout)
   - Input validation with Zod strict schemas
   - Descriptive error messages
+  - WAF bypass with browser-like headers (User-Agent, Sec-*, Referer)
+  - Portal hostname resolution to API URL
 - **Availability**: Depends on remote CKAN server availability
 
 #### NFR-3: Usability
@@ -214,7 +229,7 @@ An MCP server that exposes tools to interact with CKAN API v3, enabling AI agent
 - `wrangler@^4.58.0` - Cloudflare Workers CLI
 
 **Test Framework**:
-- `vitest@^4.0.16` - Test runner (191 tests, 100% passing)
+- `vitest@^4.0.16` - Test runner (217 tests, 100% passing)
 
 ### 4.2 Architecture Diagram
 
@@ -230,7 +245,7 @@ An MCP server that exposes tools to interact with CKAN API v3, enabling AI agent
 │              CKAN MCP Server                        │
 │              (Node.js or Workers runtime)           │
 │  ┌───────────────────────────────────────────────┐  │
-│  │  MCP Tool Registry (13 tools)                 │  │
+│  │  MCP Tool Registry (14 tools)                 │  │
 │  │  - ckan_package_search                        │  │
 │  │  - ckan_package_show                          │  │
 │  │  - ckan_find_relevant_datasets                │  │
@@ -240,6 +255,7 @@ An MCP server that exposes tools to interact with CKAN API v3, enabling AI agent
 │  │  - ckan_datastore_search                      │  │
 │  │  - ckan_datastore_search_sql                  │  │
 │  │  - ckan_status_show                           │  │
+│  │  - ckan_get_mqa_quality                       │  │
 │  └───────────┬───────────────────────────────────┘  │
 │              │                                       │
 │  ┌───────────▼───────────────────────────────────┐  │
@@ -478,26 +494,19 @@ The server can connect to **any public CKAN server**. Main portals:
 
 ### 7.2 Installation
 
-#### Option 1: npm Package (Recommended - PLANNED)
+#### Option 1: npm Package (Recommended)
 
 **Global Installation**:
 ```bash
-npm install -g ckan-mcp-server
-```
-
-**Local Installation**:
-```bash
-npm install ckan-mcp-server
+npm install -g @aborruso/ckan-mcp-server
 ```
 
 **npx (No Installation)**:
 ```bash
-npx ckan-mcp-server
+npx @aborruso/ckan-mcp-server@latest
 ```
 
-> **Note**: Publishing to npm registry is planned to enable simple installation like PyPI in Python. Currently requires installation from repository.
-
-#### Option 2: From Source (Current)
+#### Option 2: From Source (Alternative)
 
 ```bash
 git clone https://github.com/ondata/ckan-mcp-server
@@ -517,25 +526,27 @@ npm start
 
 **Claude Desktop Configuration** (`claude_desktop_config.json`):
 
-*After npm publication*:
 ```json
 {
   "mcpServers": {
     "ckan": {
       "command": "npx",
-      "args": ["ckan-mcp-server"]
+      "args": ["@aborruso/ckan-mcp-server@latest"]
     }
   }
 }
 ```
 
-*Current (from source)*:
+**Using global installation**:
+```bash
+npm install -g @aborruso/ckan-mcp-server
+```
+
 ```json
 {
   "mcpServers": {
     "ckan": {
-      "command": "node",
-      "args": ["/path/to/ckan-mcp-server/dist/index.js"]
+      "command": "ckan-mcp-server"
     }
   }
 }
@@ -764,6 +775,30 @@ ckan_package_search({
 - Handling portals with restrictive parsers
 - URL generator for browse/search links
 
+#### ✅ MQA Quality Metrics Tool (v0.4.16 - v0.4.26)
+- Tool `ckan_get_mqa_quality` for retrieving quality metrics from data.europa.eu
+- Supports dati.gov.it datasets with identifier normalization (colons → hyphens, dot separators)
+- Dimension score breakdown: accessibility, reusability, interoperability, findability (max 405 points)
+- Visual indicators (✅/⚠️) for quick diagnosis
+- Disambiguation suffix support (~~1, ~~2) for datasets with multiple matches
+- Direct metrics endpoint link in output
+
+#### ✅ Date Query Auto-Conversion (v0.4.14)
+- Automatic conversion of NOW-based date math for `modified` and `issued` fields
+- Converts queries like `modified:[NOW-30DAYS TO NOW]` to ISO dates
+- Supports DAYS, MONTHS, YEARS units
+- Backward compatible with existing queries
+
+#### ✅ Portal Hostname Resolution (v0.4.26)
+- Automatic resolution of portal hostnames to API URLs
+- Supports both www and non-www variants
+- Handles ANAC and other portal aliases
+
+#### ✅ WAF Bypass Headers (v0.4.24)
+- Browser-like headers (User-Agent, Sec-*, Referer) to avoid WAF blocks
+- Improved compatibility with restrictive CKAN portals
+- Applied to all HTTP requests automatically
+
 ### 10.2 Planned Features
 
 #### High Priority
@@ -825,9 +860,9 @@ ckan_package_search({
 ### 10.3 Testing & Quality
 
 ✅ **Current State**:
-- 191 unit and integration tests (100% passing)
+- 217 unit and integration tests (100% passing)
 - vitest test runner
-- Coverage for all 13 tools
+- Coverage for all 14 tools
 - Fixtures for offline testing
 
 **Future**:
@@ -860,7 +895,7 @@ ckan_package_search({
 - **Memory Usage**: < 50MB runtime (Node.js), Workers limits apply
 - **Response Time**: < 30s (CKAN API timeout), < 10s (Workers)
 - **Cold Start**: < 60ms (Cloudflare Workers)
-- **Test Coverage**: 191 tests (100% passing)
+- **Test Coverage**: 217 tests (100% passing)
 
 ### 11.2 Distribution Metrics
 
