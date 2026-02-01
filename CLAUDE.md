@@ -68,6 +68,13 @@ npm run dev:worker        # Test locally with Wrangler
 npm run deploy            # Deploy to Cloudflare Workers
 ```
 
+### Local MCP Client Build Test
+
+Before deploying, you can test the current dev build by pointing your MCP client at the Node entrypoint in `dist/`:
+
+1. Build: `npm run build`
+2. Example absolute path: `/home/aborruso/git/idee/ckan-mcp-server/dist/index.js` (adjust to your local checkout)
+
 ### GitHub CLI Notes
 
 When creating issues with multi-line bodies, avoid literal `\n` in `--body`. Use a here-doc

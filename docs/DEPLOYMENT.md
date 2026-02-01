@@ -144,6 +144,20 @@ Stop local server: Press `x` or `Ctrl+C`
 
 ---
 
+### Step 5.5: Test Local Build via MCP Client (Optional)
+
+If you want to test the current development build before deploying, you can use the Node entrypoint from `dist/` with your MCP client:
+
+1. Build the project:
+   ```bash
+   npm run build
+   ```
+2. Point your MCP client to the built entry file:
+   - Example absolute path: `/home/aborruso/git/idee/ckan-mcp-server/dist/index.js`
+   - This is an example absolute path; adjust it to your local checkout.
+
+---
+
 ### Step 6: Deploy to Cloudflare Workers
 
 ```bash
