@@ -37,7 +37,11 @@ ckan_package_search({
   q: "tags:${theme}",
   sort: "metadata_modified desc",
   rows: ${rows}
-})`;
+})
+
+Note: metadata_modified is a CKAN record timestamp (publish time on source portals,
+harvest time on aggregators). If the user asks for
+content publication dates, prefer issued (or modified) with explicit ISO ranges.`;
 
 export const registerThemePrompt = (server: McpServer): void => {
   server.registerPrompt(

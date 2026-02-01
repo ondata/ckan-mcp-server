@@ -196,9 +196,13 @@ export const formatPackageShowMarkdown = (result: any, serverUrl: string): strin
   markdown += `- **License**: ${result.license_title || result.license_id || 'Not specified'}\n`;
   markdown += `- **State**: ${result.state}\n`;
   markdown += `- **Created**: ${formatDate(result.metadata_created)}\n`;
-  if (result.issued) markdown += `- **Issued**: ${formatDate(result.issued)}\n`;
+  if (result.issued) {
+    markdown += `- **Issued**: ${formatDate(result.issued)}\n`;
+  } else {
+    markdown += `- **Issued**: (missing in CKAN; downstream RDF may default to metadata_created, which is a record timestamp)\n`;
+  }
   if (result.modified) markdown += `- **Modified (Content)**: ${formatDate(result.modified)}\n`;
-  markdown += `- **Metadata Modified (Harvest)**: ${formatDate(result.metadata_modified)}\n\n`;
+  markdown += `- **Metadata Modified (Record)**: ${formatDate(result.metadata_modified)}\n\n`;
 
   if (result.organization) {
     markdown += `## Organization\n\n`;
@@ -288,6 +292,19 @@ Note on parser behavior:
 Some CKAN portals use a restrictive default query parser that can break long OR queries.
 For those portals, this tool may force the query into 'text:(...)' based on per-portal config.
 You can override with 'query_parser' to force or disable this behavior per request.
+
+Important - Date field semantics:
+  - issued: publisher's content publish date when available (best proxy for "created/published")
+  - modified: publisher's content update date when available
+  - metadata_created: CKAN record creation timestamp (publish time on source portals,
+    harvest time on aggregators; fallback for "created" if issued missing)
+  - metadata_modified: CKAN record update timestamp (publish time on source portals,
+    harvest time on aggregators; use for "updated/modified in last X")
+
+Content-recent helper:
+  - content_recent: if true, rewrites the query to use issued with a fallback to
+    metadata_created when issued is missing.
+  - content_recent_days: window for content_recent (default 30 days).
 
 Args:
   - server_url (string): Base URL of CKAN server (e.g., "https://dati.gov.it/opendata")
@@ -403,6 +420,16 @@ Examples:
           .optional()
           .default(false)
           .describe("Include draft datasets"),
+        content_recent: z.boolean()
+          .optional()
+          .default(false)
+          .describe("Use issued date with fallback to metadata_created for recent content"),
+        content_recent_days: z.number()
+          .int()
+          .min(1)
+          .optional()
+          .default(30)
+          .describe("Day window for content_recent (default 30)"),
         query_parser: z.enum(["default", "text"])
           .optional()
           .describe("Override search parser ('text' forces text:(...) on non-fielded queries)"),
@@ -417,9 +444,20 @@ Examples:
     },
     async (params) => {
       try {
+        const userQuery = params.q;
+        let query = userQuery;
+        let effectiveSort = params.sort;
+
+        if (params.content_recent) {
+          const days = params.content_recent_days ?? 30;
+          const recentClause = `(issued:[NOW-${days}DAYS TO NOW]) OR (-issued:* AND metadata_created:[NOW-${days}DAYS TO NOW])`;
+          query = userQuery && userQuery !== "*:*" ? `(${userQuery}) AND (${recentClause})` : recentClause;
+          if (!effectiveSort) effectiveSort = "issued desc, metadata_created desc";
+        }
+
         const { effectiveQuery } = resolveSearchQuery(
           params.server_url,
-          params.q,
+          query,
           params.query_parser
         );
 
@@ -431,7 +469,7 @@ Examples:
         };
 
         if (params.fq) apiParams.fq = params.fq;
-        if (params.sort) apiParams.sort = params.sort;
+        if (effectiveSort) apiParams.sort = effectiveSort;
         if (params.facet_field && params.facet_field.length > 0) {
           apiParams['facet.field'] = JSON.stringify(params.facet_field);
           apiParams['facet.limit'] = params.facet_limit;
@@ -454,8 +492,9 @@ Examples:
         let markdown = `# CKAN Package Search Results
 
 **Server**: ${params.server_url}
-**Query**: ${params.q}
-${effectiveQuery !== params.q ? `**Effective Query**: ${effectiveQuery}\n` : ''}
+**Query**: ${userQuery}
+${params.content_recent ? `**Content Recent**: last ${params.content_recent_days ?? 30} days (issued with metadata_created fallback)\n` : ''}
+${effectiveQuery !== userQuery ? `**Effective Query**: ${effectiveQuery}\n` : ''}
 ${params.fq ? `**Filter**: ${params.fq}\n` : ''}
 **Total Results**: ${result.count}
 **Showing**: ${result.results.length} results (from ${params.start})
@@ -719,7 +758,8 @@ Examples:
 Returns full details including resources, organization, tags, and all metadata fields.
 
 Notes:
-  - metadata_modified is the CKAN record timestamp (harvest/update), not the content date.
+  - metadata_modified is a CKAN record timestamp (publish time on source portals,
+    harvest time on aggregators), not the content date.
   - issued/modified are content dates when provided by the publisher.
   - JSON output adds metadata_harvested_at (same as metadata_modified).
 

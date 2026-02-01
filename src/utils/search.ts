@@ -18,6 +18,11 @@ export function escapeSolrQuery(query: string): string {
  * Convert NOW-based date expressions to ISO dates for fields that don't support them.
  * CKAN Solr date math (NOW-XDAYS) only works on metadata_modified and metadata_created.
  * For 'modified' and 'issued' fields, explicit ISO dates are required.
+ *
+ * Note on semantics:
+ * - issued/modified are publisher content dates (best for "created/updated" when present).
+ * - metadata_created/metadata_modified are CKAN record timestamps (publish time for source portals,
+ *   harvest time for aggregators).
  */
 export function convertDateMathForUnsupportedFields(query: string): string {
   const now = new Date();
