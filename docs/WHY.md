@@ -373,7 +373,7 @@ Utile prima di lanciare query su portali che non conosci!
 
 **Domanda**: "Cerca dati su mobilità urbana pubblicati negli ultimi 3 mesi su dati.gov.it"
 
-**Risultato**: 1 dataset (as of 1 febbraio 2026). Esempio: "Aree elementari 2021" (Regione Toscana).
+**Risultato**: 7 dataset (as of 1 febbraio 2026). Esempio: "Aree elementari 2021" (Regione Toscana).
 
 ---
 
