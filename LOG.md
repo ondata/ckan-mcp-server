@@ -19,7 +19,8 @@
 
 ### Unreleased
 
-- None
+- Docs: clarify GitHub release notes formatting (use here-doc + --notes-file)
+- Files: `AGENTS.md`, `CLAUDE.md`
 
 ### Release v0.4.35
 
