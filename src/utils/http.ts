@@ -3,8 +3,30 @@
  */
 
 import axios, { AxiosError } from "axios";
-import { brotliDecompressSync, gunzipSync, inflateSync } from "node:zlib";
 import { getPortalApiUrlForHostname } from "./portal-config.js";
+
+type ZlibModule = {
+  brotliDecompressSync: (input: Buffer) => Buffer;
+  gunzipSync: (input: Buffer) => Buffer;
+  inflateSync: (input: Buffer) => Buffer;
+};
+
+const loadZlib = (() => {
+  let cached: Promise<ZlibModule | null> | null = null;
+  return async (): Promise<ZlibModule | null> => {
+    if (!cached) {
+      cached = (async () => {
+        try {
+          const mod = (await import("node:" + "zlib")) as ZlibModule;
+          return mod;
+        } catch {
+          return null;
+        }
+      })();
+    }
+    return cached;
+  };
+})();
 
 function getHeaderValue(
   headers: Record<string, unknown> | undefined,
@@ -26,6 +48,9 @@ function asBuffer(data: unknown): Buffer | undefined {
   if (!data) {
     return undefined;
   }
+  if (typeof Buffer === "undefined") {
+    return undefined;
+  }
   if (Buffer.isBuffer(data)) {
     return data;
   }
@@ -38,10 +63,10 @@ function asBuffer(data: unknown): Buffer | undefined {
   return undefined;
 }
 
-function decodePossiblyCompressed(
+async function decodePossiblyCompressed(
   data: unknown,
   headers?: Record<string, unknown>
-): unknown {
+): Promise<unknown> {
   if (data === null || data === undefined) {
     return data;
   }
@@ -65,16 +90,23 @@ function decodePossiblyCompressed(
 
   const encoding = getHeaderValue(headers, "content-encoding");
   let decodedBuffer = buffer;
+  const zlib = await loadZlib();
 
   try {
-    if (encoding?.includes("gzip")) {
-      decodedBuffer = gunzipSync(buffer);
-    } else if (encoding?.includes("br")) {
-      decodedBuffer = brotliDecompressSync(buffer);
-    } else if (encoding?.includes("deflate")) {
-      decodedBuffer = inflateSync(buffer);
-    } else if (buffer.length >= 2 && buffer[0] === 0x1f && buffer[1] === 0x8b) {
-      decodedBuffer = gunzipSync(buffer);
+    if (zlib) {
+      if (encoding?.includes("gzip")) {
+        decodedBuffer = zlib.gunzipSync(buffer);
+      } else if (encoding?.includes("br")) {
+        decodedBuffer = zlib.brotliDecompressSync(buffer);
+      } else if (encoding?.includes("deflate")) {
+        decodedBuffer = zlib.inflateSync(buffer);
+      } else if (
+        buffer.length >= 2 &&
+        buffer[0] === 0x1f &&
+        buffer[1] === 0x8b
+      ) {
+        decodedBuffer = zlib.gunzipSync(buffer);
+      }
     }
   } catch {
     decodedBuffer = buffer;
@@ -137,7 +169,10 @@ export async function makeCkanRequest<T>(
       }
     });
 
-    const decodedData = decodePossiblyCompressed(response.data, response.headers);
+    const decodedData = await decodePossiblyCompressed(
+      response.data,
+      response.headers
+    );
     if (decodedData && (decodedData as { success?: boolean }).success === true) {
       return (decodedData as { result: T }).result;
     } else {

@@ -2,6 +2,11 @@
 
 ## 2026-02-01
 
+### Release v0.4.30
+
+- Fix Workers build by avoiding static node:zlib import while keeping decompression in Node
+- Files: `src/utils/http.ts`, `package.json`, `package-lock.json`
+
 ### Release v0.4.29
 
 - Decode compressed/binary CKAN responses (gzip/br/deflate) to fix DataStore calls on Messina portal
