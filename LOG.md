@@ -2,14 +2,20 @@
 
 ## 2026-02-01
 
-### Release v0.4.35
+### Release v0.4.36
 
-- Tests: adjust MQA metrics details fixture to include scoring entries
-- Files: `tests/integration/quality.test.ts`
+- Fix: align server and worker reported version with package version
+- Fix: update worker health tool count
+- Files: `src/server.ts`, `src/worker.ts`
 
 ### Unreleased
 
 - None
+
+### Release v0.4.35
+
+- Tests: adjust MQA metrics details fixture to include scoring entries
+- Files: `tests/integration/quality.test.ts`
 
 ### Release v0.4.34
 
