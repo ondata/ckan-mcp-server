@@ -20,19 +20,6 @@ MCP (Model Context Protocol) server for interacting with CKAN-based open data po
 - 🛡️ Browser-like headers to avoid WAF blocks
 - 🧪 Test suite with 214 tests (100% passing)
 
-## Date fields (source vs aggregator)
-
-CKAN portals can be *source* catalogs or *harvesting aggregators*.
-
-- `issued` / `modified`: publisher content dates (best for "created/updated" when present)
-- `metadata_created` / `metadata_modified`: CKAN record timestamps (publish time on source portals,
-  harvest time on aggregators)
-
-For "recent content" queries, prefer `issued` with a fallback to `metadata_created`
-when `issued` is missing (see the `content_recent` helper in `ckan_package_search`).
-
----
-
 👉 If you want to dive deeper, the [**AI-generated DeepWiki**](https://deepwiki.com/ondata/ckan-mcp-server) is very well done.
 
 ---
@@ -764,6 +751,17 @@ Third-party attributions: See [NOTICE.md](NOTICE.md) for third-party software no
 - **CKAN**: https://ckan.org/
 - **CKAN API Documentation**: https://docs.ckan.org/en/latest/api/
 - **MCP Protocol**: https://modelcontextprotocol.io/
+
+## Date fields (source vs aggregator)
+
+CKAN portals can be *source* catalogs or *harvesting aggregators*.
+
+- `issued` / `modified`: publisher content dates (best for "created/updated" when present)
+- `metadata_created` / `metadata_modified`: CKAN record timestamps (publish time on source portals,
+  harvest time on aggregators)
+
+For "recent content" queries, prefer `issued` with a fallback to `metadata_created`
+when `issued` is missing (see the `content_recent` helper in `ckan_package_search`).
 
 ## Support
 
