@@ -88,7 +88,7 @@ Perfetto per capire chi è più attivo nell'open data, senza scaricare nulla!
 
 ### 🎯 Livello 4: query mirate (filtri multipli)
 
-**Tu chiedi**: "Dataset su appalti o contratti pubblicati negli ultimi 3 mesi"
+**Tu chiedi**: "Dataset su appalti o contratti pubblicati negli ultimi 3 mesi su dati.gov.it"
 
 **Filtri combinati**:
 - Ricerca nel titolo: `title:appalti OR title:contratti`
@@ -106,7 +106,7 @@ Esempio di dataset (uno dei risultati possibili):
 
 Boom! 💥 Dati freschi sulla trasparenza degli appalti pubblici.
 
-**Bonus**: "Cosa pubblica in totale il Comune di Bologna?"
+**Bonus**: "Quanti dati pubblica in totale il Comune di Bologna su dati.gov.it?"
 
 Ottieni tutti i dataset pubblicati da quell'organizzazione, con statistiche complete.
 
@@ -142,7 +142,7 @@ Finora abbiamo visto solo **metadati** (titoli, descrizioni, organizzazioni). Ma
 
 **Step 1 - Trova il dataset giusto**
 
-**Tu chiedi**: "Cerca le ordinanze su dati.comune.messina.it"
+**Tu chiedi**: "Cerca le ordinanze viabili su dati.comune.messina.it"
 
 **Risultato**: dataset "Ordinanze viabili" (as of 1 febbraio 2026), con una risorsa CSV e **DataStore attivo**.
 
@@ -162,7 +162,7 @@ Finora abbiamo visto solo **metadati** (titoli, descrizioni, organizzazioni). Ma
 
 **Step 3 - Filtra solo le ordinanze di tipo specifico**
 
-**Tu chiedi**: "Dammi solo le ordinanze di tipo 'divieto_transito'"
+**Tu chiedi**: "Quante sono le ordinanze di tipo 'divieto_transito'"
 
 **Filtro applicato**:
 
