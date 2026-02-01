@@ -87,6 +87,24 @@ Line 2
 EOF
 ```
 
+When writing GitHub release notes, avoid literal `\n` in `--notes`. Always use a here-doc
+and `--notes-file -` so line breaks render correctly:
+
+```bash
+cat <<'EOF' | gh release create v0.X.Y --title "v0.X.Y - Title" --notes-file -
+## What's New
+
+### Changes
+- Item 1
+- Item 2
+
+### No Breaking Changes
+- All existing functionality preserved
+
+**Full Changelog**: https://github.com/ondata/ckan-mcp-server/compare/v0.X-1.Y...v0.X.Y
+EOF
+```
+
 ### Build System
 
 The project uses **esbuild** for compilation and **vitest** for testing:
