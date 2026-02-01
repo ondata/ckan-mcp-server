@@ -3,7 +3,7 @@
  */
 
 import axios, { AxiosError } from "axios";
-import { getPortalApiUrlForHostname } from "./portal-config.js";
+import { getPortalApiUrlForHostname, getPortalApiPath } from "./portal-config.js";
 
 type ZlibModule = {
   brotliDecompressSync: (input: Buffer) => Buffer;
@@ -198,7 +198,8 @@ export async function makeCkanRequest<T>(
 
   // Normalize server URL
   const baseUrl = resolvedServerUrl.replace(/\/$/, '');
-  const url = `${baseUrl}/api/3/action/${action}`;
+  const apiPath = getPortalApiPath(resolvedServerUrl);
+  const url = `${baseUrl}${apiPath}/${action}`;
 
   try {
     let decodedData: unknown;

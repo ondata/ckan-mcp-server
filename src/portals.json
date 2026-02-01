@@ -24,6 +24,19 @@
         "https://dati.anticorruzione.it",
         "http://dati.anticorruzione.it"
       ]
+    },
+    {
+      "id": "data-gov-uk",
+      "name": "data.gov.uk",
+      "api_url": "https://data.gov.uk",
+      "api_url_aliases": [
+        "https://www.data.gov.uk",
+        "http://data.gov.uk",
+        "http://www.data.gov.uk"
+      ],
+      "api_path": "/api/action",
+      "dataset_view_url": "https://data.gov.uk/dataset/{name}",
+      "organization_view_url": "https://data.gov.uk/publisher/{name}"
     }
   ],
   "defaults": {

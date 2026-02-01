@@ -2,6 +2,15 @@
 
 ## 2026-02-01
 
+### Release v0.4.37
+
+- Feature: add support for custom API paths in portal configuration
+- Feature: add data.gov.uk portal support (uses `/api/action/` instead of `/api/3/action/`)
+- Enhancement: extend portal configuration with `api_path` field
+- Enhancement: dynamic API path construction based on portal config
+- Files: `src/utils/portal-config.ts`, `src/utils/http.ts`, `src/portals.json`
+- No breaking changes
+
 ### Release v0.4.36
 
 - Fix: align server and worker reported version with package version

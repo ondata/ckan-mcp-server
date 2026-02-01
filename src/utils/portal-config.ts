@@ -7,6 +7,7 @@ type PortalSearchConfig = {
 type PortalConfig = {
   api_url: string;
   api_url_aliases?: string[];
+  api_path?: string;
   search?: PortalSearchConfig;
 };
 
@@ -58,4 +59,9 @@ export function getPortalApiUrlForHostname(hostname: string): string | null {
   });
 
   return portal ? normalizeUrl(portal.api_url) : null;
+}
+
+export function getPortalApiPath(serverUrl: string): string {
+  const portal = getPortalConfig(serverUrl);
+  return portal?.api_path || '/api/3/action';
 }
