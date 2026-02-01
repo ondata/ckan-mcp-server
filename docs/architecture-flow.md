@@ -90,6 +90,7 @@ The CKAN MCP Server provides these tools:
 - `ckan_status_show` - Check portal status
 - `ckan_find_relevant_datasets` - Relevance-ranked search
 - `ckan_get_mqa_quality` - Get dataset quality metrics (dati.gov.it only)
+- `ckan_get_mqa_quality_details` - Get dataset quality reasons (dati.gov.it only)
 
 ## Transport Modes
 
