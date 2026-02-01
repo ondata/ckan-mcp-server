@@ -260,6 +260,7 @@ See [Claude web guide](docs/guide/claude/claude_web.md)
 ### Quality Metrics
 
 - **ckan_get_mqa_quality**: Get MQA quality score and metrics for dati.gov.it datasets (accessibility, reusability, interoperability, findability)
+- **ckan_get_mqa_quality_details**: Get detailed MQA quality reasons and failing flags for dati.gov.it datasets
 
 ### Utilities
 
