@@ -422,14 +422,13 @@ ckan_datastore_search_sql({
 
 ## Supported CKAN Portals
 
-Some of the main compatible portals:
+Verified portals with public API access:
 
-- 🇮🇹 **www.dati.gov.it/opendata** - Italy
-- 🇺🇸 **data.gov** - United States
-- 🇨🇦 **open.canada.ca/data** - Canada
-- 🇬🇧 **data.gov.uk** - United Kingdom
-- 🇪🇺 **data.europa.eu** - European Union
-- 🌍 **demo.ckan.org** - CKAN Demo
+- 🇮🇹 **https://www.dati.gov.it/opendata** - Italian National Open Data Portal (CKAN 2.10.3)
+- 🇺🇸 **https://catalog.data.gov** - United States Open Data (CKAN 2.11.4)
+- 🇨🇦 **https://open.canada.ca/data** - Canada Open Government (CKAN 2.10.8)
+- 🇦🇺 **https://data.gov.au** - Australian Government Open Data (CKAN 2.11.4)
+- 🇬🇧 **https://data.gov.uk** - United Kingdom Open Data
 - And 500+ more portals worldwide
 
 ### Portal View URL Templates
