@@ -37,6 +37,45 @@
       "api_path": "/api/action",
       "dataset_view_url": "https://data.gov.uk/dataset/{name}",
       "organization_view_url": "https://data.gov.uk/publisher/{name}"
+    },
+    {
+      "id": "catalog-data-gov",
+      "name": "catalog.data.gov",
+      "api_url": "https://catalog.data.gov",
+      "api_url_aliases": [
+        "http://catalog.data.gov"
+      ]
+    },
+    {
+      "id": "open-canada",
+      "name": "open.canada.ca",
+      "api_url": "https://open.canada.ca/data",
+      "api_url_aliases": [
+        "http://open.canada.ca/data",
+        "https://open.canada.ca",
+        "http://open.canada.ca"
+      ]
+    },
+    {
+      "id": "data-gov-au",
+      "name": "data.gov.au",
+      "api_url": "https://data.gov.au",
+      "api_url_aliases": [
+        "http://data.gov.au",
+        "https://www.data.gov.au",
+        "http://www.data.gov.au"
+      ]
+    },
+    {
+      "id": "opendata-swiss",
+      "name": "opendata.swiss",
+      "api_url": "https://ckan.opendata.swiss",
+      "api_url_aliases": [
+        "https://opendata.swiss",
+        "http://opendata.swiss",
+        "https://www.opendata.swiss",
+        "http://www.opendata.swiss"
+      ]
     }
   ],
   "defaults": {

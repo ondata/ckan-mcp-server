@@ -1,5 +1,14 @@
 # LOG
 
+## 2026-02-02
+
+### Release v0.4.38
+
+- Enhancement: add portal entries and API base URLs for catalog.data.gov, open.canada.ca, data.gov.au, and opendata.swiss
+- Fix: align server and worker reported version with package version
+- Files: `src/portals.json`, `package.json`, `package-lock.json`, `src/server.ts`, `src/worker.ts`
+- No breaking changes
+
 ## 2026-02-01
 
 ### Release v0.4.37
