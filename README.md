@@ -82,7 +82,7 @@ Use the public Workers endpoint (no local install required):
 }
 ```
 
-**NOTE**: This service uses the Cloudflare Workers free tier which has a limit of 100,000 requests per month. **ITS OPERATION IS THEREFORE NOT GUARANTEED**. With local installation, you will not have any problems.
+**NOTE**: This service uses the Cloudflare Workers free tier which has a limit of 100,000 requests per month shared globally across all users. **ITS OPERATION IS THEREFORE NOT GUARANTEED**. With local installation, you will not have any problems.
 
 Want your own deployment? See [DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
@@ -215,7 +215,7 @@ npm install -g @aborruso/ckan-mcp-server
 }
 ```
 
-**NOTE**: The Cloudflare Workers endpoint uses the free tier (100,000 requests/month limit).
+**NOTE**: The Cloudflare Workers endpoint uses the free tier (100,000 requests/month limit shared globally across all users).
 
 [Detailed guide](https://github.com/ondata/ckan-mcp-server/discussions/4#discussion-9359684)
 
@@ -229,7 +229,7 @@ See [ChatGPT web guide](docs/guide/chatgpt/chatgpt_web.md)
 
 See [Claude web guide](docs/guide/claude/claude_web.md)
 
-**Note**: Web tools use a public demo server with 100,000 calls/month limit. For reliable usage, install the server locally.
+**Note**: Web tools use a public demo server with a 100,000 calls/month limit shared globally across all users. For reliable usage, install the server locally.
 
 ## Available Tools
 

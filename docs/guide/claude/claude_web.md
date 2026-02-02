@@ -1,6 +1,6 @@
 # Set up the CKAN MCP Server in Claude (Web)
 
-This guide uses the public demo server, which has a limit of 100,000 calls per month. For reliable usage, it is recommended to install the CKAN MCP Server on your own machine.
+This guide uses the public demo server, which has a limit of 100,000 calls per month shared globally across all users. For reliable usage, it is recommended to install the CKAN MCP Server on your own machine.
 
 This guide shows how to add the CKAN MCP Server as a custom connector in Claude and use it in a chat.
 
