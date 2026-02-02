@@ -126,7 +126,7 @@ title:bike OR title:cycling
 
 **Risultato**: 366 dataset (as of 1 febbraio 2026)!
 
-**La parte magica**: impari a usare questo strumento una volta, poi funziona su **qualsiasi portale CKAN del mondo**. Italia, USA, UK, Canada, EU... stesso metodo, dati diversi!
+**La parte magica**: impari a usare questo strumento una volta, poi funziona su **qualsiasi portale CKAN del mondo**. Italia, USA, UK, Canada... stesso metodo, dati diversi!
 
 **Tool usato**: `ckan_package_search` (su server diverso)
 
@@ -407,7 +407,7 @@ La tua AI fa il resto. Nessun codice da scrivere, solo domande da fare.
 A: No! Chiedi in linguaggio naturale, la tua AI traduce per te.
 
 **Q: Funziona solo su dati.gov.it?**
-A: No! Funziona su **qualsiasi portale CKAN**: Italia, USA, UK, Canada, EU...
+A: No! Funziona su **qualsiasi portale CKAN**: Italia, USA, UK, Canada...
 
 **Q: Posso interrogare direttamente i dati nei CSV?**
 A: Sì, se il portale ha il DataStore attivo (tipicamente portali locali come comuni e regioni).
