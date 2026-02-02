@@ -2,6 +2,15 @@
 
 ## 2026-02-02
 
+### Website - Fix flag emoji rendering on Linux/desktop
+
+- **Fix**: Replace emoji flags with SVG images from Twemoji CDN
+- **Problem**: Country flag emojis (🇮🇹, 🇺🇸, 🇨🇦, 🇦🇺, 🇬🇧, 🇨🇭) not visible on Linux/desktop browsers lacking color emoji fonts
+- **Solution**: Use `<img>` tags pointing to `https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/svg/`
+- **Benefits**: Works on all platforms, consistent appearance, better accessibility
+- **Files**: `website/src/pages/index.astro` (6 flag replacements), `website/src/styles/global.css` (removed `.emoji-flag` class)
+- **Impact**: Flags now visible on all devices (Linux, Windows, macOS, mobile)
+
 ### Release v0.4.38
 
 - Enhancement: add portal entries and API base URLs for catalog.data.gov, open.canada.ca, data.gov.au, and opendata.swiss
