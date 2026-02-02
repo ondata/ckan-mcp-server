@@ -35,8 +35,8 @@
         "http://www.data.gov.uk"
       ],
       "api_path": "/api/action",
-      "dataset_view_url": "https://data.gov.uk/dataset/{name}",
-      "organization_view_url": "https://data.gov.uk/publisher/{name}"
+      "dataset_view_url": "https://www.data.gov.uk/dataset/{id}/{name}",
+      "organization_view_url": "https://www.data.gov.uk/organization/{name}"
     },
     {
       "id": "catalog-data-gov",
@@ -64,7 +64,10 @@
         "http://data.gov.au",
         "https://www.data.gov.au",
         "http://www.data.gov.au"
-      ]
+      ],
+      "dataset_view_url": "https://data.gov.au/data/dataset/{name}"
+      ,
+      "organization_view_url": "https://data.gov.au/data/organization/{name}"
     },
     {
       "id": "opendata-swiss",
@@ -76,6 +79,21 @@
         "https://www.opendata.swiss",
         "http://www.opendata.swiss"
       ]
+    }
+    ,
+    {
+      "id": "govdata-de",
+      "name": "govdata.de",
+      "api_url": "https://ckan.govdata.de",
+      "api_url_aliases": [
+        "https://www.govdata.de",
+        "https://govdata.de",
+        "https://www.govdata.de/daten",
+        "https://data.gov.de",
+        "https://www.data.gov.de"
+      ],
+      "dataset_view_url": "https://ckan.govdata.de/dataset/{name}",
+      "organization_view_url": "https://ckan.govdata.de/organization/{name}"
     }
   ],
   "defaults": {
