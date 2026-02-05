@@ -24,19 +24,12 @@ MCP (Model Context Protocol) server for interacting with CKAN-based open data po
 
 ---
 
-> ## 🚀 **Recommended: Install Locally**
->
+> **💡 Local installation available** for unlimited access and better performance:
 > ```bash
 > npm install -g @aborruso/ckan-mcp-server
 > ```
 >
-> **Benefits:**
-> - ✅ **No request limits** - unlimited queries
-> - ✅ **Faster** - no network latency
-> - ✅ **Always available** - no shared quota
-> - ✅ **Free** - open source, no costs
->
-> The Cloudflare Workers endpoint is only for quick testing (100k requests/month shared globally across all users).
+> The Cloudflare Workers endpoint has 100k requests/day shared quota - sufficient for most users, but local installation is recommended for heavy usage.
 
 ---
 

@@ -235,7 +235,7 @@ export default {
         // Add CORS headers and service notices
         const headers = new Headers(response.headers);
         headers.set('Access-Control-Allow-Origin', '*');
-        headers.set('X-Service-Notice', 'Demo instance - 100k requests/month shared globally');
+        headers.set('X-Service-Notice', 'Demo instance - 100k requests/day shared quota');
         headers.set('X-Recommendation', 'https://github.com/ondata/ckan-mcp-server#installation');
 
         return new Response(response.body, {

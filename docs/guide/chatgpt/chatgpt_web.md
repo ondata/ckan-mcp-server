@@ -1,6 +1,6 @@
 # Set up the CKAN MCP Server in ChatGPT (Web)
 
-This guide uses the public demo server, which has a limit of 100,000 calls per month shared globally across all users. For reliable usage, it is recommended to install the CKAN MCP Server on your own machine.
+This guide uses the public demo server, which has a limit of 100,000 calls per day shared quota across all users of this endpoint. For reliable usage, it is recommended to install the CKAN MCP Server on your own machine.
 
 This guide walks you through enabling Developer mode, creating the CKAN MCP Server app, and using it inside a chat.
 

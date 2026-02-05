@@ -1,6 +1,6 @@
 # Plan: Push Users to Local Node.js Installation
 
-User wants to encourage everyone to install Node.js version locally instead of using Cloudflare Workers demo instance. Workers has 100k requests/month shared limit and may be discontinued.
+User wants to encourage everyone to install Node.js version locally instead of using Cloudflare Workers demo instance. Workers has 100k requests/day shared limit and may be discontinued.
 
 ## Goal
 
@@ -33,14 +33,14 @@ Strongly recommend local npm installation as primary method. Position Cloudflare
 - [x] Add footer to markdown responses when on Workers:
   ```
   ---
-  ℹ️ Demo instance (100k requests/month shared globally). For unlimited access: https://github.com/ondata/ckan-mcp-server#installation
+  ℹ️ Demo instance (100k requests/day shared quota). For unlimited access: https://github.com/ondata/ckan-mcp-server#installation
   ```
 - [x] Add utility functions `isWorkers()` and `addDemoFooter()` in `src/utils/formatting.ts`
 - [x] Apply to all tool handlers (package, organization, datastore, status, tag, group, quality)
 
 ### Task 2.2: Add HTTP Headers to Worker (for debugging) ✅
 - [x] Edit `src/worker.ts`
-- [x] Add `X-Service-Notice: Demo instance - 100k requests/month shared globally`
+- [x] Add `X-Service-Notice: Demo instance - 100k requests/day shared quota`
 - [x] Add `X-Recommendation: https://github.com/ondata/ckan-mcp-server#installation`
 - [x] Add these headers to /mcp endpoint responses
 

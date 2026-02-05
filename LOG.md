@@ -17,7 +17,7 @@
 
 **Footer shown to Workers users**:
 ```
-ℹ️ Demo instance (100k requests/month shared globally). For unlimited access: https://github.com/ondata/ckan-mcp-server#installation
+ℹ️ Demo instance (100k requests/day shared quota). For unlimited access: https://github.com/ondata/ckan-mcp-server#installation
 ```
 
 **Files modified**:
