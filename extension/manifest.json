@@ -1,0 +1,113 @@
+{
+  "manifest_version": "0.3",
+  "name": "ckan-mcp-server",
+  "display_name": "CKAN Open Data Portal",
+  "version": "0.4.39",
+  "description": "MCP server for searching and exploring datasets on CKAN open data portals (dati.gov.it, data.gov, data.gov.uk, and more)",
+  "long_description": "Connect Claude Desktop to any CKAN-based open data portal. Search datasets with full Solr query syntax, query tabular data via DataStore, explore organizations and groups, and access complete metadata. Supports all major government open data portals worldwide including Italy (dati.gov.it), United States (catalog.data.gov), Canada (open.canada.ca), United Kingdom (data.gov.uk), and the European Union (data.europa.eu).",
+  "author": {
+    "name": "Andrea Borruso",
+    "email": "aborruso@gmail.com",
+    "url": "https://github.com/ondata"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ondata/ckan-mcp-server"
+  },
+  "homepage": "https://github.com/ondata/ckan-mcp-server",
+  "documentation": "https://github.com/ondata/ckan-mcp-server#readme",
+  "support": "https://github.com/ondata/ckan-mcp-server/issues",
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/dist/index.js"
+      ]
+    }
+  },
+  "tools": [
+    {
+      "name": "ckan_package_search",
+      "description": "Search for datasets on a CKAN server using Solr query syntax with filters, facets, and sorting"
+    },
+    {
+      "name": "ckan_find_relevant_datasets",
+      "description": "Find and rank datasets by relevance to a query using weighted field scoring"
+    },
+    {
+      "name": "ckan_package_show",
+      "description": "Get complete metadata for a specific dataset including resources, organization, and tags"
+    },
+    {
+      "name": "ckan_datastore_search",
+      "description": "Query tabular data from a CKAN DataStore resource with SQL-like filters"
+    },
+    {
+      "name": "ckan_datastore_search_sql",
+      "description": "Run SQL queries directly on a CKAN DataStore resource"
+    },
+    {
+      "name": "ckan_organization_list",
+      "description": "List all organizations on a CKAN server"
+    },
+    {
+      "name": "ckan_organization_show",
+      "description": "Get details of a specific organization including its datasets"
+    },
+    {
+      "name": "ckan_organization_search",
+      "description": "Search for organizations by name pattern"
+    },
+    {
+      "name": "ckan_group_list",
+      "description": "List all thematic groups on a CKAN server"
+    },
+    {
+      "name": "ckan_group_show",
+      "description": "Get details of a specific group"
+    },
+    {
+      "name": "ckan_group_search",
+      "description": "Search for groups by name pattern"
+    },
+    {
+      "name": "ckan_tag_list",
+      "description": "List tags from a CKAN server with counts, optionally filtered by query or substring"
+    },
+    {
+      "name": "ckan_status_show",
+      "description": "Check if a CKAN server is available and get version information"
+    },
+    {
+      "name": "ckan_get_mqa_quality",
+      "description": "Get MQA quality metrics for a dataset on dati.gov.it (accessibility, reusability, interoperability, findability, contextuality)"
+    },
+    {
+      "name": "ckan_get_mqa_quality_details",
+      "description": "Get detailed MQA quality reasons and dimension scores for a dataset on dati.gov.it"
+    }
+  ],
+  "tools_generated": false,
+  "keywords": [
+    "ckan",
+    "open-data",
+    "datasets",
+    "data-portal",
+    "government-data",
+    "solr",
+    "datastore",
+    "dati-gov-it",
+    "data-gov",
+    "mcp"
+  ],
+  "license": "MIT",
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  },
+  "privacy_policies": []
+}
