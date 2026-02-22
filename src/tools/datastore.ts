@@ -43,15 +43,15 @@ Examples:
   - { server_url: "...", resource_id: "...", filters: { "regione": "Sicilia" } }
   - { server_url: "...", resource_id: "...", sort: "anno desc", limit: 100 }`,
       inputSchema: z.object({
-        server_url: z.string().url(),
-        resource_id: z.string().min(1),
-        q: z.string().optional(),
-        filters: z.record(z.any()).optional(),
-        limit: z.number().int().min(1).max(32000).optional().default(100),
-        offset: z.number().int().min(0).optional().default(0),
-        fields: z.array(z.string()).optional(),
-        sort: z.string().optional(),
-        distinct: z.boolean().optional().default(false),
+        server_url: z.string().url().describe("Base URL of the CKAN server (e.g., https://dati.gov.it/opendata)"),
+        resource_id: z.string().min(1).describe("UUID of the DataStore resource (from ckan_package_show resource.id where datastore_active is true)"),
+        q: z.string().optional().describe("Full-text search across all fields"),
+        filters: z.record(z.any()).optional().describe("Key-value filters for exact matches (e.g., { \"regione\": \"Sicilia\", \"anno\": 2023 })"),
+        limit: z.number().int().min(1).max(32000).optional().default(100).describe("Max rows to return (default 100, max 32000)"),
+        offset: z.number().int().min(0).optional().default(0).describe("Pagination offset"),
+        fields: z.array(z.string()).optional().describe("Specific field names to return; omit to return all fields"),
+        sort: z.string().optional().describe("Sort expression (e.g., 'anno desc', 'nome asc')"),
+        distinct: z.boolean().optional().default(false).describe("Return only distinct rows"),
         response_format: ResponseFormatSchema
       }).strict(),
       annotations: {
@@ -178,8 +178,8 @@ Examples:
   - { server_url: "...", sql: "SELECT * FROM \"abc-123\" LIMIT 10" }
   - { server_url: "...", sql: "SELECT COUNT(*) AS total FROM \"abc-123\"" }`,
       inputSchema: z.object({
-        server_url: z.string().url(),
-        sql: z.string().min(1),
+        server_url: z.string().url().describe("Base URL of the CKAN server (e.g., https://dati.gov.it/opendata)"),
+        sql: z.string().min(1).describe("SQL SELECT query; resource_id is the table name, must be double-quoted (e.g., SELECT * FROM \"abc-123\" LIMIT 10)"),
         response_format: ResponseFormatSchema
       }).strict(),
       annotations: {

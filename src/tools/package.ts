@@ -399,7 +399,7 @@ Examples:
           .describe("Search query in Solr syntax"),
         fq: z.string()
           .optional()
-          .describe("Filter query in Solr syntax"),
+          .describe("Filter query in Solr syntax; applied after scoring, does not affect relevance (e.g., 'organization:comune-palermo', 'res_format:CSV')"),
         rows: z.number()
           .int()
           .min(0)
@@ -610,18 +610,23 @@ ${params.fq ? `**Filter**: ${params.fq}\n` : ''}
       title: "Find Relevant CKAN Datasets",
       description: `Find and rank datasets by relevance to a query using weighted fields.
 
+Use this instead of ckan_package_search when you want relevance-ranked results with
+explicit scoring across title, notes, tags, and organization fields.
+Use ckan_package_search instead when you need Solr filter syntax, facets, or pagination.
+
 Uses package_search for discovery and applies a local scoring model.
 
 Args:
   - server_url (string): Base URL of CKAN server (e.g., "https://dati.gov.it/opendata")
-  - query (string): Search query text
+  - query (string): Natural language or keyword query (e.g., "mobilità urbana", "air quality")
   - limit (number): Number of datasets to return (default: 10)
-  - weights (object): Optional weights for title/notes/tags/organization
+  - weights (object): Field weights for scoring — higher weight = more influence on rank
+    Default: title=4, tags=3, notes=2, organization=1
   - query_parser ('default' | 'text'): Override search parser behavior
   - response_format ('markdown' | 'json'): Output format
 
 Returns:
-  Ranked datasets with relevance scores and breakdowns
+  Ranked datasets with relevance scores and per-field score breakdowns
 
 Examples:
   - { server_url: "https://dati.gov.it/opendata", query: "mobilità" }
@@ -632,7 +637,7 @@ Examples:
           .describe("Base URL of the CKAN server (e.g., https://dati.gov.it/opendata)"),
         query: z.string()
           .min(2)
-          .describe("Search query text"),
+          .describe("Natural language or keyword query to match against dataset title, notes, tags, and organization"),
         limit: z.number()
           .int()
           .min(1)
@@ -641,11 +646,11 @@ Examples:
           .default(10)
           .describe("Number of datasets to return"),
         weights: z.object({
-          title: z.number().min(0).optional(),
-          notes: z.number().min(0).optional(),
-          tags: z.number().min(0).optional(),
-          organization: z.number().min(0).optional()
-        }).optional().describe("Optional weights per field"),
+          title: z.number().min(0).optional().describe("Weight for title match (default 4)"),
+          notes: z.number().min(0).optional().describe("Weight for description match (default 2)"),
+          tags: z.number().min(0).optional().describe("Weight for tag match (default 3)"),
+          organization: z.number().min(0).optional().describe("Weight for organization match (default 1)")
+        }).optional().describe("Per-field scoring weights; unspecified fields use defaults"),
         query_parser: z.enum(["default", "text"])
           .optional()
           .describe("Override search parser ('text' forces text:(...) on non-fielded queries)"),

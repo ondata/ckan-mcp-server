@@ -1,5 +1,14 @@
 # LOG
 
+## 2026-02-22
+
+- Audit and improve Zod parameter descriptions across all tools for "code mode" SDK compatibility:
+  - `ckan_organization_list/show/search`: added `.describe()` on all parameters (previously none)
+  - `ckan_datastore_search`: added `.describe()` on all parameters (previously none)
+  - `ckan_datastore_search_sql`: added `.describe()` on `server_url` and `sql` (with double-quote hint)
+  - `ckan_package_search`: improved `fq` description (was missing)
+  - `ckan_find_relevant_datasets`: improved tool description with "when to use vs ckan_package_search", improved `query` and `weights` descriptions
+
 ## 2026-02-20 (v0.4.41)
 
 - Fix MCP Apps implementation (was broken in v0.4.40):

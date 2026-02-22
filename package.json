@@ -1,6 +1,6 @@
 {
   "name": "@aborruso/ckan-mcp-server",
-  "version": "0.4.41",
+  "version": "0.4.42",
   "description": "MCP server for interacting with CKAN open data portals",
   "main": "dist/index.js",
   "type": "module",
