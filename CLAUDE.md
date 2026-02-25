@@ -143,10 +143,15 @@ tests/
 When making changes:
 1. Run tests before committing: `npm test`
 2. Ensure all tests pass
-
-**Test target rule**: Never use `demo.ckan.org` for tests. Always use `https://www.dati.gov.it/opendata`.
 3. Add tests for new features or bug fixes
 4. Follow existing test patterns in `tests/` directory
+
+**Test target rule**: Never use `demo.ckan.org` for tests. Always use `https://www.dati.gov.it/opendata`.
+
+**Before committing and pushing**: For any locally testable change, always:
+1. Build locally: `npm run build`
+2. Run automated tests: `npm test`
+3. Run manual queries against the built server to verify the actual behavior, not just that tests pass. Use real CKAN requests (e.g., via the MCP client or HTTP transport) to confirm the feature works end-to-end.
 
 ## Architecture
 
@@ -343,27 +348,42 @@ See `tests/README.md` for detailed testing guidelines and fixture structure.
 
 ### Manual Testing
 
-For manual testing:
+For manual testing, use HTTP transport with curl:
 
 ```bash
-# Build project
+# Terminal 1 — start server
 npm run build
-
-# Test stdio mode
-npm start
-# (Server will wait for MCP commands on stdin)
-
-# Test HTTP mode in a terminal
-TRANSPORT=http PORT=3000 npm start
-
-# In another terminal, test with curl
-curl -X POST http://localhost:3000/mcp \
-  -H "Content-Type: application/json" \
-  -d {"jsonrpc":"2.0","method":"tools/list","id":1}
+TRANSPORT=http PORT=3001 node dist/index.js
 ```
 
+```bash
+# Terminal 2 — call a tool
+curl -s -X POST http://localhost:3001/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{
+    "jsonrpc":"2.0",
+    "method":"tools/call",
+    "params":{
+      "name":"ckan_package_search",
+      "arguments":{
+        "server_url":"https://www.dati.gov.it/opendata",
+        "q":"ambiente",
+        "page":1,
+        "page_size":3
+      }
+    },
+    "id":1
+  }'
+```
+
+Key points:
+- Always include both `Content-Type: application/json` and `Accept: application/json, text/event-stream` headers
+- Use `node dist/index.js` directly (not `npm start`) to avoid npm buffering
+- Use port 3001 to avoid conflicts with other services on 3000
+- Check output for correct field values, pagination hints, and `Showing: N results (from X)` line
+
 To test with Claude Desktop, add MCP configuration to config file.
-To test with Claude Desktop, add the MCP configuration to the config file.
 
 ## Development Notes
 

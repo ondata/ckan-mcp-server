@@ -275,6 +275,18 @@ export const formatPackageShowMarkdown = (result: any, serverUrl: string): strin
   return markdown;
 };
 
+export function resolvePageParams(
+  page: number | undefined,
+  pageSize: number,
+  start: number,
+  rows: number
+): { effectiveStart: number; effectiveRows: number } {
+  if (page !== undefined) {
+    return { effectiveStart: (page - 1) * pageSize, effectiveRows: pageSize };
+  }
+  return { effectiveStart: start, effectiveRows: rows };
+}
+
 export function registerPackageTools(server: McpServer) {
   /**
    * Search for datasets on a CKAN server
@@ -317,6 +329,8 @@ Args:
   - fq (string): Filter query (e.g., "organization:comune-palermo")
   - rows (number): Number of results to return (default: 10, max: 1000)
   - start (number): Offset for pagination (default: 0)
+  - page (number): Page number (1-based); alias for start. Overrides start if provided.
+  - page_size (number): Results per page when using page (default: 10, max: 1000)
   - sort (string): Sort field and direction (e.g., "metadata_modified desc")
   - facet_field (array): Fields to facet on (e.g., ["organization", "tags"])
   - facet_limit (number): Max facet values per field (default: 50)
@@ -424,6 +438,18 @@ Typical workflow: ckan_package_search → ckan_package_show (get full metadata +
           .optional()
           .default(50)
           .describe("Maximum facet values per field"),
+        page: z.number()
+          .int()
+          .min(1)
+          .optional()
+          .describe("Page number (1-based); alias for start. Overrides start if provided."),
+        page_size: z.number()
+          .int()
+          .min(1)
+          .max(1000)
+          .optional()
+          .default(10)
+          .describe("Results per page when using page (default: 10)"),
         include_drafts: z.boolean()
           .optional()
           .default(false)
@@ -469,10 +495,12 @@ Typical workflow: ckan_package_search → ckan_package_show (get full metadata +
           params.query_parser
         );
 
+        const { effectiveRows, effectiveStart } = resolvePageParams(params.page, params.page_size, params.start, params.rows);
+
         const apiParams: Record<string, any> = {
           q: effectiveQuery,
-          rows: params.rows,
-          start: params.start,
+          rows: effectiveRows,
+          start: effectiveStart,
           include_private: params.include_drafts
         };
 
@@ -504,7 +532,7 @@ ${params.content_recent ? `**Content Recent**: last ${params.content_recent_days
 ${effectiveQuery !== userQuery ? `**Effective Query**: ${effectiveQuery}\n` : ''}
 ${params.fq ? `**Filter**: ${params.fq}\n` : ''}
 **Total Results**: ${result.count}
-**Showing**: ${result.results.length} results (from ${params.start})
+**Showing**: ${result.results.length} results (from ${effectiveStart})
 
 `;
 
@@ -555,9 +583,13 @@ ${params.fq ? `**Filter**: ${params.fq}\n` : ''}
           markdown += `No datasets found matching your query.\n`;
         }
 
-        if (result.count > params.start + params.rows) {
-          const nextStart = params.start + params.rows;
-          markdown += `\n---\n**More results available**: Use \`start: ${nextStart}\` to see next page.\n`;
+        if (result.count > effectiveStart + effectiveRows) {
+          if (params.page !== undefined) {
+            markdown += `\n---\n**More results available**: Use \`page: ${params.page + 1}\` to see next page.\n`;
+          } else {
+            const nextStart = effectiveStart + effectiveRows;
+            markdown += `\n---\n**More results available**: Use \`start: ${nextStart}\` to see next page.\n`;
+          }
         }
 
         return {

@@ -176,14 +176,18 @@ export default {
     <ul>
       <li><code>ckan_status_show</code> - Check CKAN portal status</li>
       <li><code>ckan_package_search</code> - Search datasets with filters</li>
-      <li><code>ckan_package_show</code> - Get dataset details</li>
-      <li><code>ckan_resource_show</code> - Get resource metadata</li>
-      <li><code>ckan_datastore_search</code> - Query DataStore data</li>
-      <li><code>ckan_datastore_search_sql</code> - Execute SQL queries</li>
-      <li><code>ckan_organization_list</code> - List organizations</li>
-      <li><code>ckan_group_list</code> - List groups</li>
-      <li><code>ckan_tag_list</code> - List tags</li>
       <li><code>ckan_find_relevant_datasets</code> - AI-powered dataset discovery</li>
+      <li><code>ckan_package_show</code> - Get dataset details</li>
+      <li><code>ckan_list_resources</code> - List resources in a dataset</li>
+      <li><code>ckan_datastore_search</code> - Query DataStore data</li>
+      <li><code>ckan_datastore_search_sql</code> - Execute SQL queries on DataStore</li>
+      <li><code>ckan_organization_list</code> - List organizations</li>
+      <li><code>ckan_organization_show</code> - Get organization details</li>
+      <li><code>ckan_organization_search</code> - Search organizations</li>
+      <li><code>ckan_group_list</code> - List groups</li>
+      <li><code>ckan_group_show</code> - Get group details</li>
+      <li><code>ckan_group_search</code> - Search groups</li>
+      <li><code>ckan_tag_list</code> - List tags</li>
     </ul>
 
     <h2>📚 Resources</h2>
@@ -198,7 +202,7 @@ export default {
     <pre><code>curl ${url.origin}/health</code></pre>
 
     <div class="footer">
-      Version 0.4.41 • Running on Cloudflare Workers • <a href="https://github.com/ondata/ckan-mcp-server/blob/main/LICENSE.txt" target="_blank">MIT License</a>
+      Version 0.4.49 • Running on Cloudflare Workers •<a href="https://github.com/ondata/ckan-mcp-server/blob/main/LICENSE.txt" target="_blank">MIT License</a>
     </div>
   </div>
 </body>

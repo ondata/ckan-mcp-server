@@ -309,6 +309,8 @@ When DataStore is not available, downloads and parses files in-process (CSV, JSO
 
 - [ ] Implement `ckan_download_resource` with CSV/JSON/JSONL support and size limits
 
+> **⚠️ Not applicable for Cloudflare Workers deployment**: Workers have a 128MB memory cap, CPU time limits, and no filesystem access. In-process file download and parsing is not viable in that runtime. This feature would only work in the Node.js (stdio/HTTP) deployment.
+
 ### Stop-word query cleaning with fallback
 
 Removes generic words ("données", "csv", "fichier") from search queries before querying. Falls back to original query if zero results. Useful because LLMs include descriptive words that break AND logic.

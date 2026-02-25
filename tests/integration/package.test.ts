@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axios from 'axios';
 import { makeCkanRequest } from '../../src/utils/http';
-import { scoreDatasetRelevance } from '../../src/tools/package';
+import { scoreDatasetRelevance, resolvePageParams } from '../../src/tools/package';
 import packageSearchFixture from '../fixtures/responses/package-search-success.json';
 import packageShowFixture from '../fixtures/responses/package-show-success.json';
 import notFoundError from '../fixtures/errors/not-found.json';
@@ -682,5 +682,23 @@ describe('ckan_list_resources', () => {
     await expect(
       makeCkanRequest('http://demo.ckan.org', 'package_show', { id: 'nonexistent' })
     ).rejects.toThrow();
+  });
+});
+
+describe('resolvePageParams', () => {
+  it('page=1 page_size=5 → start=0 rows=5', () => {
+    expect(resolvePageParams(1, 5, 0, 10)).toEqual({ effectiveStart: 0, effectiveRows: 5 });
+  });
+
+  it('page=2 page_size=5 → start=5 rows=5', () => {
+    expect(resolvePageParams(2, 5, 0, 10)).toEqual({ effectiveStart: 5, effectiveRows: 5 });
+  });
+
+  it('page=3 page_size=10 → start=20 rows=10', () => {
+    expect(resolvePageParams(3, 10, 0, 10)).toEqual({ effectiveStart: 20, effectiveRows: 10 });
+  });
+
+  it('without page, start/rows used as-is', () => {
+    expect(resolvePageParams(undefined, 10, 15, 7)).toEqual({ effectiveStart: 15, effectiveRows: 7 });
   });
 });

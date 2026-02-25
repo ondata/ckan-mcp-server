@@ -118,6 +118,43 @@ Node `>=18`. Worker build in `wrangler.toml`. Vitest coverage thresholds enforce
 
 Minimal focused diffs. No unrelated refactors. Update tests for behavior changes. Avoid editing `dist/`.
 
+## Pre-commit Checklist
+
+Before committing and pushing any locally testable change:
+1. Build: `npm run build`
+2. Automated tests: `npm test` — all must pass
+3. Manual queries: run real requests against the built server to verify end-to-end behavior
+
+### How to run manual queries
+
+```bash
+# Terminal 1 — start server
+TRANSPORT=http PORT=3001 node dist/index.js
+
+# Terminal 2 — call a tool
+curl -s -X POST http://localhost:3001/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{
+    "jsonrpc":"2.0",
+    "method":"tools/call",
+    "params":{
+      "name":"ckan_package_search",
+      "arguments":{
+        "server_url":"https://www.dati.gov.it/opendata",
+        "q":"ambiente",
+        "page":1,
+        "page_size":3
+      }
+    },
+    "id":1
+  }'
+```
+
+- Always include both `Content-Type: application/json` and `Accept: application/json, text/event-stream`
+- Use `node dist/index.js` directly, not `npm start`
+- Use port 3001 to avoid conflicts
+
 ## Project Layout
 
 `src/index.ts` entry, `src/server.ts` wiring, `src/tools/` handlers, `src/utils/` helpers, `src/resources/` templates, `src/transport/` stdio/HTTP. `tests/unit/` utilities, `tests/integration/` behavior, `tests/fixtures/` mocks.
