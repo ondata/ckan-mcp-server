@@ -214,7 +214,7 @@ export default {
     if (request.method === 'GET' && url.pathname === '/health') {
       return new Response(JSON.stringify({
         status: 'ok',
-        version: '0.4.48',
+        version: '0.4.49',
         tools: 16,
         resources: 7,
         prompts: 5,

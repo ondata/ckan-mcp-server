@@ -11,7 +11,8 @@ vi.mock('axios');
 // and capturing the response via the low-level handler map.
 // We instead test through the tool registration directly.
 
-describe('DataStore Table Viewer', () => {
+// Skipped: DataStore Table UI disabled - awaiting use-case design
+describe.skip('DataStore Table Viewer', () => {
   let server: McpServer;
 
   beforeEach(() => {

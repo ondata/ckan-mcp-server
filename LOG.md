@@ -1,5 +1,15 @@
 # LOG
 
+## 2026-02-25 (v0.4.49)
+
+- Disable DataStore Table UI component (MCP Apps) pending use-case design
+  - Reverted `registerAppTool` → `server.registerTool` in datastore.ts and package.ts
+  - Removed `_meta.ui`, `structuredContent` from tool responses
+  - Commented out UI resource registration in resources/index.ts
+  - Skipped UI test suite (6 tests)
+  - All source files preserved (`src/ui/`, `src/resources/datastore-table-ui.ts`)
+  - Tests: 227 passed, 6 skipped
+
 ## 2026-02-25 (v0.4.48)
 
 - Add workflow guidance ("Typical workflow: ...") to all 15 tool docstrings

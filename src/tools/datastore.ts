@@ -7,15 +7,12 @@ import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
 import { truncateText, addDemoFooter } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { registerAppTool } from "@modelcontextprotocol/ext-apps/server";
-import { DATASTORE_TABLE_RESOURCE_URI } from "../resources/datastore-table-ui.js";
 
 export function registerDatastoreTools(server: McpServer) {
   /**
    * DataStore search
    */
-  registerAppTool(
-    server,
+  server.registerTool(
     "ckan_datastore_search",
     {
       title: "Search CKAN DataStore",
@@ -61,8 +58,7 @@ Typical workflow: ckan_package_search → ckan_package_show (find resource_id wi
         destructiveHint: false,
         idempotentHint: true,
         openWorldHint: false
-      },
-      _meta: { ui: { resourceUri: DATASTORE_TABLE_RESOURCE_URI } }
+      }
     },
     async (params) => {
       try {
@@ -86,8 +82,7 @@ Typical workflow: ckan_package_search → ckan_package_show (find resource_id wi
 
         if (params.response_format === ResponseFormat.JSON) {
           return {
-            content: [{ type: "text", text: truncateText(JSON.stringify(result, null, 2)) }],
-            structuredContent: result
+            content: [{ type: "text", text: truncateText(JSON.stringify(result, null, 2)) }]
           };
         }
 
@@ -136,14 +131,7 @@ Typical workflow: ckan_package_search → ckan_package_show (find resource_id wi
         }
 
         return {
-          content: [{ type: "text", text: truncateText(addDemoFooter(markdown)) }],
-          structuredContent: {
-            server_url: params.server_url,
-            resource_id: params.resource_id,
-            total: result.total || 0,
-            fields: result.fields || [],
-            records: result.records || []
-          }
+          content: [{ type: "text", text: truncateText(addDemoFooter(markdown)) }]
         };
       } catch (error) {
         return {
