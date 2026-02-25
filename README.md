@@ -188,6 +188,25 @@ npm install -g @aborruso/ckan-mcp-server
 
 ⚠️ **Warning**: Demo instance with 100,000 requests/month shared globally across all users. Not reliable for production use.
 
+**Claude Desktop on Windows reading from a local MCP server installed on WSL2**:
+
+```json
+{
+  "mcpServers": {
+    "ckan": {
+      "command": "wsl.exe",
+      "args": [
+        "-e",
+        "/usr/local/bin/node",
+        "/home/username/projects/ckan-mcp-server/dist/index.js"
+      ]
+    }
+  }
+}
+```
+
+This requires the server to be built (`npm run build`) inside the WSL2 environment before use.
+
 ### Web Tools
 
 #### ChatGPT
