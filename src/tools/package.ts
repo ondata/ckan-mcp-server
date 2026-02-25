@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
-import { truncateText, formatDate, addDemoFooter } from "../utils/formatting.js";
+import { truncateText, formatDate, formatBytes, addDemoFooter } from "../utils/formatting.js";
 import { getDatasetViewUrl } from "../utils/url-generator.js";
 import { resolveSearchQuery } from "../utils/search.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -388,7 +388,9 @@ Examples:
   - Field exists: { q: "organization:* AND num_resources:[1 TO *]" }
   - Boosting: { q: "title:climate^2 OR notes:climate" }
   - Filter org: { fq: "organization:regione-siciliana" }
-  - Get facets: { facet_field: ["organization"], rows: 0 }`,
+  - Get facets: { facet_field: ["organization"], rows: 0 }
+
+Typical workflow: ckan_package_search → ckan_package_show (get full metadata + resource IDs) → ckan_datastore_search (query tabular data)`,
       inputSchema: z.object({
         server_url: z.string()
           .url("Must be a valid URL")
@@ -565,6 +567,7 @@ ${params.fq ? `**Filter**: ${params.fq}\n` : ''}
 
         const tableFields = [
           { id: "title", type: "text" },
+          { id: "__link_url", type: "text" },
           { id: "organization", type: "text" },
           { id: "formats", type: "text" },
           { id: "num_resources", type: "int" },
@@ -573,7 +576,7 @@ ${params.fq ? `**Filter**: ${params.fq}\n` : ''}
         ];
         const tableRecords = (result.results || []).map((pkg: any) => ({
           title: pkg.title || pkg.name,
-          url: getDatasetViewUrl(params.server_url, pkg),
+          __link_url: getDatasetViewUrl(params.server_url, pkg),
           organization: pkg.organization?.title || "-",
           formats: [...new Set((pkg.resources || []).map((r: any) => r.format).filter(Boolean))].join(", ") || "-",
           num_resources: pkg.num_resources || 0,
@@ -631,7 +634,9 @@ Returns:
 
 Examples:
   - { server_url: "https://dati.gov.it/opendata", query: "mobilità" }
-  - { server_url: "...", query: "trasporti", limit: 5, weights: { title: 5, notes: 2 } }`,
+  - { server_url: "...", query: "trasporti", limit: 5, weights: { title: 5, notes: 2 } }
+
+Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top results) → ckan_datastore_search (query data)`,
       inputSchema: z.object({
         server_url: z.string()
           .url()
@@ -813,7 +818,9 @@ Returns:
 
 Examples:
   - { server_url: "https://dati.gov.it/opendata", id: "dataset-name" }
-  - { server_url: "...", id: "abc-123-def", include_tracking: true }`,
+  - { server_url: "...", id: "abc-123-def", include_tracking: true }
+
+Typical workflow: ckan_package_show → pick a resource with datastore_active=true → ckan_datastore_search (query its data)`,
       inputSchema: z.object({
         server_url: z.string()
           .url()
@@ -862,6 +869,124 @@ Examples:
           content: [{
             type: "text",
             text: `Error fetching package: ${error instanceof Error ? error.message : String(error)}`
+          }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  /**
+   * List resources in a dataset with a compact summary
+   */
+  server.registerTool(
+    "ckan_list_resources",
+    {
+      title: "List CKAN Dataset Resources",
+      description: `List all resources in a dataset with a compact summary.
+
+Returns a focused table of resources showing format, size, DataStore availability, and download URL.
+Use this to quickly assess what files a dataset contains before deciding how to access the data.
+
+Args:
+  - server_url (string): Base URL of CKAN server
+  - id (string): Dataset ID or name
+  - response_format ('markdown' | 'json'): Output format
+
+Returns:
+  Compact resource summary with name, ID, format, size, DataStore flag, and URL
+
+Examples:
+  - { server_url: "https://dati.gov.it/opendata", id: "dataset-name" }
+
+Typical workflow: ckan_package_search → ckan_list_resources (assess available files) → ckan_datastore_search (for resources with DataStore=true)`,
+      inputSchema: z.object({
+        server_url: z.string()
+          .url()
+          .describe("Base URL of the CKAN server"),
+        id: z.string()
+          .min(1)
+          .describe("Dataset ID or name"),
+        response_format: ResponseFormatSchema
+      }).strict(),
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false
+      }
+    },
+    async (params) => {
+      try {
+        const result = await makeCkanRequest<any>(
+          params.server_url,
+          'package_show',
+          { id: params.id }
+        );
+
+        const resources = Array.isArray(result.resources) ? result.resources : [];
+
+        const summary = resources.map((r: any) => {
+          const effectiveUrl = resolveDownloadUrl(r);
+          return {
+            name: r.name || "Unnamed Resource",
+            id: r.id,
+            format: r.format || "Unknown",
+            size: r.size ? formatBytes(r.size) : null,
+            datastore_active: r.datastore_active === true,
+            url: effectiveUrl
+          };
+        });
+
+        if (params.response_format === ResponseFormat.JSON) {
+          const payload = {
+            dataset_id: result.id,
+            dataset_name: result.name,
+            dataset_title: result.title || result.name,
+            total_resources: summary.length,
+            resources: summary
+          };
+          return {
+            content: [{ type: "text", text: truncateText(JSON.stringify(payload, null, 2)) }],
+            structuredContent: payload
+          };
+        }
+
+        let markdown = `# Resources: ${result.title || result.name}\n\n`;
+        markdown += `**Server**: ${params.server_url}\n`;
+        markdown += `**Dataset**: \`${result.name}\` (\`${result.id}\`)\n`;
+        markdown += `**Total Resources**: ${summary.length}\n\n`;
+
+        if (summary.length === 0) {
+          markdown += `No resources found in this dataset.\n`;
+        } else {
+          markdown += `| Name | Format | Size | DataStore | ID |\n`;
+          markdown += `| --- | --- | --- | --- | --- |\n`;
+
+          for (const r of summary) {
+            const name = r.name.length > 40 ? r.name.substring(0, 37) + '...' : r.name;
+            const ds = r.datastore_active ? 'Yes' : 'No';
+            const size = r.size || '-';
+            markdown += `| ${name} | ${r.format} | ${size} | ${ds} | \`${r.id}\` |\n`;
+          }
+
+          const dsResources = summary.filter((r: any) => r.datastore_active);
+          if (dsResources.length > 0) {
+            markdown += `\n**DataStore-enabled resources** (queryable with \`ckan_datastore_search\`):\n`;
+            for (const r of dsResources) {
+              markdown += `- **${r.name}** (${r.format}): \`${r.id}\`\n`;
+            }
+          }
+        }
+
+        return {
+          content: [{ type: "text", text: truncateText(addDemoFooter(markdown)) }]
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: "text",
+            text: `Error listing resources: ${error instanceof Error ? error.message : String(error)}`
           }],
           isError: true
         };

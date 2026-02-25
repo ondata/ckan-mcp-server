@@ -23,7 +23,9 @@ Args:
   - server_url (string): Base URL of CKAN server
 
 Returns:
-  Server status and version information`,
+  Server status and version information
+
+Typical workflow: ckan_status_show (verify server is up) → ckan_package_search (discover datasets)`,
       inputSchema: z.object({
         server_url: z.string().url().describe("Base URL of the CKAN server")
       }).strict(),

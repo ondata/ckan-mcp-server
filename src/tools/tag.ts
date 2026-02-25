@@ -64,7 +64,9 @@ Args:
   - response_format ('markdown' | 'json'): Output format
 
 Returns:
-  List of tags with counts (from faceting)`,
+  List of tags with counts (from faceting)
+
+Typical workflow: ckan_tag_list → ckan_package_search with fq="tags:tag_name" (find datasets by tag) → ckan_package_show`,
       inputSchema: z.object({
         server_url: z.string().url(),
         q: z.string().optional().default("*:*"),

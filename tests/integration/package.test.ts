@@ -596,3 +596,91 @@ describe('ckan_package_show', () => {
     });
   });
 });
+
+describe('ckan_list_resources', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns resources from package_show result', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: packageShowFixture });
+
+    const result = await makeCkanRequest(
+      'http://demo.ckan.org',
+      'package_show',
+      { id: 'example-dataset' }
+    );
+
+    expect(result.resources).toBeInstanceOf(Array);
+    expect(result.resources.length).toBe(2);
+    expect(result.resources[0]).toHaveProperty('id', 'res-1');
+    expect(result.resources[0]).toHaveProperty('format', 'CSV');
+    expect(result.resources[1]).toHaveProperty('id', 'res-2');
+    expect(result.resources[1]).toHaveProperty('format', 'JSON');
+  });
+
+  it('extracts resource summary fields correctly', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: packageShowFixture });
+
+    const result = await makeCkanRequest(
+      'http://demo.ckan.org',
+      'package_show',
+      { id: 'example-dataset' }
+    );
+
+    const resource = result.resources[0];
+    expect(resource).toHaveProperty('name');
+    expect(resource).toHaveProperty('id');
+    expect(resource).toHaveProperty('format');
+    expect(resource).toHaveProperty('size');
+    expect(resource).toHaveProperty('url');
+  });
+
+  it('handles dataset with datastore_active flag', async () => {
+    const fixtureWithDatastore = JSON.parse(JSON.stringify(packageShowFixture));
+    fixtureWithDatastore.result.resources[0].datastore_active = true;
+    fixtureWithDatastore.result.resources[1].datastore_active = false;
+
+    vi.mocked(axios.get).mockResolvedValue({ data: fixtureWithDatastore });
+
+    const result = await makeCkanRequest(
+      'http://demo.ckan.org',
+      'package_show',
+      { id: 'example-dataset' }
+    );
+
+    expect(result.resources[0].datastore_active).toBe(true);
+    expect(result.resources[1].datastore_active).toBe(false);
+  });
+
+  it('handles dataset with no resources', async () => {
+    const emptyResourcesFixture = {
+      ...packageShowFixture,
+      result: {
+        ...packageShowFixture.result,
+        resources: [],
+        num_resources: 0
+      }
+    };
+
+    vi.mocked(axios.get).mockResolvedValue({ data: emptyResourcesFixture });
+
+    const result = await makeCkanRequest(
+      'http://demo.ckan.org',
+      'package_show',
+      { id: 'empty-dataset' }
+    );
+
+    expect(result.resources).toEqual([]);
+  });
+
+  it('returns error for non-existent dataset', async () => {
+    vi.mocked(axios.get).mockRejectedValue(
+      new Error('CKAN API error: Not Found')
+    );
+
+    await expect(
+      makeCkanRequest('http://demo.ckan.org', 'package_show', { id: 'nonexistent' })
+    ).rejects.toThrow();
+  });
+});

@@ -1,5 +1,16 @@
 # LOG
 
+## 2026-02-25 (v0.4.48)
+
+- Add workflow guidance ("Typical workflow: ...") to all 15 tool docstrings
+  - Inspired by datagouv-mcp pattern; steers LLMs toward correct multi-step usage
+- Add `ckan_list_resources` tool (16th tool)
+  - Compact table of resources: name, format, size, DataStore flag, resource ID
+  - Helps LLMs assess available files before deciding how to access data
+  - Tested against dati.gov.it and dati.comune.messina.it (DataStore active)
+- Update `docs/future-ideas.md` with datagouv-mcp analysis
+- Tests: 233 (was 228)
+
 ## 2026-02-23 (v0.4.47)
 
 - DataStore Table UI: add hyperlinks on dataset titles, open in new tab

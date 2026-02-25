@@ -30,7 +30,9 @@ Args:
   - response_format ('markdown' | 'json'): Output format
 
 Returns:
-  List of organizations with metadata. When limit=0, returns only the count of organizations with datasets.`,
+  List of organizations with metadata. When limit=0, returns only the count of organizations with datasets.
+
+Typical workflow: ckan_organization_list → ckan_organization_show (inspect one) → ckan_package_search with fq="organization:name" (browse its datasets)`,
       inputSchema: z.object({
         server_url: z.string().url().describe("Base URL of the CKAN server (e.g., https://dati.gov.it/opendata)"),
         all_fields: z.boolean().optional().default(false).describe("Return full organization objects (true) or just name slugs (false)"),
@@ -210,7 +212,9 @@ Args:
   - response_format ('markdown' | 'json'): Output format
 
 Returns:
-  Organization details with optional datasets and users`,
+  Organization details with optional datasets and users
+
+Typical workflow: ckan_organization_show → ckan_package_show (inspect a dataset) → ckan_datastore_search (query its data)`,
       inputSchema: z.object({
         server_url: z.string().url().describe("Base URL of the CKAN server (e.g., https://dati.gov.it/opendata)"),
         id: z.string().min(1).describe("Organization ID (UUID) or machine-readable name slug (e.g., 'regione-siciliana')"),
@@ -315,7 +319,9 @@ Returns:
 
 Examples:
   - { server_url: "https://www.dati.gov.it/opendata", pattern: "toscana" }
-  - { server_url: "https://catalog.data.gov", pattern: "health" }`,
+  - { server_url: "https://catalog.data.gov", pattern: "health" }
+
+Typical workflow: ckan_organization_search → ckan_organization_show (get details) → ckan_package_search with fq="organization:name"`,
       inputSchema: z.object({
         server_url: z.string().url().describe("Base URL of the CKAN server (e.g., https://dati.gov.it/opendata)"),
         pattern: z.string().min(1).describe("Name pattern to search for (wildcards added automatically, e.g., 'toscana', 'health')"),

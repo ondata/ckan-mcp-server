@@ -239,6 +239,102 @@ Visual gauge/radar chart for the 4 MQA dimensions (accessibility, reusability, i
 
 ---
 
+## Companion Skill for CKAN MCP Server (2026-02-23)
+
+Source: https://www.mcpjam.com/blog/skills
+
+Skills are context folders (a `SKILL.md` file) that teach an agent *how* to use a set of MCP tools.
+Companies like Figma, Sentry, and Atlassian ship skills alongside their MCP servers.
+The formula: **context (Skill) + tools (MCP) = real work**.
+
+### Rationale
+
+The CKAN MCP tools are powerful but non-obvious:
+- Solr query syntax (`q`, `fq`, facets) has a learning curve
+- Portal differences (datastore availability, custom fields) require tribal knowledge
+- Multi-step workflows (search → show → datastore → analyze) are not self-evident
+
+A companion skill would encode all this context so an agent can execute complex open-data workflows without user hand-holding.
+
+### Proposed Skill: `ckan-explorer`
+
+**Target workflows to encode**:
+
+1. **Dataset discovery** — search by topic on a specific portal, rank by relevance + freshness, open best match
+2. **Tabular data exploration** — find a DataStore-enabled resource, run `ckan_datastore_search`, summarize schema and sample rows
+3. **Organization audit** — list datasets by organization, check update cadence, flag stale ones
+4. **Solr cheat-sheet** — inline examples for common query patterns (wildcard, range, boolean, field-scoped)
+5. **Portal-specific hints** — known quirks of dati.gov.it, data.gov, data.europa.eu
+
+**Structure**:
+
+```
+skills/ckan-explorer/
+└── SKILL.md        # workflow instructions + Solr cheat-sheet + portal notes
+```
+
+**Skill content outline**:
+- When to use each tool (`ckan_package_search` vs `ckan_package_show` vs `ckan_datastore_search`)
+- Step-by-step recipe for "find and analyze a dataset"
+- Solr syntax quick reference with copy-paste examples
+- Debugging tips (no results → broaden query; datastore empty → check `datastore_active`)
+- Portal quirks section (dati.gov.it MQA fields, data.gov extras, etc.)
+
+**Implementation complexity**: Low — pure documentation, no code.
+
+**Distribution**: Publish alongside the MCP server in the same repo (or as a separate npm package mirroring Figma/Sentry pattern).
+
+---
+
+## From datagouv-mcp Analysis (2026-02-25)
+
+Source: https://github.com/datagouv/datagouv-mcp
+
+Python MCP server for data.gouv.fr with 10 tools. Interesting patterns and ideas:
+
+### Workflow guidance in tool docstrings — IMPLEMENTED (v0.4.48)
+
+Every tool docstring ends with "Typical workflow: tool_a → tool_b → tool_c".
+Steers the LLM to use tools in the correct multi-step sequence. Zero code change, immediate improvement.
+
+### `list_dataset_resources` as a separate tool
+
+Separates "list resources in a dataset" from "get dataset metadata". Forces an explicit step where the LLM sees all formats, sizes, and DataStore availability before deciding how to access data.
+
+- [ ] Add `ckan_list_resources` tool with format, size, DataStore flag, and URL summary
+
+### `download_and_parse_resource` — direct file access fallback
+
+When DataStore is not available, downloads and parses files in-process (CSV, JSON, JSONL, CSV.GZ). Streaming with size guard, automatic delimiter sniffing, BOM handling. Would dramatically expand what the server can do.
+
+- [ ] Implement `ckan_download_resource` with CSV/JSON/JSONL support and size limits
+
+### Stop-word query cleaning with fallback
+
+Removes generic words ("données", "csv", "fichier") from search queries before querying. Falls back to original query if zero results. Useful because LLMs include descriptive words that break AND logic.
+
+- [ ] Add format-related stop-word cleaning to `ckan_package_search` (strip "csv", "json", etc. from `q`, use in `fq` instead)
+
+### Metrics / usage statistics
+
+Monthly visits and downloads for datasets/resources. CKAN has `tracking_summary` in `package_show` — could expose it.
+
+- [ ] Add `ckan_get_metrics` tool (where portal supports tracking)
+
+### Health endpoint
+
+`/health` with version and timestamp. Low-effort, good operational practice.
+
+- [ ] Add `/health` endpoint to HTTP transport
+
+### Page-based pagination alias
+
+`page` + `page_size` instead of `start`/`rows`. More intuitive for LLMs.
+
+- [ ] Add `page` alias parameter to `ckan_package_search`
+
+---
+
 ## Backlog Priority
 
 1. ~~**High**: MCP Resource Templates~~ ✅ Done (v0.3.0)

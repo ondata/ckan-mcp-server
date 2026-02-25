@@ -69,7 +69,9 @@ Args:
   - response_format ('markdown' | 'json'): Output format
 
 Returns:
-  List of groups with metadata. When limit=0, returns only the count of groups with datasets.`,
+  List of groups with metadata. When limit=0, returns only the count of groups with datasets.
+
+Typical workflow: ckan_group_list → ckan_group_show (inspect one) → ckan_package_search with fq="groups:name" (browse its datasets)`,
       inputSchema: z.object({
         server_url: z.string().url(),
         all_fields: z.boolean().optional().default(false),
@@ -183,7 +185,9 @@ Args:
   - response_format ('markdown' | 'json'): Output format
 
 Returns:
-  Group details with optional datasets`,
+  Group details with optional datasets
+
+Typical workflow: ckan_group_show → ckan_package_show (inspect a dataset) → ckan_datastore_search (query its data)`,
       inputSchema: z.object({
         server_url: z.string().url(),
         id: z.string().min(1),
@@ -271,7 +275,9 @@ Args:
   - response_format ('markdown' | 'json'): Output format
 
 Returns:
-  List of matching groups with dataset counts`,
+  List of matching groups with dataset counts
+
+Typical workflow: ckan_group_search → ckan_group_show (get details) → ckan_package_search with fq="groups:name"`,
       inputSchema: z.object({
         server_url: z.string().url(),
         pattern: z.string().min(1).describe("Search pattern (wildcards added automatically)"),

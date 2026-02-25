@@ -844,7 +844,8 @@ export function registerQualityTools(server: McpServer): void {
     "ckan_get_mqa_quality",
     "Get MQA (Metadata Quality Assurance) quality metrics for a dataset on dati.gov.it. " +
     "Returns quality score and detailed metrics (accessibility, reusability, interoperability, findability, contextuality) " +
-    "from data.europa.eu. Only works with dati.gov.it server.",
+    "from data.europa.eu. Only works with dati.gov.it server. " +
+    "Typical workflow: ckan_package_show (get dataset ID) → ckan_get_mqa_quality → ckan_get_mqa_quality_details (for non-max dimensions)",
     {
       server_url: z.string().url().describe("Base URL of dati.gov.it (e.g., https://www.dati.gov.it/opendata)"),
       dataset_id: z.string().describe("Dataset ID or name"),
@@ -894,7 +895,8 @@ export function registerQualityTools(server: McpServer): void {
     "ckan_get_mqa_quality_details",
     "Get detailed MQA (Metadata Quality Assurance) quality reasons for a dataset on dati.gov.it. " +
     "Returns dimension scores, non-max reasons, and raw MQA flags from data.europa.eu. " +
-    "Only works with dati.gov.it server.",
+    "Only works with dati.gov.it server. " +
+    "Typical workflow: ckan_get_mqa_quality (get overview scores) → ckan_get_mqa_quality_details (inspect failing metrics)",
     {
       server_url: z.string().url().describe("Base URL of dati.gov.it (e.g., https://www.dati.gov.it/opendata)"),
       dataset_id: z.string().describe("Dataset ID or name"),
