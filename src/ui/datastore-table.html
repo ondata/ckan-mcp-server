@@ -215,10 +215,24 @@
       });
     }
 
+    function getRowLink(rec) {
+      var raw = rec.__link_url || rec._link_url || rec.url || rec.dataset_url || rec.link;
+      if (raw === null || raw === undefined) return null;
+      var s = String(raw).trim();
+      if (!/^https?:\/\//i.test(s)) return null;
+      return s;
+    }
+
     // ── Render ───────────────────────────────────────────────────────
 
     function render() {
       var app = document.getElementById('app');
+      var oldFilter = document.getElementById('filter');
+      var saveFocused = !!(oldFilter && document.activeElement === oldFilter);
+      var saveSel = null;
+      if (saveFocused && oldFilter) {
+        saveSel = [oldFilter.selectionStart, oldFilter.selectionEnd];
+      }
       filteredRecords = sortRecords(applyFilter(allRecords));
       var totalFiltered = filteredRecords.length;
       var totalPages = Math.ceil(totalFiltered / pageSize) || 1;
@@ -252,27 +266,31 @@
       html += '</div>';
 
       // Table
+      var visFields = fields.filter(function (f) {
+        return f.id !== '__link_url' && f.id !== '_link_url';
+      });
       html += '<div class="table-wrapper"><table><thead><tr>';
-      fields.forEach(function (f) {
+      visFields.forEach(function (f) {
         var cls = (sortCol === f.id) ? (sortDir === 1 ? ' class="sort-asc"' : ' class="sort-desc"') : '';
         html += '<th' + cls + ' data-col="' + escHtml(f.id) + '">' + escHtml(f.id) + '</th>';
       });
       html += '</tr></thead><tbody>';
 
       if (pageRecords.length === 0) {
-        html += '<tr><td colspan="' + fields.length + '" class="state-msg">No records found</td></tr>';
+        html += '<tr><td colspan="' + visFields.length + '" class="state-msg">No records found</td></tr>';
       } else {
         pageRecords.forEach(function (rec) {
           html += '<tr>';
-          fields.forEach(function (f) {
+          visFields.forEach(function (f) {
             var v = rec[f.id];
             if (v === null || v === undefined) {
               html += '<td class="null-val">\u2014</td>';
             } else {
               var s = String(v);
               var display = s.length > 80 ? s.slice(0, 77) + '\u2026' : s;
-              if (f.id === 'title' && rec.url) {
-                html += '<td title="' + escHtml(s) + '"><a href="' + escHtml(rec.url) + '" target="_blank" rel="noopener noreferrer">' + escHtml(display) + '</a></td>';
+              var link = (f.id === 'title') ? getRowLink(rec) : null;
+              if (link) {
+                html += '<td title="' + escHtml(s) + '"><a href="' + escHtml(link) + '" target="_blank" rel="noopener noreferrer">' + escHtml(display) + '</a></td>';
               } else {
                 html += '<td title="' + escHtml(s) + '">' + escHtml(display) + '</td>';
               }
@@ -306,6 +324,13 @@
 
       app.innerHTML = html;
       bindEvents();
+      if (saveFocused) {
+        var newFilter = document.getElementById('filter');
+        if (newFilter) {
+          newFilter.focus();
+          if (saveSel) newFilter.setSelectionRange(saveSel[0], saveSel[1]);
+        }
+      }
     }
 
     function bindEvents() {
