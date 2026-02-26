@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveSearchQuery, escapeSolrQuery, convertDateMathForUnsupportedFields } from '../../src/utils/search';
+import { resolveSearchQuery, escapeSolrQuery, convertDateMathForUnsupportedFields, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from '../../src/utils/search';
 
 describe('resolveSearchQuery', () => {
   it('keeps query unchanged for non-configured portals', () => {
@@ -158,5 +158,74 @@ describe('convertDateMathForUnsupportedFields', () => {
 
     expect(result1).toMatch(/Modified:\[20\d{2}.+ TO .+\]/);
     expect(result2).toMatch(/ISSUED:\[20\d{2}.+ TO .+\]/);
+  });
+});
+
+describe('stripAccents', () => {
+  it('removes accents from Italian characters', () => {
+    expect(stripAccents('natalità')).toBe('natalita');
+    expect(stripAccents('qualità')).toBe('qualita');
+    expect(stripAccents('età')).toBe('eta');
+    expect(stripAccents('università')).toBe('universita');
+  });
+
+  it('removes accents from French characters', () => {
+    expect(stripAccents('réfugiés')).toBe('refugies');
+    expect(stripAccents('forêt')).toBe('foret');
+  });
+
+  it('leaves plain ASCII unchanged', () => {
+    expect(stripAccents('nascite popolazione')).toBe('nascite popolazione');
+  });
+
+  it('handles mixed accented and plain text', () => {
+    expect(stripAccents('natalità nascite')).toBe('natalita nascite');
+  });
+});
+
+describe('hasAccents', () => {
+  it('detects accented characters', () => {
+    expect(hasAccents('natalità')).toBe(true);
+    expect(hasAccents('réfugiés')).toBe(true);
+  });
+
+  it('returns false for plain ASCII', () => {
+    expect(hasAccents('nascite popolazione')).toBe(false);
+    expect(hasAccents('*:*')).toBe(false);
+  });
+});
+
+describe('isPlainMultiTermQuery', () => {
+  it('detects plain multi-term query', () => {
+    expect(isPlainMultiTermQuery('natalita nascite popolazione')).toBe(true);
+    expect(isPlainMultiTermQuery('crime homicide city')).toBe(true);
+  });
+
+  it('returns false for single term', () => {
+    expect(isPlainMultiTermQuery('natalita')).toBe(false);
+  });
+
+  it('returns false for wildcard-all', () => {
+    expect(isPlainMultiTermQuery('*:*')).toBe(false);
+  });
+
+  it('returns false for queries with explicit boolean operators', () => {
+    expect(isPlainMultiTermQuery('natalita OR nascite')).toBe(false);
+    expect(isPlainMultiTermQuery('natalita AND nascite')).toBe(false);
+    expect(isPlainMultiTermQuery('+natalita -nascite')).toBe(false);
+  });
+
+  it('returns false for fielded queries', () => {
+    expect(isPlainMultiTermQuery('title:natalita notes:nascite')).toBe(false);
+  });
+});
+
+describe('buildOrQuery', () => {
+  it('joins terms with OR', () => {
+    expect(buildOrQuery('natalita nascite popolazione')).toBe('natalita OR nascite OR popolazione');
+  });
+
+  it('handles extra whitespace', () => {
+    expect(buildOrQuery('  crime   homicide  ')).toBe('crime OR homicide');
   });
 });

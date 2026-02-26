@@ -1,5 +1,14 @@
 # LOG
 
+## 2026-02-26 (v0.4.50)
+
+- `ckan_list_resources`: add `format_filter` param (case-insensitive, client-side) — e.g. 72 resources → 8 CSV; header shows "Total: 72 (showing 8 CSV)"
+- `ckan_package_search`: OR tip on zero results — when a plain multi-term query returns 0, suggest the OR version (e.g. `"a b c"` → `"a OR b OR c"`)
+- `ckan_package_search`: accent fallback — if query returns 0 results and contains accented chars, retry with accent-stripped query; note shown in output
+- `ckan_package_show`: always show DataStore status per resource
+  - `✅ Available` / `❌ Not available` / `❓ Not reported by portal`
+  - Previously silent when field absent (e.g. dati.gov.it); now explicit
+
 ## 2026-02-25 (v0.4.49)
 
 - Disable DataStore Table UI component (MCP Apps) pending use-case design
