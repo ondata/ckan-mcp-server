@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-02-28 (v0.4.52)
+
+- fix: HTTP transport — `/.well-known/oauth-authorization-server` now returns JSON 404 instead of HTML; fixes Claude Code HTTP transport connection failure
+- fix: `ckan_datastore_search` — `limit` min changed 1→0; allows column discovery without fetching data
+- docs: `ckan_datastore_search` description updated — fields always returned, `limit=0` pattern documented
+
 ## 2026-02-27 (v0.4.51)
 
 - refactor: domain types for all tool files — `CkanTag`, `CkanResource`, `CkanPackage`, `CkanOrganization`, `CkanField`, `CkanDatastoreResult` in `src/types.ts`; `any` reduced 32 → 1

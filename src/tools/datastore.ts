@@ -110,6 +110,10 @@ export function registerDatastoreTools(server: McpServer) {
 
 The DataStore allows SQL-like queries on tabular data. Not all resources have DataStore enabled.
 
+The response always includes a Fields section listing all available column names and types.
+Use limit=0 to discover column names without fetching data — do this before using filters
+to avoid guessing column names and getting HTTP 400 errors.
+
 Args:
   - server_url (string): Base URL of CKAN server
   - resource_id (string): ID of the DataStore resource
@@ -123,20 +127,21 @@ Args:
   - response_format ('markdown' | 'json'): Output format
 
 Returns:
-  DataStore records matching query
+  DataStore records matching query, always including available column names and types
 
 Examples:
+  - { server_url: "...", resource_id: "abc-123", limit: 0 }  ← discover columns first
   - { server_url: "...", resource_id: "abc-123", limit: 50 }
   - { server_url: "...", resource_id: "...", filters: { "regione": "Sicilia" } }
   - { server_url: "...", resource_id: "...", sort: "anno desc", limit: 100 }
 
-Typical workflow: ckan_package_search → ckan_package_show (find resource_id with datastore_active=true) → ckan_datastore_search`,
+Typical workflow: ckan_package_search → ckan_package_show (find resource_id with datastore_active=true) → ckan_datastore_search (limit=0 to get columns) → ckan_datastore_search (with filters)`,
       inputSchema: z.object({
         server_url: z.string().url().describe("Base URL of the CKAN server (e.g., https://dati.gov.it/opendata)"),
         resource_id: z.string().min(1).describe("UUID of the DataStore resource (from ckan_package_show resource.id where datastore_active is true)"),
         q: z.string().optional().describe("Full-text search across all fields"),
         filters: z.record(z.any()).optional().describe("Key-value filters for exact matches (e.g., { \"regione\": \"Sicilia\", \"anno\": 2023 })"),
-        limit: z.number().int().min(1).max(32000).optional().default(100).describe("Max rows to return (default 100, max 32000)"),
+        limit: z.number().int().min(0).max(32000).optional().default(100).describe("Max rows to return (default 100, max 32000); use 0 to get only column names without data"),
         offset: z.number().int().min(0).optional().default(0).describe("Pagination offset"),
         fields: z.array(z.string()).optional().describe("Specific field names to return; omit to return all fields"),
         sort: z.string().optional().describe("Sort expression (e.g., 'anno desc', 'nome asc')"),

@@ -16,6 +16,10 @@ export async function runHTTP(server: McpServer) {
   });
   await server.connect(transport);
 
+  app.get('/.well-known/oauth-authorization-server', (_req, res) => {
+    res.status(404).json({ error: 'authorization_not_supported', error_description: 'This server does not require authentication' });
+  });
+
   app.post('/mcp', async (req, res) => {
     await transport.handleRequest(req, res, req.body);
   });
