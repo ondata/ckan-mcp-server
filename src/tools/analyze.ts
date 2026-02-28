@@ -205,3 +205,97 @@ Typical workflow: ckan_analyze_datasets → ckan_datastore_search (with known fi
     }
   );
 }
+
+export function formatCatalogStatsMarkdown(
+  serverUrl: string,
+  total: number,
+  facets: Record<string, Record<string, number>>
+): string {
+  const LABELS: Record<string, string> = {
+    groups: "Categories",
+    res_format: "Formats",
+    organization: "Organizations"
+  };
+
+  let md = `# CKAN Portal Statistics\n\n`;
+  md += `**Server**: ${serverUrl}\n`;
+  md += `**Total datasets**: ${total}\n`;
+
+  for (const [field, label] of Object.entries(LABELS)) {
+    const values = facets[field];
+    if (!values || Object.keys(values).length === 0) continue;
+    const sorted = Object.entries(values).sort((a, b) => b[1] - a[1]);
+    md += `\n## ${label}\n\n`;
+    for (const [name, count] of sorted) {
+      md += `- **${name}**: ${count}\n`;
+    }
+  }
+
+  return md;
+}
+
+export function registerCatalogStatsTools(server: McpServer): void {
+  server.registerTool(
+    "ckan_catalog_stats",
+    {
+      title: "Get CKAN Portal Statistics",
+      description: `Get a statistical overview of a CKAN portal: total dataset count and breakdown by category, format, and organization.
+
+Single CKAN call (package_search with rows=0 and facets). No query needed.
+
+Args:
+  - server_url (string): Base URL of the CKAN server
+  - facet_limit (number): Max entries per facet section (default 20)
+  - response_format ('markdown' | 'json'): Output format
+
+Returns:
+  Total dataset count, categories ranked by count, file formats ranked by count, organizations ranked by count.
+
+Typical workflow: ckan_catalog_stats (understand the portal) → ckan_package_search (query specific data)`,
+      inputSchema: z.object({
+        server_url: z.string().url().describe("Base URL of the CKAN server (e.g., https://dati.comune.messina.it)"),
+        facet_limit: z.number().int().min(1).max(100).optional().default(20).describe("Max entries per facet section (default 20)"),
+        response_format: ResponseFormatSchema
+      }).strict(),
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false
+      }
+    },
+    async (params) => {
+      try {
+        const result = await makeCkanRequest<{ count: number; facets: Record<string, Record<string, number>> }>(
+          params.server_url,
+          'package_search',
+          {
+            q: '*:*',
+            rows: 0,
+            'facet.field': JSON.stringify(['groups', 'res_format', 'organization']),
+            'facet.limit': params.facet_limit
+          }
+        );
+
+        if (params.response_format === ResponseFormat.JSON) {
+          return {
+            content: [{ type: "text" as const, text: truncateText(JSON.stringify({ total: result.count, facets: result.facets }, null, 2)) }]
+          };
+        }
+
+        const markdown = formatCatalogStatsMarkdown(params.server_url, result.count, result.facets);
+        return {
+          content: [{ type: "text" as const, text: truncateText(addDemoFooter(markdown)) }]
+        };
+      } catch (error) {
+        return {
+          content: [{
+            type: "text" as const,
+            text: `Error retrieving catalog stats: ${error instanceof Error ? error.message : String(error)}`
+          }],
+          isError: true
+        };
+      }
+    }
+  );
+}

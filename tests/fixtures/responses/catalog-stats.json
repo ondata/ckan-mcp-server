@@ -1,0 +1,30 @@
+{
+  "help": "https://dati.comune.messina.it/api/3/action/help_show?name=package_search",
+  "success": true,
+  "result": {
+    "count": 104,
+    "results": [],
+    "facets": {
+      "groups": {
+        "governo": 46,
+        "societa": 16,
+        "ambiente": 14,
+        "trasporti": 13,
+        "cultura": 9
+      },
+      "res_format": {
+        "CSV": 89,
+        "GeoJSON": 24,
+        "XLSX": 22,
+        "JSON": 14,
+        "PDF": 14
+      },
+      "organization": {
+        "comune-di-messina": 91,
+        "azienda-trasporti-messina-s-p-a": 4,
+        "ecosistema-mesm-rt": 4
+      }
+    },
+    "search_facets": {}
+  }
+}

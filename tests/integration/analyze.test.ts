@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axios from 'axios';
-import { formatAnalyzeDatasetsMarkdown } from '../../src/tools/analyze';
+import { formatAnalyzeDatasetsMarkdown, formatCatalogStatsMarkdown } from '../../src/tools/analyze';
 import searchFixture from '../fixtures/responses/analyze-datasets-search.json';
 import schemaFixture from '../fixtures/responses/analyze-datasets-schema.json';
+import catalogStatsFixture from '../fixtures/responses/catalog-stats.json';
 
 vi.mock('axios');
 
@@ -158,6 +159,54 @@ describe('ckan_analyze_datasets', () => {
 
       const sintesiField = schema.fields.find((f: { id: string }) => f.id === 'sintesi');
       expect(sintesiField?.info).toBeUndefined();
+    });
+  });
+});
+
+describe('ckan_catalog_stats', () => {
+  const serverUrl = 'https://dati.comune.messina.it';
+  const { facets } = catalogStatsFixture.result;
+
+  describe('formatCatalogStatsMarkdown', () => {
+    it('includes server and total count', () => {
+      const result = formatCatalogStatsMarkdown(serverUrl, 104, facets);
+      expect(result).toContain('**Server**: https://dati.comune.messina.it');
+      expect(result).toContain('**Total datasets**: 104');
+    });
+
+    it('renders Categories section sorted by count', () => {
+      const result = formatCatalogStatsMarkdown(serverUrl, 104, facets);
+      expect(result).toContain('## Categories');
+      expect(result).toContain('**governo**: 46');
+      const govIdx = result.indexOf('**governo**');
+      const socIdx = result.indexOf('**societa**');
+      expect(govIdx).toBeLessThan(socIdx);
+    });
+
+    it('renders Formats section', () => {
+      const result = formatCatalogStatsMarkdown(serverUrl, 104, facets);
+      expect(result).toContain('## Formats');
+      expect(result).toContain('**CSV**: 89');
+    });
+
+    it('renders Organizations section', () => {
+      const result = formatCatalogStatsMarkdown(serverUrl, 104, facets);
+      expect(result).toContain('## Organizations');
+      expect(result).toContain('**comune-di-messina**: 91');
+    });
+
+    it('omits section when facet field is missing', () => {
+      const partialFacets = { res_format: facets.res_format };
+      const result = formatCatalogStatsMarkdown(serverUrl, 104, partialFacets);
+      expect(result).not.toContain('## Categories');
+      expect(result).not.toContain('## Organizations');
+      expect(result).toContain('## Formats');
+    });
+
+    it('omits section when facet field is empty', () => {
+      const emptyFacets = { ...facets, groups: {} };
+      const result = formatCatalogStatsMarkdown(serverUrl, 104, emptyFacets);
+      expect(result).not.toContain('## Categories');
     });
   });
 });
