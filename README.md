@@ -5,6 +5,8 @@
 
 # CKAN MCP Server
 
+*Turn any open data portal into a conversation.*
+
 **Give your AI assistant direct access to any CKAN open data portal — search datasets, explore organizations, query tabular data, and read metadata, all through natural language.**
 
 CKAN is the open-source platform behind most public open data portals worldwide (Italy's dati.gov.it, the US data.gov, Canada's open.canada.ca, and many more). Navigating these portals usually requires knowing their structure, APIs, and search syntax. This MCP server removes that barrier: once connected, your AI tool can do it all for you.
@@ -29,11 +31,13 @@ Hosted endpoint: `https://ckan-mcp-server.andy-pr.workers.dev/mcp`
 
 ---
 
-## Use it in your favorite tool
+## 🔌 Use it in your favorite tool
 
 [ChatGPT](#chatgpt) | [Claude Desktop](#claude-desktop) | [Claude Code](#claude-code) | [Gemini CLI](#gemini-cli) | [VS Code](#vs-code) | [Codex CLI](#codex-cli)
 
 All examples below work with **both** the local installation and the hosted endpoint. Where both options differ, both are shown.
+
+> **Using local installation?** You need to install the server first — see [Run locally](#run-locally).
 
 ### ChatGPT
 
@@ -49,11 +53,9 @@ https://ckan-mcp-server.andy-pr.workers.dev/mcp
 
 4. Save and start a new conversation — ask ChatGPT to search for datasets on any CKAN portal.
 
----
-
 ### Claude Desktop
 
-**Option A — Add via connector UI (no install):**
+**Using the hosted endpoint (no install) — via connector UI:**
 
 1. Open Claude Desktop and go to **Settings → Integrations**
 2. Click **Add custom integration**
@@ -66,17 +68,13 @@ https://ckan-mcp-server.andy-pr.workers.dev/mcp
 
 > For a detailed walkthrough with screenshots, see the [full Claude guide](docs/guide/claude/claude_web.md).
 
----
-
-**Option B — Add via config file:**
+**Using the hosted endpoint (no install) — via config file:**
 
 Configuration file location:
 
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 - **Linux**: `~/.config/Claude/claude_desktop_config.json`
-
-Using the hosted endpoint (no install):
 
 ```json
 {
@@ -88,7 +86,7 @@ Using the hosted endpoint (no install):
 }
 ```
 
-Using local installation:
+**Using local installation:**
 
 ```json
 {
@@ -100,8 +98,6 @@ Using local installation:
   }
 }
 ```
-
----
 
 ### Claude Code
 
@@ -124,8 +120,6 @@ To add it only for a specific project, run from the project folder without the `
 ```bash
 claude mcp add --transport http ckan https://ckan-mcp-server.andy-pr.workers.dev/mcp
 ```
-
----
 
 ### Gemini CLI
 
@@ -156,8 +150,6 @@ Add to `~/.gemini/settings.json`:
 }
 ```
 
----
-
 ### VS Code
 
 Add to your User Settings or `.vscode/settings.json`:
@@ -187,8 +179,6 @@ Add to your User Settings or `.vscode/settings.json`:
   }
 }
 ```
-
----
 
 ### Codex CLI
 
@@ -276,7 +266,8 @@ node dist/index.js
 - **ckan_status_show**: Verify server status
 
 ---
-## MCP Resource Templates
+
+## 📎 MCP Resource Templates
 
 Direct data access via `ckan://` URI scheme:
 
@@ -301,7 +292,16 @@ ckan://dati.gov.it/format/csv/datasets
 ```
 
 ---
-## Usage Examples
+
+## 💡 Usage Examples
+
+### A natural language conversation
+
+Once connected, just ask in plain language. No query syntax needed:
+
+> *"Search dati.gov.it for datasets about air quality in Milan, then summarize what each contains — time coverage, license, and best download format."*
+
+The server finds 31 datasets, groups them by structural pattern, and returns a clear summary — including series names, years covered, publisher, and format. No CKAN knowledge required.
 
 ### Search datasets (natural language: "search for population datasets")
 
@@ -403,7 +403,8 @@ ckan_datastore_search_sql({
 ```
 
 ---
-## Supported CKAN Portals
+
+## 🌍 Supported CKAN Portals
 
 Some examples of supported portals:
 
@@ -414,18 +415,9 @@ Some examples of supported portals:
 - 🇬🇧 **https://data.gov.uk** - United Kingdom Open Data
 - And many more portals worldwide
 
-### Portal View URL Templates
-
-Some CKAN portals expose non-standard web URLs for viewing datasets or organizations. To support those cases, this project ships with [`src/portals.json`](src/portals.json), which maps known portal API URLs (and aliases) to custom view URL templates.
-
-When generating a dataset or organization view link, the server:
-
-- matches the `server_url` against `api_url` and `api_url_aliases` in [`src/portals.json`](src/portals.json)
-- uses the portal-specific `dataset_view_url` / `organization_view_url` template when available
-- falls back to the generic defaults (`{server_url}/dataset/{name}` and `{server_url}/organization/{name}`)
-
 ---
-## Advanced Solr Queries
+
+## 🔍 Advanced Solr Queries
 
 CKAN uses [Apache Solr](https://solr.apache.org/) as its default search engine. Understanding Solr syntax unlocks the full power of dataset search — from simple keywords to complex boolean expressions, fuzzy matching, proximity searches, and date math.
 
@@ -566,7 +558,7 @@ ckan_package_search({
 
 ---
 
-## Date fields: source portals vs aggregators
+## 📅 Understanding date fields
 
 CKAN portals can be *source* catalogs (data published directly by the organization) or *harvesting aggregators* (data collected from many other portals). This distinction matters a lot when filtering by date.
 
@@ -602,7 +594,7 @@ All three fields are Solr-indexed and usable in queries:
 
 **Query examples (dati.gov.it):**
 
-```
+```typescript
 # Datasets about road accidents published by the original source in 2025
 ckan_package_search({
   server_url: "https://www.dati.gov.it/opendata",
@@ -626,16 +618,7 @@ ckan_package_search({
 
 ---
 
-## Useful Links
-
-- [CKAN](https://ckan.org/) — the open-source platform behind most public open data portals
-- [CKAN API Documentation](https://docs.ckan.org/en/latest/api/) — full reference for the CKAN API v3
-- [DCAT Vocabulary (W3C)](https://www.w3.org/TR/vocab-dcat/) — the metadata standard used by CKAN portals to describe datasets
-- [MCP Protocol](https://modelcontextprotocol.io/) — Model Context Protocol specification
-
----
-
-## Developer Reference
+## 👩‍💻 Developer Reference
 
 ### Project Structure
 
@@ -733,6 +716,16 @@ curl -s -X POST http://localhost:3001/mcp \
   }' | jq -r '.result.content[0].text'
 ```
 
+### Portal View URL Templates
+
+Some CKAN portals expose non-standard web URLs for viewing datasets or organizations. To support those cases, this project ships with [`src/portals.json`](src/portals.json), which maps known portal API URLs (and aliases) to custom view URL templates.
+
+When generating a dataset or organization view link, the server:
+
+- matches the `server_url` against `api_url` and `api_url_aliases` in [`src/portals.json`](src/portals.json)
+- uses the portal-specific `dataset_view_url` / `organization_view_url` template when available
+- falls back to the generic defaults (`{server_url}/dataset/{name}` and `{server_url}/organization/{name}`)
+
 ### Troubleshooting
 
 **Wrong URL for Italian portal** — use `https://www.dati.gov.it/opendata` (not `https://dati.gov.it`).
@@ -758,9 +751,18 @@ ckan_package_search({
 
 ---
 
-## Support
+## 🆘 Support
 
 For issues or questions, [open an issue on GitHub](https://github.com/ondata/ckan-mcp-server/issues/new/choose).
+
+---
+
+## 🔗 Useful Links
+
+- [CKAN](https://ckan.org/) — the open-source platform behind most public open data portals
+- [CKAN API Documentation](https://docs.ckan.org/en/latest/api/) — full reference for the CKAN API v3
+- [DCAT Vocabulary (W3C)](https://www.w3.org/TR/vocab-dcat/) — the metadata standard used by CKAN portals to describe datasets
+- [MCP Protocol](https://modelcontextprotocol.io/) — Model Context Protocol specification
 
 ---
 
