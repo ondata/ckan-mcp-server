@@ -5,7 +5,7 @@
 
 # CKAN MCP Server
 
-*Turn any open data portal into a conversation.*
+*Turn any (CKAN) open data portal into a conversation.*
 
 **Give your AI assistant direct access to any CKAN open data portal — search datasets, explore organizations, query tabular data, and read metadata, all through natural language.**
 
