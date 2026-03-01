@@ -57,3 +57,4 @@ gha-creds-*.json
 docs/video/
 nanobanana-output/
 README.bak.md
+examples/langgraph/
