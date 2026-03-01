@@ -649,12 +649,11 @@ Not every change requires publishing to all platforms:
 |------------|---------------|---------|----------------|-------------|-------------------|
 | Bug fix in tools | ✅ | ✅ | ✅ | ✅ | ✅ |
 | New tool added | ✅ | ✅ | ✅ | ✅ | ✅ |
-| README update | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Documentation only (not README) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Documentation only | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Workers optimization | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Test improvements | ✅ | ❌ | ❌ | ❌ | ❌ |
 
-> **Rule**: every version bump (git tag) always requires `npm publish`. npm displays the README from the published tarball — without publishing, the npm page stays behind.
+> **Rule**: every versioned release (git tag) **always** includes `npm publish` — no exceptions. npm displays the README from the published tarball, so it is automatically kept in sync with the repo on every release.
 
 ---
 
