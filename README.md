@@ -310,6 +310,10 @@ Once connected, just ask in plain language. No query syntax needed:
 
 The server finds 31 datasets, groups them by structural pattern, and returns a clear summary — including series names, years covered, publisher, and format. No CKAN knowledge required.
 
+---
+
+The examples below show natural language requests alongside the actual tool call the LLM will generate internally and send to the CKAN portal. You never write these queries yourself — they are shown here **to illustrate how your question gets translated under the hood**.
+
 ### Search datasets (natural language: "search for population datasets")
 
 ```typescript
@@ -397,7 +401,7 @@ ckan_datastore_search({
 })
 ```
 
-> 👏 A shout-out to Comune di Messina and all public administrations that enable the DataStore extension: by doing so, they make their data dramatically easier to query and explore — including through AI tools like this one.
+> 👏 A shout-out to [Comune di Messina](https://dati.comune.messina.it/) and all public administrations that enable the DataStore extension: by doing so, they make their data dramatically easier to query and explore — including through AI tools like this one.
 
 ### DataStore SQL Query (natural language: "count road orders by type")
 
