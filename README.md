@@ -11,6 +11,8 @@
 
 CKAN is the open-source platform behind most public open data portals worldwide (Italy's dati.gov.it, the US data.gov, Canada's open.canada.ca, and many more). Navigating these portals usually requires knowing their structure, APIs, and search syntax. This MCP server removes that barrier: once connected, your AI tool can do it all for you.
 
+**This is possible because of open standards and open source.** CKAN exposes a fully documented, public API. Metadata follows [DCAT](https://www.w3.org/TR/vocab-dcat/), an open W3C standard for describing datasets. Both are free to use, free to build on, and maintained by open communities. This server stands on that foundation.
+
 **Who is this for?** Everyone. Journalists looking for data to verify a story. Researchers exploring public datasets. Public servants checking what data their administration publishes. Developers building data pipelines. No CKAN knowledge required.
 
 **Two ways to use it — pick the one that suits you:**
