@@ -29,6 +29,8 @@ Hosted endpoint: `https://ckan-mcp-server.andy-pr.workers.dev/mcp`
 
 **License**: MIT — see [LICENSE.txt](LICENSE.txt) for complete details. Third-party notices: [NOTICE.md](NOTICE.md).
 
+![CKAN MCP Server demo](docs/guide/mcp_server_demo.gif)
+
 ---
 
 ## 🔌 Use it in your favorite tool
