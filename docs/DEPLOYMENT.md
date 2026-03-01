@@ -604,6 +604,10 @@ Use this checklist to ensure nothing is missed:
 - [ ] `LOG.md` updated with changes
 - [ ] `CLAUDE.md` updated if architecture changed
 - [ ] `README.md` updated if features added — **all paths must be absolute GitHub URLs** (npm cannot resolve relative paths)
+- [ ] `.readme-npm.md` updated if the intro or essentials change (this is the short README published to npm)
+
+> **Two README files**: `README.md` is the full GitHub README. `.readme-npm.md` is the short npm README.
+> The `prepack`/`postpack` hooks in `package.json` swap them automatically during `npm publish`.
 
 ### Git Operations
 - [ ] Changes committed with descriptive message

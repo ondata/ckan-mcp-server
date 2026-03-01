@@ -434,8 +434,16 @@ To test with Claude Desktop, add MCP configuration to config file.
 
 ### README Authoring Rule
 
-**Always use absolute GitHub URLs** in `README.md` — never relative paths.
-npm displays the README from the published tarball and cannot resolve relative paths.
+The project has two README files:
+
+- `README.md` — full README, shown on GitHub
+- `.readme-npm.md` — short README published to npm (intro + essentials + link to full README)
+
+`prepack`/`postpack` hooks in `package.json` swap them automatically during `npm publish`.
+**Never run `npm publish` manually without building first** (`npm run build`).
+
+**Always use absolute GitHub URLs** in both README files — never relative paths.
+npm cannot resolve relative paths from the tarball.
 
 - Images/GIFs: `https://raw.githubusercontent.com/ondata/ckan-mcp-server/main/...`
 - Links to files: `https://github.com/ondata/ckan-mcp-server/blob/main/...`

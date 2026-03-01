@@ -1,6 +1,6 @@
 {
   "name": "@aborruso/ckan-mcp-server",
-  "version": "0.4.55",
+  "version": "0.4.56",
   "description": "MCP server for interacting with CKAN open data portals",
   "main": "dist/index.js",
   "type": "module",
@@ -18,7 +18,9 @@
     "deploy": "npm run build:worker && wrangler deploy",
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "prepack": "cp README.md .readme-full.md && cp .readme-npm.md README.md",
+    "postpack": "mv .readme-full.md README.md"
   },
   "keywords": [
     "mcp",
