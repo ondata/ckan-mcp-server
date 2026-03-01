@@ -143,10 +143,10 @@ The following portals have been tested and verified (as of v0.4.37):
 | dati.anticorruzione.it/opendata | 🇮🇹 Italy | — | Standard configuration |
 | catalog.data.gov | 🇺🇸 USA | 2.11.4 | Standard configuration |
 | open.canada.ca/data | 🇨🇦 Canada | 2.10.8 | Standard configuration |
-| data.gov.au | 🇦🇺 Australia | 2.11.4 | Standard configuration |
+| data.gov.au | 🇦🇺 Australia | 2.11.4 | Custom `dataset_view_url` and `organization_view_url` |
 | ckan.opendata.swiss | 🇨🇭 Switzerland | — | Standard configuration |
-| ckan.govdata.de | 🇩🇪 Germany | — | Standard configuration |
-| demo.ckan.org | 🌍 Demo | 2.11.3 | Standard configuration |
+| ckan.govdata.de | 🇩🇪 Germany | — | Custom `dataset_view_url` and `organization_view_url` |
+| demo.ckan.org | 🌍 Demo | 2.11.3 | Not registered in portals.json — uses defaults |
 
 #### ✅ Working with Custom API Path
 
