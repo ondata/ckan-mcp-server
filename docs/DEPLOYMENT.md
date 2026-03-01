@@ -603,7 +603,7 @@ Use this checklist to ensure nothing is missed:
 - [ ] Version bumped in `package.json`
 - [ ] `LOG.md` updated with changes
 - [ ] `CLAUDE.md` updated if architecture changed
-- [ ] `README.md` updated if features added
+- [ ] `README.md` updated if features added — **all paths must be absolute GitHub URLs** (npm cannot resolve relative paths)
 
 ### Git Operations
 - [ ] Changes committed with descriptive message

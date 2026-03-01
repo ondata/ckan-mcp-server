@@ -432,6 +432,14 @@ To test with Claude Desktop, add MCP configuration to config file.
 4. Add tests in `tests/integration/`
 5. Build and test: `npm run build && npm test`
 
+### README Authoring Rule
+
+**Always use absolute GitHub URLs** in `README.md` — never relative paths.
+npm displays the README from the published tarball and cannot resolve relative paths.
+
+- Images/GIFs: `https://raw.githubusercontent.com/ondata/ckan-mcp-server/main/...`
+- Links to files: `https://github.com/ondata/ckan-mcp-server/blob/main/...`
+
 ### Release Workflow
 
 When releasing a new version:
