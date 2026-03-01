@@ -46,6 +46,30 @@ const canonicalURL = new URL(Astro.url.pathname, siteUrl + baseUrl);
   <meta name="twitter:image" content={new URL(image, siteUrl)}>
 
   <link rel="canonical" href={canonicalURL}>
+
+  <!-- Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "CKAN MCP Server",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Any",
+    "description": "Turn any CKAN open data portal into a conversation. Search datasets, query tabular data, explore organizations — no CKAN knowledge required.",
+    "url": "https://ondata.github.io/ckan-mcp-server",
+    "downloadUrl": "https://www.npmjs.com/package/@aborruso/ckan-mcp-server",
+    "softwareVersion": "latest",
+    "license": "https://opensource.org/licenses/MIT",
+    "author": {
+      "@type": "Organization",
+      "name": "onData",
+      "url": "https://ondata.it"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  })} />
 </head>
 <body class="bg-white">
   <slot />
