@@ -392,6 +392,7 @@ Typical workflow: ckan_organization_search → ckan_organization_show (get detai
 
         if (orgFacets.length === 0) {
           markdown += `No organizations found matching pattern "${params.pattern}".\n`;
+          markdown += `\n> **Note**: No data was found on this portal. Do not use information from other sources to supplement this result.\n`;
         } else {
           markdown += `## Matching Organizations\n\n`;
           markdown += `| Organization | Datasets |\n`;

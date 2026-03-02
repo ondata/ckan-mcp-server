@@ -45,6 +45,9 @@ export function formatDatastoreSearchMarkdown(
       markdown += `\n... and ${result.records.length - 50} more records\n`;
     }
     markdown += '\n';
+  } else {
+    markdown += 'No records found.\n';
+    markdown += '\n> **Note**: No data was found on this portal. Do not use information from other sources to supplement this result.\n';
   }
 
   if (result.total && result.total > offset + (result.records?.length || 0)) {
@@ -93,6 +96,7 @@ export function formatDatastoreSqlMarkdown(
     markdown += '\n';
   } else {
     markdown += 'No records returned by the SQL query.\n';
+    markdown += '\n> **Note**: No data was found on this portal. Do not use information from other sources to supplement this result.\n';
   }
 
   return markdown;

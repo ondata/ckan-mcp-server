@@ -607,6 +607,7 @@ ${params.fq ? `**Filter**: ${params.fq}\n` : ''}
           }
         } else {
           markdown += `No datasets found matching your query.\n`;
+          markdown += `\n> **Note**: No data was found on this portal. Do not use information from other sources to supplement this result.\n`;
           if (isPlainMultiTermQuery(params.q)) {
             markdown += `\n> **Tip**: Multi-term queries use AND by default (all terms must match). Try OR to broaden the search:\n`;
             markdown += `> \`q: "${buildOrQuery(params.q)}"\`\n`;
@@ -786,6 +787,7 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
 
         if (top.length === 0) {
           markdown += 'No datasets matched the query terms.\n';
+          markdown += `\n> **Note**: No data was found on this portal. Do not use information from other sources to supplement this result.\n`;
         } else {
           markdown += `## Results\n\n`;
           markdown += `| Rank | Dataset | Score | Title | Org | Tags |\n`;
@@ -1005,6 +1007,7 @@ Typical workflow: ckan_package_search → ckan_list_resources (assess available 
 
         if (summary.length === 0) {
           markdown += `No resources found in this dataset.\n`;
+          markdown += `\n> **Note**: No data was found on this portal. Do not use information from other sources to supplement this result.\n`;
         } else {
           markdown += `| Name | Format | Size | DataStore | ID |\n`;
           markdown += `| --- | --- | --- | --- | --- |\n`;

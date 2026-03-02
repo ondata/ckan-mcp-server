@@ -344,6 +344,7 @@ Typical workflow: ckan_group_search → ckan_group_show (get details) → ckan_p
 
         if (groupFacets.length === 0) {
           markdown += `No groups found matching pattern "${params.pattern}".\n`;
+          markdown += `\n> **Note**: No data was found on this portal. Do not use information from other sources to supplement this result.\n`;
         } else {
           markdown += `## Matching Groups\n\n`;
           markdown += `| Group | Datasets |\n`;

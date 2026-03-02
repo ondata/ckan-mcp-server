@@ -145,6 +145,7 @@ The following portals have been tested and verified (as of v0.4.37):
 | open.canada.ca/data | 🇨🇦 Canada | 2.10.8 | Standard configuration |
 | data.gov.au | 🇦🇺 Australia | 2.11.4 | Custom `dataset_view_url` and `organization_view_url` |
 | ckan.opendata.swiss | 🇨🇭 Switzerland | — | Standard configuration |
+| data.stadt-zuerich.ch | 🇨🇭 Switzerland | — | Custom `organization_view_url` (CKAN backend: `ckan-prod.zurich.datopian.com`) |
 | ckan.govdata.de | 🇩🇪 Germany | — | Custom `dataset_view_url` and `organization_view_url` |
 
 #### ✅ Working with Custom API Path
@@ -158,6 +159,7 @@ The following portals have been tested and verified (as of v0.4.37):
 | Portal | Country | Issue | Reason |
 |--------|---------|-------|--------|
 | data.europa.eu | 🇪🇺 EU | — | Not CKAN — uses proprietary API (`/api/hub/`) |
+| data.opentransportdata.swiss | 🇨🇭 Switzerland | — | API on separate domain (`api.opentransportdata.swiss/ckan-api/`) and requires API key — not publicly accessible |
 | datos.gob.es | 🇪🇸 Spain | — | Not CKAN — uses Linked Data API (`/apidata/`) with SPARQL endpoint |
 | data.gouv.fr | 🇫🇷 France | — | Not CKAN — uses own API (`/api/1/`) |
 

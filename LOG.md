@@ -1,5 +1,13 @@
 # LOG
 
+## 2026-03-02 (v0.4.57)
+
+- portals: add `data.stadt-zuerich.ch` (City of Zurich) with custom `organization_view_url` pointing to CKAN backend
+- docs: add `data.stadt-zuerich.ch` to verified portals table in `src/README.md`
+- docs: add `data.opentransportdata.swiss` to known issues (API on separate domain, requires API key)
+- tools: add "no data found" note to all no-results responses to discourage LLM hallucination
+- docs: add LLM hallucination note to README Troubleshooting section
+
 ## 2026-03-01
 
 - docs: rewrite README intro — plain-language description, two-path table (local vs hosted), audience statement

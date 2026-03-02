@@ -79,8 +79,18 @@
         "https://www.opendata.swiss",
         "http://www.opendata.swiss"
       ]
-    }
-    ,
+    },
+    {
+      "id": "data-stadt-zuerich-ch",
+      "name": "data.stadt-zuerich.ch",
+      "api_url": "https://data.stadt-zuerich.ch",
+      "api_url_aliases": [
+        "http://data.stadt-zuerich.ch",
+        "https://www.data.stadt-zuerich.ch",
+        "https://ckan-prod.zurich.datopian.com"
+      ],
+      "organization_view_url": "https://ckan-prod.zurich.datopian.com/organization/{name}"
+    },
     {
       "id": "govdata-de",
       "name": "govdata.de",
