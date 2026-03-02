@@ -241,8 +241,22 @@ export default {
         try {
           const body = await clonedRequest.json() as { method?: string; params?: { name?: string; arguments?: Record<string, unknown> } };
           if (body?.method === 'tools/call' && body?.params?.name) {
-            const args = body.params.arguments ?? {};
-            console.log(`tool=${body.params.name} server=${args['server_url'] ?? ''} q=${args['q'] ?? args['name'] ?? ''}`);
+            const tool = body.params.name;
+            const a = body.params.arguments ?? {};
+            const entry: Record<string, unknown> = { tool, server: a['server_url'] ?? '' };
+            if (a['q'] !== undefined)             entry['q'] = a['q'];
+            if (a['fq'] !== undefined)            entry['fq'] = a['fq'];
+            if (a['query'] !== undefined)         entry['query'] = a['query'];
+            if (a['id'] !== undefined)            entry['id'] = a['id'];
+            if (a['name'] !== undefined)          entry['name'] = a['name'];
+            if (a['pattern'] !== undefined)       entry['pattern'] = a['pattern'];
+            if (a['resource_id'] !== undefined)   entry['resource_id'] = a['resource_id'];
+            if (a['format_filter'] !== undefined) entry['format_filter'] = a['format_filter'];
+            if (a['sort'] !== undefined)          entry['sort'] = a['sort'];
+            if (a['rows'] !== undefined)          entry['rows'] = a['rows'];
+            if (a['limit'] !== undefined)         entry['limit'] = a['limit'];
+            if (a['sql'] !== undefined)           entry['sql'] = String(a['sql']).slice(0, 200);
+            console.log(JSON.stringify(entry));
           }
         } catch { /* ignore parse errors (e.g. non-JSON requests) */ }
 

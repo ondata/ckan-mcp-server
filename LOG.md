@@ -3,7 +3,7 @@
 ## 2026-03-02
 
 - worker: enable Cloudflare Workers Logs (`[observability]` in `wrangler.toml`)
-- worker: add `console.log` for tool calls (tool name, server URL, query)
+- worker: log structured JSON for every tool call (tool, server, q, fq, id, sql, etc.)
 
 ## 2026-03-02 (v0.4.57)
 
