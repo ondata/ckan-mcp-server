@@ -1,6 +1,6 @@
 # LOG
 
-## 2026-03-02
+## 2026-03-02 (v0.4.58)
 
 - tools: add HVD note on synthesis queries — when `q=*:*` + org/tag facets (or `rows=0`) on dati.gov.it, auto-fetch real-time HVD count and append EU Reg. 2023/138 note to markdown output
 - portals: add `hvd.category_field` config to dati.gov.it in `portals.json`
