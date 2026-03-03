@@ -20,7 +20,7 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "build:dxt": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dxt-staging/server/index.js",
-    "pack:dxt": "rm -rf dxt-staging && mkdir -p dxt-staging/server && npm run build:dxt && cp manifest.json dxt-staging/ && dxt pack dxt-staging ckan-mcp-server.dxt && rm -rf dxt-staging",
+    "pack:dxt": "rm -rf dxt-staging && mkdir -p dxt-staging/server && npm run build:dxt && cp manifest.json icon.png dxt-staging/ && dxt pack dxt-staging ckan-mcp-server.dxt && rm -rf dxt-staging",
     "prepack": "cp README.md .readme-full.md && cp .readme-npm.md README.md",
     "postpack": "mv .readme-full.md README.md"
   },

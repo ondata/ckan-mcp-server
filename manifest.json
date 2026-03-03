@@ -15,6 +15,7 @@
   },
   "license": "MIT",
   "keywords": ["ckan", "open-data", "data-portal"],
+  "icon": "icon.png",
 "server": {
     "type": "node",
     "entry_point": "server/index.js",
