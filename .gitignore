@@ -42,6 +42,10 @@ coverage/
 # File privati
 private/
 
+# DXT packaging
+*.dxt
+dxt-staging/
+
 # Temporary
 tmp/
 temp/

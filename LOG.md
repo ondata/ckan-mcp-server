@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-03-03 (v0.4.59)
+
+- packaging: add DXT one-click install support — `manifest.json` + `npm run pack:dxt` script produces `ckan-mcp-server.dxt` for Claude Desktop
+- docs: add "One-click install" section in README Claude Desktop section
+- release workflow: DXT artifact now uploaded to GitHub releases
+
 ## 2026-03-02 (v0.4.58)
 
 - tools: add HVD note on synthesis queries — when `q=*:*` + org/tag facets (or `rows=0`) on dati.gov.it, auto-fetch real-time HVD count and append EU Reg. 2023/138 note to markdown output

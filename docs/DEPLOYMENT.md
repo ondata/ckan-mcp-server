@@ -453,6 +453,7 @@ Update the version in these files:
 
 - `package.json`
 - `package-lock.json`
+- `manifest.json` (DXT packaging)
 - `src/server.ts`
 - `src/worker.ts` (health endpoint)
 
@@ -547,6 +548,15 @@ gh release create v0.5.0 \
 
 Verify: Release appears as "Latest" at https://github.com/ondata/ckan-mcp-server/releases
 
+### Step 7b: Build and Upload DXT
+
+```bash
+npm run pack:dxt
+gh release upload v0.5.0 ckan-mcp-server.dxt
+```
+
+Verify: `ckan-mcp-server.dxt` appears as a release asset on the GitHub releases page.
+
 **Important**: Keep GitHub releases in sync with npm. Do not leave GitHub behind npmjs.
 
 After publishing to npm, verify versions match:
@@ -600,7 +610,7 @@ Use this checklist to ensure nothing is missed:
 - [ ] Local testing complete: `npm run dev:worker`
 
 ### Version Update
-- [ ] Version bumped in `package.json`
+- [ ] Version bumped in `package.json` and `manifest.json`
 - [ ] `LOG.md` updated with changes
 - [ ] `CLAUDE.md` updated if architecture changed
 - [ ] `README.md` updated if features added — **all paths must be absolute GitHub URLs** (npm cannot resolve relative paths)
@@ -617,6 +627,7 @@ Use this checklist to ensure nothing is missed:
 
 ### Publishing
 - [ ] GitHub Release created with notes
+- [ ] DXT built and uploaded: `npm run pack:dxt && gh release upload vX.Y.Z ckan-mcp-server.dxt`
 - [ ] npm package published (check npmjs.com)
 - [ ] GitHub release not behind npm (verify `gh release list` + `npm view @aborruso/ckan-mcp-server version`)
 - [ ] Cloudflare Workers deployed (if code changed)

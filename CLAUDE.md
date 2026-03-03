@@ -452,13 +452,15 @@ npm cannot resolve relative paths from the tarball.
 
 When releasing a new version:
 
-1. **Update version**: Edit `package.json` version field
+1. **Update version**: Edit `package.json` version field and `manifest.json` version field
 2. **Update LOG.md**: Add entry with date and changes
 3. **Commit changes**: `git add . && git commit -m "..."`
 4. **Push to GitHub**: `git push origin main`
 5. **Create tag**: `git tag -a v0.x.0 -m "..." && git push origin v0.x.0`
-6. **Publish to npm** (optional): `npm publish`
-7. **Deploy to Cloudflare** (if code changed): `npm run deploy`
+6. **Build DXT**: `npm run pack:dxt` → produces `ckan-mcp-server.dxt`
+7. **Attach DXT to release**: `gh release upload v0.x.0 ckan-mcp-server.dxt`
+8. **Publish to npm** (optional): `npm publish`
+9. **Deploy to Cloudflare** (if code changed): `npm run deploy`
 
 See `docs/DEPLOYMENT.md` for detailed Cloudflare deployment instructions.
 

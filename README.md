@@ -95,6 +95,12 @@ Configuration file location:
 }
 ```
 
+**One-click install (Desktop Extension):**
+
+1. Download the latest `ckan-mcp-server.dxt` from the [GitHub releases page](https://github.com/ondata/ckan-mcp-server/releases)
+2. Double-click the `.dxt` file — Claude Desktop installs and configures it automatically
+3. Open a new chat, click **+**, select **Integrations**, and enable **CKAN MCP Server**
+
 **Using local installation:**
 
 ```json

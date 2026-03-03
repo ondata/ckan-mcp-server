@@ -1,6 +1,6 @@
 {
   "name": "@aborruso/ckan-mcp-server",
-  "version": "0.4.58",
+  "version": "0.4.59",
   "description": "MCP server for interacting with CKAN open data portals",
   "main": "dist/index.js",
   "type": "module",
@@ -19,6 +19,8 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
+    "build:dxt": "esbuild src/index.ts --bundle --platform=node --format=esm --outfile=dxt-staging/server/index.js",
+    "pack:dxt": "rm -rf dxt-staging && mkdir -p dxt-staging/server && npm run build:dxt && cp manifest.json dxt-staging/ && dxt pack dxt-staging ckan-mcp-server.dxt && rm -rf dxt-staging",
     "prepack": "cp README.md .readme-full.md && cp .readme-npm.md README.md",
     "postpack": "mv .readme-full.md README.md"
   },
