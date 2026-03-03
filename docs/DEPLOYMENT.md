@@ -523,9 +523,8 @@ Verify: Tag appears in https://github.com/ondata/ckan-mcp-server/tags
 ### Step 7: Create GitHub Release
 
 ```bash
-gh release create v0.5.0 \
-  --title "v0.5.0 - Feature Name" \
-  --notes "## What's New
+cat <<'EOF' | gh release create v0.5.0 --title "v0.5.0 - Feature Name" --notes-file -
+## What's New
 
 ### Features
 - Feature 1 description
@@ -535,15 +534,11 @@ gh release create v0.5.0 \
 - Change 1
 - Change 2
 
-### Documentation
-- Updated docs/...
-- Added examples/...
-
 ### No Breaking Changes
 - All existing functionality preserved
-- Backward compatible
 
-**Full Changelog**: https://github.com/ondata/ckan-mcp-server/compare/v0.4.0...v0.5.0"
+**Full Changelog**: https://github.com/ondata/ckan-mcp-server/compare/v0.4.0...v0.5.0
+EOF
 ```
 
 Verify: Release appears as "Latest" at https://github.com/ondata/ckan-mcp-server/releases
