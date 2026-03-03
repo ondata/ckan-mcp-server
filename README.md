@@ -119,13 +119,13 @@ Configuration file location:
 **Using the hosted endpoint (no install):**
 
 ```bash
-claude mcp add --transport http --scope user ckan https://ckan-mcp-server.andy-pr.workers.dev/mcp
+claude mcp add -s user -t http ckan https://ckan-mcp-server.andy-pr.workers.dev/mcp
 ```
 
 **Using local installation:**
 
 ```bash
-claude mcp add --scope user ckan npx @aborruso/ckan-mcp-server@latest
+claude mcp add -s user ckan npx @aborruso/ckan-mcp-server@latest
 ```
 
 > `--scope user` makes the server available globally across all your projects, not just the current one.
@@ -138,28 +138,17 @@ claude mcp add --transport http ckan https://ckan-mcp-server.andy-pr.workers.dev
 
 ### Gemini CLI
 
-Add to `~/.gemini/settings.json`:
+```bash
+gemini mcp add -s user -t http ckan https://ckan-mcp-server.andy-pr.workers.dev/mcp
+```
 
-**Using the hosted endpoint (no install):**
+Or add manually to `~/.gemini/settings.json`:
 
 ```json
 {
   "mcpServers": {
     "ckan": {
       "httpUrl": "https://ckan-mcp-server.andy-pr.workers.dev/mcp"
-    }
-  }
-}
-```
-
-**Using local installation:**
-
-```json
-{
-  "mcpServers": {
-    "ckan": {
-      "command": "npx",
-      "args": ["@aborruso/ckan-mcp-server@latest"]
     }
   }
 }
