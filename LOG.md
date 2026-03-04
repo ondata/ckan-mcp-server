@@ -2,6 +2,14 @@
 
 ## 2026-03-04
 
+- feat: compact JSON output for heavy tools — `package_search`, `package_show`, `organization_list/show`, `group_list/show`, `datastore_search/search_sql` now return only essential fields in JSON mode (~70% token reduction)
+- feat: `truncateJson()` — JSON-safe truncation that shrinks arrays instead of cutting mid-string, always produces valid JSON
+- fix: filter `_id` field from datastore JSON output (already done in markdown)
+- docs: add `docs/JSON-OUTPUT.md` — complete field schema for all tools in JSON mode
+- feat: add `europa_dataset_search` tool for European Data Portal (data.europa.eu) — searches 1.7M+ datasets across all EU countries with country filter, multilingual support, and HVD badge
+- new files: `src/utils/europa-http.ts`, `src/tools/europa.ts`, `tests/integration/europa.test.ts`
+- types: add `EuropaDataset`, `EuropaDistribution`, `EuropaMultilingualField`, `EuropaLabelledValue` interfaces
+- JSON output filters multilingual fields to requested language only (compact response)
 - fix(http): add AbortController 30s timeout to Workers fetch — prevents hang when CKAN server is slow (root cause of Worker timeout errors)
 
 ## 2026-03-03 (v0.4.59)

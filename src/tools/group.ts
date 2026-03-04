@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
-import { truncateText, formatDate, addDemoFooter } from "../utils/formatting.js";
+import { truncateText, truncateJson, formatDate, addDemoFooter } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type GroupFacetItem = {
@@ -87,6 +87,45 @@ function normalizeGroupFacets(result: unknown): GroupFacetItem[] {
   return [];
 }
 
+/**
+ * Compact JSON for group_list results.
+ */
+export function compactGroupList(result: any): object {
+  if (!Array.isArray(result)) return result;
+  return {
+    count: result.length,
+    groups: result.map((group: any) => {
+      if (typeof group === 'string') return group;
+      return {
+        id: group.id,
+        name: group.name,
+        title: group.title || group.name,
+        package_count: group.package_count ?? 0
+      };
+    })
+  };
+}
+
+/**
+ * Compact JSON for group_show results.
+ */
+export function compactGroupShow(result: any): object {
+  return {
+    id: result.id,
+    name: result.name,
+    title: result.title || result.name,
+    description: result.description || null,
+    package_count: result.package_count ?? 0,
+    created: result.created || null,
+    packages: (result.packages || []).map((pkg: any) => ({
+      id: pkg.id,
+      name: pkg.name,
+      title: pkg.title || pkg.name,
+      metadata_modified: pkg.metadata_modified || null
+    }))
+  };
+}
+
 export function registerGroupTools(server: McpServer) {
   server.registerTool(
     "ckan_group_list",
@@ -164,12 +203,10 @@ Typical workflow: ckan_group_list → ckan_group_show (inspect one) → ckan_pac
         );
 
         if (params.response_format === ResponseFormat.JSON) {
-          const output = Array.isArray(result)
-            ? { count: result.length, groups: result }
-            : result;
+          const compact = compactGroupList(result);
           return {
-            content: [{ type: "text", text: truncateText(JSON.stringify(output, null, 2)) }],
-            structuredContent: output
+            content: [{ type: "text", text: truncateJson(compact) }],
+            structuredContent: compact
           };
         }
 
@@ -249,9 +286,10 @@ Typical workflow: ckan_group_show → ckan_package_show (inspect a dataset) → 
         );
 
         if (params.response_format === ResponseFormat.JSON) {
+          const compact = compactGroupShow(result);
           return {
-            content: [{ type: "text", text: truncateText(JSON.stringify(result, null, 2)) }],
-            structuredContent: result
+            content: [{ type: "text", text: truncateJson(compact) }],
+            structuredContent: compact
           };
         }
 

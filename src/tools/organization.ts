@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanOrganization } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
-import { truncateText, formatDate, addDemoFooter } from "../utils/formatting.js";
+import { truncateText, truncateJson, formatDate, addDemoFooter } from "../utils/formatting.js";
 import { getOrganizationViewUrl } from "../utils/url-generator.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -51,6 +51,48 @@ export function formatOrganizationShowMarkdown(result: CkanOrganization & { pack
   }
 
   return markdown;
+}
+
+/**
+ * Compact JSON for organization_list results.
+ * When all_fields=true, keeps only essential fields per org.
+ */
+export function compactOrganizationList(result: any): object {
+  if (!Array.isArray(result)) return result;
+  return {
+    count: result.length,
+    organizations: result.map((org: any) => {
+      if (typeof org === 'string') return org;
+      return {
+        id: org.id,
+        name: org.name,
+        title: org.title || org.name,
+        package_count: org.package_count ?? 0
+      };
+    })
+  };
+}
+
+/**
+ * Compact JSON for organization_show results.
+ * Keeps org metadata + slim package list, drops extras/users/groups.
+ */
+export function compactOrganizationShow(result: any): object {
+  return {
+    id: result.id,
+    name: result.name,
+    title: result.title || result.name,
+    description: result.description || null,
+    image_url: result.image_url || null,
+    package_count: result.package_count ?? 0,
+    created: result.created || null,
+    packages: (result.packages || []).map((pkg: any) => ({
+      id: pkg.id,
+      name: pkg.name,
+      title: pkg.title || pkg.name,
+      metadata_modified: pkg.metadata_modified || null
+    }))
+  };
 }
 
 export function registerOrganizationTools(server: McpServer) {
@@ -171,7 +213,7 @@ Typical workflow: ckan_organization_list → ckan_organization_show (inspect one
             if (params.response_format === ResponseFormat.JSON) {
               const output = { count: items.length, organizations };
               return {
-                content: [{ type: "text", text: truncateText(JSON.stringify(output, null, 2)) }],
+                content: [{ type: "text", text: truncateJson(output) }],
                 structuredContent: output
               };
             }
@@ -195,12 +237,10 @@ Typical workflow: ckan_organization_list → ckan_organization_show (inspect one
         }
 
         if (params.response_format === ResponseFormat.JSON) {
-          const output = Array.isArray(result)
-            ? { count: result.length, organizations: result }
-            : result;
+          const compact = compactOrganizationList(result);
           return {
-            content: [{ type: "text", text: truncateText(JSON.stringify(output, null, 2)) }],
-            structuredContent: output
+            content: [{ type: "text", text: truncateJson(compact) }],
+            structuredContent: compact
           };
         }
 
@@ -286,9 +326,10 @@ Typical workflow: ckan_organization_show → ckan_package_show (inspect a datase
         );
 
         if (params.response_format === ResponseFormat.JSON) {
+          const compact = compactOrganizationShow(result);
           return {
-            content: [{ type: "text", text: truncateText(JSON.stringify(result, null, 2)) }],
-            structuredContent: result
+            content: [{ type: "text", text: truncateJson(compact) }],
+            structuredContent: compact
           };
         }
 

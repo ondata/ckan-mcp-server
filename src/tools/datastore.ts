@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanField } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
-import { truncateText, addDemoFooter } from "../utils/formatting.js";
+import { truncateText, truncateJson, addDemoFooter } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 export function formatDatastoreSearchMarkdown(
@@ -102,6 +102,23 @@ export function formatDatastoreSqlMarkdown(
   return markdown;
 }
 
+/**
+ * Compact datastore result: filter _id from fields and records.
+ */
+export function compactDatastoreResult(result: any): object {
+  const fields = (result.fields || []).filter((f: CkanField) => f.id !== '_id');
+  const records = (result.records || []).map((record: Record<string, unknown>) => {
+    const { _id, ...rest } = record;
+    return rest;
+  });
+  return {
+    resource_id: result.resource_id || null,
+    fields,
+    records,
+    total: result.total ?? 0
+  };
+}
+
 export function registerDatastoreTools(server: McpServer) {
   /**
    * DataStore search
@@ -180,8 +197,9 @@ Typical workflow: ckan_package_search → ckan_package_show (find resource_id wi
         );
 
         if (params.response_format === ResponseFormat.JSON) {
+          const compact = compactDatastoreResult(result);
           return {
-            content: [{ type: "text", text: truncateText(JSON.stringify(result, null, 2)) }]
+            content: [{ type: "text", text: truncateJson(compact) }]
           };
         }
 
@@ -246,9 +264,10 @@ Typical workflow: ckan_package_show (get resource_id) → ckan_datastore_search_
         );
 
         if (params.response_format === ResponseFormat.JSON) {
+          const compact = compactDatastoreResult(result);
           return {
-            content: [{ type: "text", text: truncateText(JSON.stringify(result, null, 2)) }],
-            structuredContent: result
+            content: [{ type: "text", text: truncateJson(compact) }],
+            structuredContent: compact
           };
         }
 

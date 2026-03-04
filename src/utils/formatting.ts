@@ -15,6 +15,41 @@ export function truncateText(text: string, limit: number = CHARACTER_LIMIT): str
 }
 
 /**
+ * Truncate a JSON-serializable object to fit within character limit.
+ * Unlike truncateText, this always produces valid JSON by shrinking
+ * known arrays (results, records, resources, packages, organizations, groups, tags)
+ * before falling back to compact serialization.
+ */
+export function truncateJson(obj: unknown, limit: number = CHARACTER_LIMIT): string {
+  // Try pretty first
+  let json = JSON.stringify(obj, null, 2);
+  if (json.length <= limit) return json;
+
+  // Try compact (no indentation)
+  json = JSON.stringify(obj);
+  if (json.length <= limit) return json;
+
+  // Shrink known arrays progressively
+  const data = structuredClone(obj) as Record<string, unknown>;
+  const arrayKeys = ['results', 'records', 'resources', 'packages', 'organizations', 'groups', 'tags'];
+  for (const key of arrayKeys) {
+    if (Array.isArray(data[key]) && data[key].length > 0) {
+      const originalCount = data[key].length;
+      while (data[key].length > 1) {
+        data[key].pop();
+        data['_truncated'] = true;
+        data['_original_count'] = originalCount;
+        json = JSON.stringify(data);
+        if (json.length <= limit) return json;
+      }
+    }
+  }
+
+  // Last resort: compact with truncateText (may produce invalid JSON, but respects limit)
+  return truncateText(JSON.stringify(data), limit);
+}
+
+/**
  * Format date for display
  */
 export function formatDate(dateStr: string): string {

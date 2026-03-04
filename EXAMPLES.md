@@ -801,7 +801,9 @@ ckan_package_search({
 Readable, formatted with tables and sections
 
 ### JSON format
-For programmatic processing
+For programmatic processing. JSON responses are compact — they include only essential fields, dropping extras, relationships, and CKAN internal metadata (~70% token reduction).
+
+See [docs/JSON-OUTPUT.md](docs/JSON-OUTPUT.md) for the complete field schema of each tool.
 
 ```typescript
 ckan_package_search({

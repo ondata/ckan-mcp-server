@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanTag, CkanResource, CkanPackage } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
-import { truncateText, formatDate, formatBytes, addDemoFooter } from "../utils/formatting.js";
+import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter } from "../utils/formatting.js";
 import { getDatasetViewUrl } from "../utils/url-generator.js";
 import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from "../utils/search.js";
 import { getPortalHvdConfig } from "../utils/portal-config.js";
@@ -292,6 +292,64 @@ export function resolvePageParams(
   return { effectiveStart: start, effectiveRows: rows };
 }
 
+/**
+ * Compact JSON representation of package_search results.
+ * Keeps only essential fields to reduce token usage (~80% reduction).
+ */
+export function compactSearchResult(result: any): object {
+  return {
+    count: result.count,
+    results: (result.results || []).map((pkg: CkanPackage) => ({
+      id: pkg.id,
+      name: pkg.name,
+      title: pkg.title || pkg.name,
+      notes: pkg.notes ? pkg.notes.substring(0, 200) + (pkg.notes.length > 200 ? '...' : '') : null,
+      organization: pkg.organization?.title || pkg.organization?.name || null,
+      tags: (pkg.tags || []).map((t: CkanTag) => t.name),
+      num_resources: pkg.num_resources ?? 0,
+      metadata_modified: pkg.metadata_modified
+    })),
+    ...(result.facets && Object.keys(result.facets).length > 0 ? { facets: result.facets } : {}),
+    ...(result.search_facets && Object.keys(result.search_facets).length > 0 ? { search_facets: result.search_facets } : {})
+  };
+}
+
+/**
+ * Compact JSON representation of package_show results.
+ * Keeps metadata + slim resources, drops extras/relationships/tracking.
+ */
+export function compactPackageShow(result: CkanPackage): object {
+  return {
+    id: result.id,
+    name: result.name,
+    title: result.title || result.name,
+    notes: result.notes || null,
+    organization: result.organization ? {
+      name: result.organization.name,
+      title: result.organization.title
+    } : null,
+    tags: (result.tags || []).map((t: CkanTag) => t.name),
+    state: result.state,
+    license_title: result.license_title || result.license_id || null,
+    metadata_created: result.metadata_created,
+    metadata_modified: result.metadata_modified,
+    issued: result.issued || null,
+    modified: result.modified || null,
+    author: result.author || null,
+    maintainer: result.maintainer || null,
+    resources: (result.resources || []).map((r: CkanResource) => ({
+      id: r.id,
+      name: r.name || null,
+      format: r.format || null,
+      url: r.url || null,
+      size: r.size || null,
+      datastore_active: r.datastore_active ?? null,
+      created: r.created || null,
+      last_modified: r.last_modified || null
+    }))
+  };
+}
+
 export function registerPackageTools(server: McpServer) {
   /**
    * Search for datasets on a CKAN server
@@ -544,8 +602,9 @@ Typical workflow: ckan_package_search → ckan_package_show (get full metadata +
         }
 
         if (params.response_format === ResponseFormat.JSON) {
+          const compact = compactSearchResult(result);
           return {
-            content: [{ type: "text", text: truncateText(JSON.stringify(result, null, 2)) }]
+            content: [{ type: "text", text: truncateJson(compact) }]
           };
         }
 
@@ -913,10 +972,10 @@ Typical workflow: ckan_package_show → pick a resource with datastore_active=tr
         );
 
         if (params.response_format === ResponseFormat.JSON) {
-          const enriched = enrichPackageShowResult(result);
+          const compact = compactPackageShow(enrichPackageShowResult(result));
           return {
-            content: [{ type: "text", text: truncateText(JSON.stringify(enriched, null, 2)) }],
-            structuredContent: enriched
+            content: [{ type: "text", text: truncateJson(compact) }],
+            structuredContent: compact
           };
         }
 

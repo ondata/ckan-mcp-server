@@ -73,3 +73,39 @@ export interface CkanDatastoreResult {
   total?: number;
   [key: string]: unknown;
 }
+
+// European Data Portal (data.europa.eu) types
+
+export interface EuropaMultilingualField {
+  [lang: string]: string;
+}
+
+export interface EuropaLabelledValue {
+  id?: string;
+  label?: string;
+  resource?: string;
+}
+
+export interface EuropaDistribution {
+  id?: string;
+  title?: EuropaMultilingualField;
+  format?: EuropaLabelledValue;
+  media_type?: string;
+  access_url?: string | string[];
+  download_url?: string | string[];
+  [key: string]: unknown;
+}
+
+export interface EuropaDataset {
+  id: string;
+  title?: EuropaMultilingualField;
+  description?: EuropaMultilingualField;
+  issued?: string;
+  modified?: string;
+  country?: { id?: string; label?: string; resource?: string };
+  distributions?: EuropaDistribution[];
+  keywords?: Array<{ id?: string; label?: string; language?: string }>;
+  is_hvd?: boolean;
+  landing_page?: string[];
+  [key: string]: unknown;
+}

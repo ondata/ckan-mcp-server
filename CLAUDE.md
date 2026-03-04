@@ -234,7 +234,9 @@ The server (`src/index.ts`):
 7. **Output Formatting**
    - All tools support two formats: `markdown` (default) and `json`
    - Markdown format optimized for human readability
-   - JSON format for programmatic processing
+   - JSON format returns compact objects with only essential fields (~70% token reduction vs raw CKAN API)
+   - JSON truncation is safe: shrinks arrays instead of cutting mid-string (always valid JSON)
+   - See `docs/JSON-OUTPUT.md` for complete field schemas
 
 ### Transport Modes
 

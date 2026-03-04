@@ -11,13 +11,14 @@ import { registerTagTools } from "./tools/tag.js";
 import { registerGroupTools } from "./tools/group.js";
 import { registerQualityTools } from "./tools/quality.js";
 import { registerAnalyzeTools, registerCatalogStatsTools } from "./tools/analyze.js";
+import { registerEuropaTools } from "./tools/europa.js";
 import { registerAllResources } from "./resources/index.js";
 import { registerAllPrompts } from "./prompts/index.js";
 
 export function createServer(): McpServer {
   return new McpServer({
     name: "ckan-mcp-server",
-    version: "0.4.60"
+    version: "0.4.61"
   });
 }
 
@@ -31,6 +32,7 @@ export function registerAll(server: McpServer): void {
   registerQualityTools(server);
   registerAnalyzeTools(server);
   registerCatalogStatsTools(server);
+  registerEuropaTools(server);
   registerAllResources(server);
   registerAllPrompts(server);
 }
