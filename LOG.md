@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-03-04 (v0.4.65)
+
+- feat(europa): add `publisher` to `ALLOWED_FACETS` in `europa_dataset_search` — now shows top publishers per query
+
 ## 2026-03-04 (v0.4.64)
 
 - fix(europa): `q=*` now correctly returns all 1.7M+ datasets — Europa API ignores `q` when omitted; sending `q=*` was causing Elasticsearch to return only ~6k results; match-all queries (`*`, `*:*`) now omit the `q` parameter

@@ -184,7 +184,7 @@ const MAX_FACET_ITEMS = 15;
 /** Facets to keep in output (others are discarded) */
 const ALLOWED_FACETS = new Set([
   "country", "categories", "format", "is_hvd",
-  "scoring", "language", "subject", "hvdCategory"
+  "scoring", "language", "subject", "hvdCategory", "publisher"
 ]);
 
 /**
