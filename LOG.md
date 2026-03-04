@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-03-04 (v0.4.70)
+
+- feat: `ckan_status_show` now shows HVD dataset count when portal has `hvd.category_field` configured in `portals.json`
+
 ## 2026-03-04 (v0.4.69)
 
 - feat: `ckan_package_search` and `ckan_package_show` JSON output now include `view_url` field pointing to the dataset page on the source portal
