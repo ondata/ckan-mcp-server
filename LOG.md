@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-03-04 (v0.4.66)
+
+- feat: add `sparql_query` tool — execute SPARQL SELECT against any public HTTPS endpoint (e.g. data.europa.eu/sparql, DBpedia, Wikidata)
+- feat(europa): update `europa_dataset_search` description to suggest `sparql_query` for publisher aggregations and queries not exposed as facets
+- test: add 12 tests for `sparql_query` (querySparqlEndpoint, formatSparqlMarkdown, formatSparqlJson)
+
 ## 2026-03-04 (v0.4.65)
 
 - feat(europa): add `publisher` to `ALLOWED_FACETS` in `europa_dataset_search` — now shows top publishers per query

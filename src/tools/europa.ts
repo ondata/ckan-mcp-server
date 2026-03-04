@@ -273,6 +273,15 @@ Args:
   - page_size (number): Results per page (default 10, max 50)
   - response_format: "markdown" or "json" (JSON is compact: description truncated, max 3 distributions)
 
+Available facets (fixed — returned automatically): country, categories, format, language, is_hvd, hvdCategory, scoring.
+Publisher/organization breakdown is NOT available as a facet here. Use sparql_query on https://data.europa.eu/sparql for that.
+
+When to use sparql_query instead of this tool:
+  - Count or list datasets grouped by publisher/organization
+  - Query any property not exposed as a facet (e.g., license URI, spatial coverage, themes)
+  - Cross-join datasets with EU controlled vocabularies (publications.europa.eu)
+  - Any aggregation or filter not supported by the search API
+
 Examples:
   - { q: "environment", country: ["IT"], page_size: 5 }
   - { q: "transport", sort: "modified", order: "desc" }
