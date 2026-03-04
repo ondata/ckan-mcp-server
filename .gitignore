@@ -49,6 +49,9 @@ dxt-staging/
 # Temporary
 tmp/
 temp/
+
+# Data — solo file di lavoro temporanei, non archiviati
+data/*.tmp
 spunti.md
 testo.md
 

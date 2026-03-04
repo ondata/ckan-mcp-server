@@ -1,0 +1,39 @@
+name: Update Worker Telemetry
+
+on:
+  schedule:
+    - cron: "0 6 * * *"   # 06:00 UTC
+    - cron: "0 18 * * *"  # 18:00 UTC
+  workflow_dispatch:       # trigger manuale
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch new events
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: python scripts/worker_telemetry_archiver.py
+
+      - name: Generate flat JSONL
+        run: python scripts/worker_telemetry_flatten.py
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "chore(data): update worker telemetry $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push
