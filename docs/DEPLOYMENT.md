@@ -343,7 +343,8 @@ Cloudflare automatically:
 ### Error: `sparql_query` returns 403 on Workers
 
 Some SPARQL endpoints (e.g. `data.europa.eu/sparql`) block requests from Cloudflare's IP ranges.
-`sparql_query` works correctly in the Node.js runtime. This is an upstream restriction — no workaround available on Workers.
+This is an endpoint-specific restriction, not a Workers limitation — `sparql_query` works on Workers with other endpoints (DBpedia, Wikidata, publications.europa.eu, etc.).
+For `data.europa.eu/sparql`, use the Node.js runtime instead.
 
 ### Error: "Not authenticated"
 
