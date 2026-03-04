@@ -220,10 +220,10 @@ export default {
     if (request.method === 'GET' && url.pathname === '/health') {
       return new Response(JSON.stringify({
         status: 'ok',
-        version: '0.4.69',
+        version: '0.4.71',
         tools: 19,
         resources: 7,
-        prompts: 5,
+        prompts: 6,
         runtime: 'cloudflare-workers'
       }), {
         headers: {
