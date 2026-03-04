@@ -53,7 +53,12 @@ export async function makeEuropaSearchRequest(
     !!(process as { versions?: { node?: string } }).versions?.node;
 
   const searchParams = new URLSearchParams();
-  searchParams.set("q", params.q);
+  // Omit q for match-all queries: the API returns all 1.7M+ datasets only when q is absent or empty.
+  // With q=* or q=*:* Elasticsearch returns a small subset (~6k).
+  const isMatchAll = !params.q || params.q === "*" || params.q === "*:*";
+  if (!isMatchAll) {
+    searchParams.set("q", params.q);
+  }
   searchParams.set("page", String(params.page ?? 0));
   searchParams.set("limit", String(params.limit ?? 10));
   searchParams.set("filters", "dataset");

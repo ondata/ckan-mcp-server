@@ -1,7 +1,7 @@
 {
   "dxt_version": "0.1",
   "name": "ckan-mcp-server",
-  "version": "0.4.63",
+  "version": "0.4.64",
   "display_name": "CKAN MCP Server",
   "description": "Explore open data portals based on CKAN (dati.gov.it, data.gov, data.europa.eu, ...)",
   "long_description": "MCP server for interacting with CKAN-based open data portals. Provides tools for advanced dataset search with Solr syntax, DataStore queries for tabular data analysis, organization and group exploration, and complete metadata access.",

@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-03-04 (v0.4.64)
+
+- fix(europa): `q=*` now correctly returns all 1.7M+ datasets — Europa API ignores `q` when omitted; sending `q=*` was causing Elasticsearch to return only ~6k results; match-all queries (`*`, `*:*`) now omit the `q` parameter
+
 ## 2026-03-04
 
 - feat: expose Europa API facets in `europa_dataset_search` — country, format, categories, and 15 more facet types now rendered as tables (markdown) and compact objects (JSON, top 15 items per facet)
