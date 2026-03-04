@@ -8,6 +8,7 @@ import { registerOrganizationPrompt } from "./organization.js";
 import { registerFormatPrompt } from "./format.js";
 import { registerRecentPrompt } from "./recent.js";
 import { registerDatasetAnalysisPrompt } from "./dataset-analysis.js";
+import { registerHvdPrompt } from "./hvd.js";
 
 export const registerAllPrompts = (server: McpServer): void => {
   registerThemePrompt(server);
@@ -15,4 +16,5 @@ export const registerAllPrompts = (server: McpServer): void => {
   registerFormatPrompt(server);
   registerRecentPrompt(server);
   registerDatasetAnalysisPrompt(server);
+  registerHvdPrompt(server);
 };

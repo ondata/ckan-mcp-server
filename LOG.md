@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-03-04 (v0.4.71)
+
+- feat: new MCP prompt `ckan-search-hvd` — guided HVD search using `hvd.category_field` from `portals.json`; fallback to keyword search for unconfigured portals
+
 ## 2026-03-04 (v0.4.70)
 
 - feat: `ckan_status_show` now shows HVD dataset count when portal has `hvd.category_field` configured in `portals.json`
