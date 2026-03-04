@@ -33,12 +33,13 @@ export function registerStatusTools(server: McpServer) {
       description: `Check if a CKAN server is available and get version information.
 
 Useful to verify server accessibility before making other requests.
+Also shows the count of High-Value Datasets (HVD) when the portal supports it.
 
 Args:
   - server_url (string): Base URL of CKAN server
 
 Returns:
-  Server status and version information
+  Server status, version information, and HVD dataset count (if available)
 
 Typical workflow: ckan_status_show (verify server is up) → ckan_package_search (discover datasets)`,
       inputSchema: z.object({
