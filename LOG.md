@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-03-04 (v0.4.69)
+
+- feat: `ckan_package_search` and `ckan_package_show` JSON output now include `view_url` field pointing to the dataset page on the source portal
+
 ## 2026-03-04 (v0.4.68)
 
 - feat: SPARQL endpoint config in `portals.json` — `sparql.endpoint_url` + `sparql.method` per portal (Italy: `lod.dati.gov.it/sparql`, GET-only)

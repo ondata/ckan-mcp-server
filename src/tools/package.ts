@@ -296,7 +296,7 @@ export function resolvePageParams(
  * Compact JSON representation of package_search results.
  * Keeps only essential fields to reduce token usage (~80% reduction).
  */
-export function compactSearchResult(result: any): object {
+export function compactSearchResult(result: any, serverUrl?: string): object {
   return {
     count: result.count,
     results: (result.results || []).map((pkg: CkanPackage) => ({
@@ -307,7 +307,8 @@ export function compactSearchResult(result: any): object {
       organization: pkg.organization?.title || pkg.organization?.name || null,
       tags: (pkg.tags || []).map((t: CkanTag) => t.name),
       num_resources: pkg.num_resources ?? 0,
-      metadata_modified: pkg.metadata_modified
+      metadata_modified: pkg.metadata_modified,
+      ...(serverUrl ? { view_url: getDatasetViewUrl(serverUrl, pkg) } : {})
     })),
     ...(result.facets && Object.keys(result.facets).length > 0 ? { facets: result.facets } : {}),
     ...(result.search_facets && Object.keys(result.search_facets).length > 0 ? { search_facets: result.search_facets } : {})
@@ -318,7 +319,7 @@ export function compactSearchResult(result: any): object {
  * Compact JSON representation of package_show results.
  * Keeps metadata + slim resources, drops extras/relationships/tracking.
  */
-export function compactPackageShow(result: CkanPackage): object {
+export function compactPackageShow(result: CkanPackage, serverUrl?: string): object {
   return {
     id: result.id,
     name: result.name,
@@ -346,7 +347,8 @@ export function compactPackageShow(result: CkanPackage): object {
       datastore_active: r.datastore_active ?? null,
       created: r.created || null,
       last_modified: r.last_modified || null
-    }))
+    })),
+    ...(serverUrl ? { view_url: getDatasetViewUrl(serverUrl, result) } : {})
   };
 }
 
@@ -602,7 +604,7 @@ Typical workflow: ckan_package_search → ckan_package_show (get full metadata +
         }
 
         if (params.response_format === ResponseFormat.JSON) {
-          const compact = compactSearchResult(result);
+          const compact = compactSearchResult(result, params.server_url);
           return {
             content: [{ type: "text", text: truncateJson(compact) }]
           };
@@ -972,7 +974,7 @@ Typical workflow: ckan_package_show → pick a resource with datastore_active=tr
         );
 
         if (params.response_format === ResponseFormat.JSON) {
-          const compact = compactPackageShow(enrichPackageShowResult(result));
+          const compact = compactPackageShow(enrichPackageShowResult(result), params.server_url);
           return {
             content: [{ type: "text", text: truncateJson(compact) }],
             structuredContent: compact
