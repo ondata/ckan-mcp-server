@@ -1,5 +1,12 @@
 # LOG
 
+## 2026-03-04 (v0.4.68)
+
+- feat: SPARQL endpoint config in `portals.json` — `sparql.endpoint_url` + `sparql.method` per portal (Italy: `lod.dati.gov.it/sparql`, GET-only)
+- feat: `ckan_status_show` now shows SPARQL endpoint when configured for the portal
+- fix: `sparql_query` — GET fallback on 403/405 for endpoints that reject POST; User-Agent set to `Mozilla/5.0 (compatible; CKAN-MCP-Server/1.0)` (required by AWS WAF on lod.dati.gov.it)
+- refactor: `portal-config.ts` — added `SparqlConfig` type, `getSparqlConfig(endpointUrl)`, `getPortalSparqlConfig(serverUrl)`; tool count 18→19
+
 ## 2026-03-04 (v0.4.67)
 
 - improve: `sparql_query` — validate SELECT-only, auto-inject LIMIT (default 25, max 1000), truncate output at CHARACTER_LIMIT; +11 tests (310 total)

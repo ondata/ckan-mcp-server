@@ -15,6 +15,10 @@
       "hvd": {
         "category_field": "hvd_category"
       },
+      "sparql": {
+        "endpoint_url": "https://lod.dati.gov.it/sparql",
+        "method": "GET"
+      },
       "dataset_view_url": "https://www.dati.gov.it/view-dataset/dataset?id={id}",
       "organization_view_url": "https://www.dati.gov.it/view-dataset?organization={name}"
     },

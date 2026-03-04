@@ -8,12 +8,18 @@ export type HvdConfig = {
   category_field: string;
 };
 
+export type SparqlConfig = {
+  endpoint_url: string;
+  method?: "GET" | "POST";
+};
+
 type PortalConfig = {
   api_url: string;
   api_url_aliases?: string[];
   api_path?: string;
   search?: PortalSearchConfig;
   hvd?: HvdConfig;
+  sparql?: SparqlConfig;
 };
 
 type PortalDefaults = {
@@ -69,6 +75,21 @@ export function getPortalApiUrlForHostname(hostname: string): string | null {
 export function getPortalHvdConfig(serverUrl: string): HvdConfig | null {
   const portal = getPortalConfig(serverUrl);
   return portal?.hvd ?? null;
+}
+
+/** Lookup by SPARQL endpoint URL (used by sparql.ts to determine method) */
+export function getSparqlConfig(endpointUrl: string): SparqlConfig | null {
+  const cleanUrl = normalizeUrl(endpointUrl);
+  const portal = (portalsConfig.portals as PortalConfig[]).find(
+    (p) => p.sparql && normalizeUrl(p.sparql.endpoint_url) === cleanUrl
+  );
+  return portal?.sparql ?? null;
+}
+
+/** Lookup by CKAN server URL (used by status.ts to show SPARQL endpoint) */
+export function getPortalSparqlConfig(serverUrl: string): SparqlConfig | null {
+  const portal = getPortalConfig(serverUrl);
+  return portal?.sparql ?? null;
 }
 
 export function getPortalApiPath(serverUrl: string): string {

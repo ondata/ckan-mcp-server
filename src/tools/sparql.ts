@@ -5,6 +5,7 @@
 import { z } from "zod";
 import { ResponseFormatSchema, ResponseFormat, CHARACTER_LIMIT } from "../types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { getSparqlConfig } from "../utils/portal-config.js";
 
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 1000;
@@ -48,20 +49,45 @@ export async function querySparqlEndpoint(endpointUrl: string, query: string): P
     throw new Error("Only HTTPS endpoints are allowed");
   }
 
+  const sparqlConfig = getSparqlConfig(endpointUrl);
+  const method = sparqlConfig?.method ?? "POST";
+
+  const commonHeaders = {
+    "Accept": "application/sparql-results+json",
+    "User-Agent": "Mozilla/5.0 (compatible; CKAN-MCP-Server/1.0)"
+  };
+
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   let response: Response;
   try {
-    response = await fetch(endpointUrl, {
-      method: "POST",
-      signal: controller.signal,
-      headers: {
-        "Content-Type": "application/sparql-query",
-        "Accept": "application/sparql-results+json"
-      },
-      body: query
-    });
+    if (method === "GET") {
+      const getUrl = new URL(endpointUrl);
+      getUrl.searchParams.set("query", query);
+      response = await fetch(getUrl.toString(), {
+        method: "GET",
+        signal: controller.signal,
+        headers: commonHeaders
+      });
+    } else {
+      response = await fetch(endpointUrl, {
+        method: "POST",
+        signal: controller.signal,
+        headers: { ...commonHeaders, "Content-Type": "application/sparql-query" },
+        body: query
+      });
+      // Fallback to GET if POST is rejected
+      if (response.status === 403 || response.status === 405) {
+        const getUrl = new URL(endpointUrl);
+        getUrl.searchParams.set("query", query);
+        response = await fetch(getUrl.toString(), {
+          method: "GET",
+          signal: controller.signal,
+          headers: commonHeaders
+        });
+      }
+    }
   } finally {
     clearTimeout(timeoutId);
   }
