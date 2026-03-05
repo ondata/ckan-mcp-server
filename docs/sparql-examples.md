@@ -238,23 +238,45 @@ Conclusion:
 
 ### Case 2: DataService / API endpoints
 
-Dataset with DataService in SPARQL:
+There are 942 `dcat:DataService` instances in the LOD (verified 2026-03-05).
 
-- URI: `https://opendata.marche.camcom.it/data/dcat-opendata-catalog.rdf#Cancellazioni-Imprese-Italia`
+Example DataService URI (geodati.gov.it):
 
-CKAN dataset:
+- `https://geodati.gov.it/resource/dataService/c_b984:accesso_esterno:1-1`
 
-- Name: `cancellazioni-imprese-in-italia-per-territorio-settore-ateco-e-tempo-flussi-mensili`
+SPARQL query to explore DataService entries:
+
+```sparql
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX dct: <http://purl.org/dc/terms/>
+
+SELECT DISTINCT ?s ?title ?endpointURL
+WHERE {
+  ?s a dcat:DataService ;
+     dcat:endpointURL ?endpointURL .
+  OPTIONAL { ?s dct:title ?title . }
+  FILTER(?s != ?endpointURL)
+}
+LIMIT 10
+```
 
 Findings:
 
-- SPARQL exposes `dcat:DataService` with `endpointURL`.
-- CKAN contains the same endpoints inside `resources[*].access_services` (nested JSON string).
+- SPARQL exposes `dcat:DataService` with `endpointURL` as first-class entities, queryable directly.
+- CKAN stores the same data inside `resources[*].access_services` as a nested JSON string — not a
+  first-class field. To extract all DataService endpoints from CKAN you would need to:
+  1. iterate all datasets via `package_search`
+  2. call `package_show` for each one
+  3. parse the `access_services` string (JSON inside JSON) for each resource
+
+Note: the URI `https://opendata.marche.camcom.it/data/dcat-opendata-catalog.rdf#Cancellazioni-Imprese-Italia`
+previously documented here no longer exists in the LOD (verified 2026-03-05).
 
 Conclusion:
 
-- SPARQL makes DataService endpoints easier to query.
-- CKAN has the info but it is not first-class and is harder to extract.
+- SPARQL makes DataService endpoints trivially queryable in a single query.
+- Via CKAN the same information requires iterating thousands of datasets and parsing nested JSON.
+- This is one of the cases where the LOD adds real value over the CKAN API.
 
 ### Case 3: `issued` defaulted in RDF when missing in CKAN
 
