@@ -56,14 +56,23 @@ docker run -d \
 
 ## Configuring Claude Desktop with the Container
 
+Save ckan-mcp-bridge.js (config your local IP if necessary instead localhost in row 14)
+
 Once the container is running, add the following to `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "ckan": {
-      "url": "http://localhost:3000/mcp"
+      "command": "node",
+      "args": ["/usr/local/bin/ckan-mcp-bridge.js"],
+      "env": {
+        "MCP_URL": "http://localhost:3000/mcp"
+      }
     }
+  },
+  "preferences": {
+    "coworkWebSearchEnabled": true
   }
 }
 ```
