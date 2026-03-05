@@ -8,7 +8,7 @@ import { makeCkanRequest } from "../utils/http.js";
 import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter } from "../utils/formatting.js";
 import { getDatasetViewUrl } from "../utils/url-generator.js";
 import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from "../utils/search.js";
-import { getPortalHvdConfig } from "../utils/portal-config.js";
+import { getPortalHvdConfig, getPortalApiPath } from "../utils/portal-config.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type RelevanceWeights = {
@@ -185,7 +185,8 @@ export const enrichPackageShowResult = (result: CkanPackage): CkanPackage => ({
 export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string): string => {
   let markdown = `# Dataset: ${result.title || result.name}\n\n`;
   markdown += `**Server**: ${serverUrl}\n`;
-  markdown += `**Link**: ${getDatasetViewUrl(serverUrl, result)}\n\n`;
+  markdown += `**Link**: ${getDatasetViewUrl(serverUrl, result)}\n`;
+  markdown += `**Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/package_show?id=${result.id}\n\n`;
 
   markdown += `## Basic Information\n\n`;
   markdown += `- **ID**: \`${result.id}\`\n`;
@@ -265,6 +266,7 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
       } else {
         markdown += `- **DataStore**: ❓ Not reported by portal\n`;
       }
+      markdown += `- **Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/resource_show?id=${resource.id}\n`;
       markdown += '\n';
     }
   }
@@ -352,9 +354,13 @@ export function compactPackageShow(result: CkanPackage, serverUrl?: string): obj
       size: r.size || null,
       datastore_active: r.datastore_active ?? null,
       created: r.created || null,
-      last_modified: r.last_modified || null
+      last_modified: r.last_modified || null,
+      ...(serverUrl ? { api_json_url: `${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/resource_show?id=${r.id}` } : {})
     })),
-    ...(serverUrl ? { view_url: getDatasetViewUrl(serverUrl, result) } : {})
+    ...(serverUrl ? {
+      view_url: getDatasetViewUrl(serverUrl, result),
+      api_json_url: `${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/package_show?id=${result.id}`
+    } : {})
   };
 }
 
@@ -954,8 +960,8 @@ Returns (JSON format):
   author, maintainer,
   frequency, language, publisher_name, holder_name,
   hvd_category, applicable_legislation,
-  resources (id, name, format, url, size, datastore_active, created, last_modified),
-  view_url
+  resources (id, name, format, url, size, datastore_active, created, last_modified, api_json_url),
+  view_url, api_json_url
 
 Examples:
   - { server_url: "https://dati.gov.it/opendata", id: "dataset-name" }

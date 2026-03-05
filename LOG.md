@@ -1,5 +1,10 @@
 # LOG
 
+## 2026-03-05 (v0.4.73)
+
+- feat: `package_show` now includes `api_json_url` for dataset and each resource (direct CKAN API JSON link)
+- fix: `api_json_url` uses portal-specific API path via `getPortalApiPath` instead of hardcoded `/api/3/action`
+
 ## 2026-03-05 (v0.4.72)
 
 - fix: `package_show` JSON now includes `hvd_category`, `applicable_legislation`, `frequency`, `language`, `publisher_name`, `holder_name`
