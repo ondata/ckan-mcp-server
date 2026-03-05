@@ -450,10 +450,21 @@ q: "popolazione AND sicilia"
 q: "popolazione OR abitanti"
 q: "popolazione NOT censimento"
 
-# Filters (fq)
+# Filters (fq) — single value
 fq: "organization:comune-palermo"
 fq: "tags:sanità"
 fq: "res_format:CSV"
+
+# Filters (fq) — OR on same field: use field:(val1 OR val2)
+fq: "res_format:(CSV OR JSON)"
+fq: "organization:(comune-palermo OR comune-roma)"
+
+# ⚠️ Wrong OR syntax — silently ignored, returns entire catalog:
+# fq: "res_format:CSV OR res_format:JSON"   ← DO NOT USE
+
+# Filters on CKAN extras fields — use extras_ prefix
+fq: "extras_hvd_category:\"http://data.europa.eu/bna/c_ac64a52d\""
+fq: "extras_hvd_category:(\"http://data.europa.eu/bna/c_ac64a52d\" OR \"http://data.europa.eu/bna/c_dd313021\")"
 
 # Wildcard
 q: "popolaz*"
