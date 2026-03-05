@@ -1,48 +1,46 @@
 services:
+
+  # ── CKAN MCP Server (già esistente, incluso per riferimento) ──────────
   ckan-mcp-server:
     build:
-      context: .
+      context: ./ckan-mcp-server   # path alla repo che hai già
       dockerfile: Dockerfile
     image: ckan-mcp-server:latest
     container_name: ckan-mcp-server
     restart: unless-stopped
-
     ports:
       - "3000:3000"
-
     environment:
-      # Modalità di trasporto: "http" per server HTTP, "stdio" per pipe locale
       TRANSPORT: http
       PORT: 3000
-      NODE_ENV: production
 
-      # Opzionale: imposta un CKAN portal di default
-      # CKAN_DEFAULT_SERVER_URL: https://www.dati.gov.it/opendata
+  # ── Backend Node.js ───────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ckan-chat-backend
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      OLLAMA_URL: http://host.docker.internal:11434   # Ollama gira sul host
+      OLLAMA_MODEL: qwen2.5:7b
+      MCP_URL: http://ckan-mcp-server:3000/mcp        # comunica con il container MCP
+    depends_on:
+      - ckan-mcp-server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
-    # Limiti di risorse (opzionale, regola in base al tuo host)
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: "0.5"
-
-    # Log con rotazione automatica
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-    healthcheck:
-      test:
-        - CMD
-        - sh
-        - -c
-        - |
-          curl -sf -X POST http://localhost:$${PORT}/mcp \
-            -H 'Content-Type: application/json' \
-            -d '{"jsonrpc":"2.0","method":"tools/list","id":1}' > /dev/null
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 20s
+  # ── Frontend React (prod build servito da nginx) ──────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ckan-chat-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
