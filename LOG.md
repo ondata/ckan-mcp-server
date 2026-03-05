@@ -1,5 +1,10 @@
 # LOG
 
+## 2026-03-05 (v0.4.72)
+
+- fix: `package_show` JSON now includes `hvd_category`, `applicable_legislation`, `frequency`, `language`, `publisher_name`, `holder_name`
+- fix: `fq` parameter docs warn about correct Solr OR syntax and `extras_` prefix for CKAN extras fields
+
 ## 2026-03-04 (v0.4.71)
 
 - feat: new MCP prompt `ckan-search-hvd` — guided HVD search using `hvd.category_field` from `portals.json`; fallback to keyword search for unconfigured portals
