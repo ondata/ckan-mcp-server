@@ -10,7 +10,8 @@
 const http = require("http");
 const https = require("https");
 
-const MCP_URL = process.env.MCP_URL || "http://192.168.0.88:3000/mcp";
+#CHANGE LOCALHOST WITH IP
+const MCP_URL = process.env.MCP_URL || "http://localhost:3000/mcp";
 
 const url = new URL(MCP_URL);
 const transport = url.protocol === "https:" ? https : http;
