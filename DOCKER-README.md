@@ -18,7 +18,7 @@ ckan-mcp-server/
 
 ```bash
 # 1. Clone the repo (if you haven't already)
-git clone https://github.com/piersoft/ckan-mcp-server.git
+git clone https://github.com/ondata/ckan-mcp-server.git
 cd ckan-mcp-server
 
 # 2. Copy the Docker files into the repo root
@@ -26,11 +26,6 @@ cd ckan-mcp-server
 
 # 3. Build and start
 docker compose up --build -d
-
-# 4. Verify the server is running
-curl -s -X POST http://localhost:3000/mcp \
-  -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","method":"tools/list","id":1}' | jq .
 ```
 
 The MCP server will be available at `http://localhost:3000/mcp`.
@@ -61,14 +56,23 @@ docker run -d \
 
 ## Configuring Claude Desktop with the Container
 
+Save ckan-mcp-bridge.js (config your local IP if necessary instead localhost in row 14)
+
 Once the container is running, add the following to `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
     "ckan": {
-      "url": "http://localhost:3000/mcp"
+      "command": "node",
+      "args": ["/usr/local/bin/ckan-mcp-bridge.js"],
+      "env": {
+        "MCP_URL": "http://localhost:3000/mcp"
+      }
     }
+  },
+  "preferences": {
+    "coworkWebSearchEnabled": true
   }
 }
 ```
