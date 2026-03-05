@@ -8,7 +8,7 @@ import { makeCkanRequest } from "../utils/http.js";
 import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter } from "../utils/formatting.js";
 import { getDatasetViewUrl } from "../utils/url-generator.js";
 import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from "../utils/search.js";
-import { getPortalHvdConfig } from "../utils/portal-config.js";
+import { getPortalHvdConfig, getPortalApiPath } from "../utils/portal-config.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type RelevanceWeights = {
@@ -185,7 +185,8 @@ export const enrichPackageShowResult = (result: CkanPackage): CkanPackage => ({
 export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string): string => {
   let markdown = `# Dataset: ${result.title || result.name}\n\n`;
   markdown += `**Server**: ${serverUrl}\n`;
-  markdown += `**Link**: ${getDatasetViewUrl(serverUrl, result)}\n\n`;
+  markdown += `**Link**: ${getDatasetViewUrl(serverUrl, result)}\n`;
+  markdown += `**Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/package_show?id=${result.id}\n\n`;
 
   markdown += `## Basic Information\n\n`;
   markdown += `- **ID**: \`${result.id}\`\n`;
@@ -265,6 +266,7 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
       } else {
         markdown += `- **DataStore**: ❓ Not reported by portal\n`;
       }
+      markdown += `- **Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/resource_show?id=${resource.id}\n`;
       markdown += '\n';
     }
   }
@@ -296,7 +298,7 @@ export function resolvePageParams(
  * Compact JSON representation of package_search results.
  * Keeps only essential fields to reduce token usage (~80% reduction).
  */
-export function compactSearchResult(result: any): object {
+export function compactSearchResult(result: any, serverUrl?: string): object {
   return {
     count: result.count,
     results: (result.results || []).map((pkg: CkanPackage) => ({
@@ -307,7 +309,8 @@ export function compactSearchResult(result: any): object {
       organization: pkg.organization?.title || pkg.organization?.name || null,
       tags: (pkg.tags || []).map((t: CkanTag) => t.name),
       num_resources: pkg.num_resources ?? 0,
-      metadata_modified: pkg.metadata_modified
+      metadata_modified: pkg.metadata_modified,
+      ...(serverUrl ? { view_url: getDatasetViewUrl(serverUrl, pkg) } : {})
     })),
     ...(result.facets && Object.keys(result.facets).length > 0 ? { facets: result.facets } : {}),
     ...(result.search_facets && Object.keys(result.search_facets).length > 0 ? { search_facets: result.search_facets } : {})
@@ -318,7 +321,7 @@ export function compactSearchResult(result: any): object {
  * Compact JSON representation of package_show results.
  * Keeps metadata + slim resources, drops extras/relationships/tracking.
  */
-export function compactPackageShow(result: CkanPackage): object {
+export function compactPackageShow(result: CkanPackage, serverUrl?: string): object {
   return {
     id: result.id,
     name: result.name,
@@ -337,6 +340,12 @@ export function compactPackageShow(result: CkanPackage): object {
     modified: result.modified || null,
     author: result.author || null,
     maintainer: result.maintainer || null,
+    frequency: result.frequency || null,
+    language: result.language || null,
+    publisher_name: result.publisher_name || null,
+    holder_name: result.holder_name || null,
+    hvd_category: result.hvd_category || null,
+    applicable_legislation: result.applicable_legislation || null,
     resources: (result.resources || []).map((r: CkanResource) => ({
       id: r.id,
       name: r.name || null,
@@ -345,8 +354,13 @@ export function compactPackageShow(result: CkanPackage): object {
       size: r.size || null,
       datastore_active: r.datastore_active ?? null,
       created: r.created || null,
-      last_modified: r.last_modified || null
-    }))
+      last_modified: r.last_modified || null,
+      ...(serverUrl ? { api_json_url: `${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/resource_show?id=${r.id}` } : {})
+    })),
+    ...(serverUrl ? {
+      view_url: getDatasetViewUrl(serverUrl, result),
+      api_json_url: `${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/package_show?id=${result.id}`
+    } : {})
   };
 }
 
@@ -390,6 +404,12 @@ Args:
   - server_url (string): Base URL of CKAN server (e.g., "https://dati.gov.it/opendata")
   - q (string): Search query using Solr syntax (default: "*:*" for all)
   - fq (string): Filter query (e.g., "organization:comune-palermo")
+    IMPORTANT — Solr fq syntax rules:
+    1. OR inside a single field: use field:(val1 OR val2), NOT field:val1 OR field:val2.
+       Wrong: fq=type:"A" OR type:"B"  → silently ignored, returns entire catalog.
+       Right:  fq=type:("A" OR "B")
+    2. CKAN extras fields are indexed as extras_fieldname, not fieldname.
+       e.g. to filter on extra field "hvd_category" use fq=extras_hvd_category:"<value>"
   - rows (number): Number of results to return (default: 10, max: 1000)
   - start (number): Offset for pagination (default: 0)
   - page (number): Page number (1-based); alias for start. Overrides start if provided.
@@ -464,6 +484,8 @@ Examples:
   - Field exists: { q: "organization:* AND num_resources:[1 TO *]" }
   - Boosting: { q: "title:climate^2 OR notes:climate" }
   - Filter org: { fq: "organization:regione-siciliana" }
+  - Filter extras field (correct): { fq: "extras_hvd_category:\"http://data.europa.eu/bna/c_ac64a52d\"" }
+  - Filter extras OR (correct): { fq: "extras_hvd_category:(\"http://data.europa.eu/bna/c_ac64a52d\" OR \"http://data.europa.eu/bna/c_dd313021\")" }
   - Get facets: { facet_field: ["organization"], rows: 0 }
 
 Typical workflow: ckan_package_search → ckan_package_show (get full metadata + resource IDs) → ckan_datastore_search (query tabular data)`,
@@ -477,7 +499,7 @@ Typical workflow: ckan_package_search → ckan_package_show (get full metadata +
           .describe("Search query in Solr syntax"),
         fq: z.string()
           .optional()
-          .describe("Filter query in Solr syntax; applied after scoring, does not affect relevance (e.g., 'organization:comune-palermo', 'res_format:CSV')"),
+          .describe("Filter query in Solr syntax; applied after scoring, does not affect relevance. CKAN extras fields use prefix 'extras_' (e.g. extras_hvd_category). For OR on same field use field:(val1 OR val2), never field:val1 OR field:val2 (silently breaks). Examples: 'organization:comune-palermo', 'res_format:CSV', 'extras_hvd_category:(\"uri1\" OR \"uri2\")'."),
         rows: z.number()
           .int()
           .min(0)
@@ -602,7 +624,7 @@ Typical workflow: ckan_package_search → ckan_package_show (get full metadata +
         }
 
         if (params.response_format === ResponseFormat.JSON) {
-          const compact = compactSearchResult(result);
+          const compact = compactSearchResult(result, params.server_url);
           return {
             content: [{ type: "text", text: truncateJson(compact) }]
           };
@@ -932,8 +954,14 @@ Args:
   - include_tracking (boolean): Include view/download statistics (default: false)
   - response_format ('markdown' | 'json'): Output format
 
-Returns:
-  Complete dataset object with all metadata and resources
+Returns (JSON format):
+  id, name, title, notes, organization, tags, state, license_title,
+  metadata_created, metadata_modified, issued, modified,
+  author, maintainer,
+  frequency, language, publisher_name, holder_name,
+  hvd_category, applicable_legislation,
+  resources (id, name, format, url, size, datastore_active, created, last_modified, api_json_url),
+  view_url, api_json_url
 
 Examples:
   - { server_url: "https://dati.gov.it/opendata", id: "dataset-name" }
@@ -972,7 +1000,7 @@ Typical workflow: ckan_package_show → pick a resource with datastore_active=tr
         );
 
         if (params.response_format === ResponseFormat.JSON) {
-          const compact = compactPackageShow(enrichPackageShowResult(result));
+          const compact = compactPackageShow(enrichPackageShowResult(result), params.server_url);
           return {
             content: [{ type: "text", text: truncateJson(compact) }],
             structuredContent: compact

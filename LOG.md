@@ -1,5 +1,53 @@
 # LOG
 
+## 2026-03-05 (v0.4.73)
+
+- feat: `package_show` now includes `api_json_url` for dataset and each resource (direct CKAN API JSON link)
+- fix: `api_json_url` uses portal-specific API path via `getPortalApiPath` instead of hardcoded `/api/3/action`
+
+## 2026-03-05 (v0.4.72)
+
+- fix: `package_show` JSON now includes `hvd_category`, `applicable_legislation`, `frequency`, `language`, `publisher_name`, `holder_name`
+- fix: `fq` parameter docs warn about correct Solr OR syntax and `extras_` prefix for CKAN extras fields
+
+## 2026-03-04 (v0.4.71)
+
+- feat: new MCP prompt `ckan-search-hvd` — guided HVD search using `hvd.category_field` from `portals.json`; fallback to keyword search for unconfigured portals
+
+## 2026-03-04 (v0.4.70)
+
+- feat: `ckan_status_show` now shows HVD dataset count when portal has `hvd.category_field` configured in `portals.json`
+
+## 2026-03-04 (v0.4.69)
+
+- feat: `ckan_package_search` and `ckan_package_show` JSON output now include `view_url` field pointing to the dataset page on the source portal
+
+## 2026-03-04 (v0.4.68)
+
+- feat: SPARQL endpoint config in `portals.json` — `sparql.endpoint_url` + `sparql.method` per portal (Italy: `lod.dati.gov.it/sparql`, GET-only)
+- feat: `ckan_status_show` now shows SPARQL endpoint when configured for the portal
+- fix: `sparql_query` — GET fallback on 403/405 for endpoints that reject POST; User-Agent set to `Mozilla/5.0 (compatible; CKAN-MCP-Server/1.0)` (required by AWS WAF on lod.dati.gov.it)
+- refactor: `portal-config.ts` — added `SparqlConfig` type, `getSparqlConfig(endpointUrl)`, `getPortalSparqlConfig(serverUrl)`; tool count 18→19
+
+## 2026-03-04 (v0.4.67)
+
+- improve: `sparql_query` — validate SELECT-only, auto-inject LIMIT (default 25, max 1000), truncate output at CHARACTER_LIMIT; +11 tests (310 total)
+- remove: `europa_dataset_search` tool and related files (`src/tools/europa.ts`, `src/utils/europa-http.ts`, Europa types in `src/types.ts`, docs, tests); tool count 19→18
+
+## 2026-03-04 (v0.4.66)
+
+- feat: add `sparql_query` tool — execute SPARQL SELECT against any public HTTPS endpoint (e.g. data.europa.eu/sparql, DBpedia, Wikidata)
+- feat(europa): update `europa_dataset_search` description to suggest `sparql_query` for publisher aggregations and queries not exposed as facets
+- test: add 12 tests for `sparql_query` (querySparqlEndpoint, formatSparqlMarkdown, formatSparqlJson)
+
+## 2026-03-04 (v0.4.65)
+
+- feat(europa): add `publisher` to `ALLOWED_FACETS` in `europa_dataset_search` — now shows top publishers per query
+
+## 2026-03-04 (v0.4.64)
+
+- fix(europa): `q=*` now correctly returns all 1.7M+ datasets — Europa API ignores `q` when omitted; sending `q=*` was causing Elasticsearch to return only ~6k results; match-all queries (`*`, `*:*`) now omit the `q` parameter
+
 ## 2026-03-04
 
 - feat: expose Europa API facets in `europa_dataset_search` — country, format, categories, and 15 more facet types now rendered as tables (markdown) and compact objects (JSON, top 15 items per facet)

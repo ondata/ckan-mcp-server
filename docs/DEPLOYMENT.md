@@ -340,6 +340,12 @@ Cloudflare automatically:
 
 ## Troubleshooting
 
+### Error: `sparql_query` returns 403 on Workers
+
+Some SPARQL endpoints (e.g. `data.europa.eu/sparql`) block requests from Cloudflare's IP ranges.
+This is an endpoint-specific restriction, not a Workers limitation — `sparql_query` works on Workers with other endpoints (DBpedia, Wikidata, publications.europa.eu, etc.).
+For `data.europa.eu/sparql`, use the Node.js runtime instead.
+
 ### Error: "Not authenticated"
 
 ```bash
@@ -449,13 +455,16 @@ When releasing a new version with code changes, follow all these steps to ensure
 
 ### Step 1: Update Version
 
-Update the version in these files:
+Update the version in **all** of these files — missing any one causes version mismatch:
 
 - `package.json`
 - `package-lock.json`
 - `manifest.json` (DXT packaging)
-- `src/server.ts`
-- `src/worker.ts` (health endpoint)
+- `src/server.ts` (MCP server name/version)
+- `src/worker.ts` (health endpoint — `version` field + `tools` count)
+
+> **Warning**: `src/worker.ts` contains a hardcoded `tools` count in the `/health` response.
+> Update it whenever you add or remove tools, or the health endpoint will report the wrong count.
 
 Edit `package.json` and bump version:
 
@@ -605,7 +614,8 @@ Use this checklist to ensure nothing is missed:
 - [ ] Local testing complete: `npm run dev:worker`
 
 ### Version Update
-- [ ] Version bumped in `package.json` and `manifest.json`
+- [ ] Version bumped in `package.json`, `manifest.json`, `src/server.ts`, `src/worker.ts`
+- [ ] Tool count updated in `src/worker.ts` health endpoint (if tools added/removed)
 - [ ] `LOG.md` updated with changes
 - [ ] `CLAUDE.md` updated if architecture changed
 - [ ] `README.md` updated if features added — **all paths must be absolute GitHub URLs** (npm cannot resolve relative paths)

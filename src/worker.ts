@@ -190,7 +190,6 @@ export default {
       <li><code>ckan_tag_list</code> - List tags</li>
       <li><code>ckan_get_mqa_quality</code> - Get MQA quality metrics for dati.gov.it datasets</li>
       <li><code>ckan_get_mqa_quality_details</code> - Get detailed MQA quality reasons/flags</li>
-      <li><code>europa_dataset_search</code> - Search EU open data on data.europa.eu</li>
     </ul>
 
     <h2>📚 Resources</h2>
@@ -221,10 +220,10 @@ export default {
     if (request.method === 'GET' && url.pathname === '/health') {
       return new Response(JSON.stringify({
         status: 'ok',
-        version: '0.4.63',
-        tools: 18,
+        version: '0.4.73',
+        tools: 19,
         resources: 7,
-        prompts: 5,
+        prompts: 6,
         runtime: 'cloudflare-workers'
       }), {
         headers: {

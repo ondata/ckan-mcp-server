@@ -67,3 +67,7 @@ README.bak.md
 examples/langgraph/
 tasks/
 skills/
+
+# Python cache
+__pycache__/
+*.pyc
