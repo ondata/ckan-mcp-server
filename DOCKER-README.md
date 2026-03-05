@@ -1,47 +1,47 @@
 # ckan-mcp-server — Docker
 
-Questi file permettono di eseguire [ckan-mcp-server](https://github.com/piersoft/ckan-mcp-server) come immagine Docker.
+These files allow you to run [ckan-mcp-server](https://github.com/ondata/ckan-mcp-server) as a Docker image.
 
-## Struttura file
+## File Structure
 
-Copia questi tre file nella root della repo:
+Copy these three files into the root of the repo:
 
 ```
 ckan-mcp-server/
-├── Dockerfile          ← build multi-stage (builder + runtime)
-├── docker-compose.yml  ← orchestrazione con variabili e healthcheck
-├── .dockerignore       ← esclude node_modules, dist, docs, ecc.
-└── ... (resto della repo)
+├── Dockerfile          ← multi-stage build (builder + runtime)
+├── docker-compose.yml  ← orchestration with variables and healthcheck
+├── .dockerignore       ← excludes node_modules, dist, docs, etc.
+└── ... (rest of the repo)
 ```
 
-## Avvio rapido
+## Quick Start
 
 ```bash
-# 1. Clona la repo (se non l'hai già)
+# 1. Clone the repo (if you haven't already)
 git clone https://github.com/piersoft/ckan-mcp-server.git
 cd ckan-mcp-server
 
-# 2. Copia i file Docker nella root della repo
+# 2. Copy the Docker files into the repo root
 #    (Dockerfile, docker-compose.yml, .dockerignore)
 
-# 3. Build e avvio
+# 3. Build and start
 docker compose up --build -d
 
-# 4. Verifica che il server sia attivo
+# 4. Verify the server is running
 curl -s -X POST http://localhost:3000/mcp \
   -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","method":"tools/list","id":1}' | jq .
 ```
 
-Il server MCP sarà disponibile su `http://localhost:3000/mcp`.
+The MCP server will be available at `http://localhost:3000/mcp`.
 
-## Build manuale (senza Compose)
+## Manual Build (without Compose)
 
 ```bash
-# Build dell'immagine
+# Build the image
 docker build -t ckan-mcp-server:latest .
 
-# Avvio del container
+# Start the container
 docker run -d \
   --name ckan-mcp-server \
   -p 3000:3000 \
@@ -51,17 +51,17 @@ docker run -d \
   ckan-mcp-server:latest
 ```
 
-## Variabili d'ambiente
+## Environment Variables
 
-| Variabile | Default | Descrizione |
+| Variable | Default | Description |
 |---|---|---|
-| `TRANSPORT` | `http` | Modalità: `http` (server HTTP) o `stdio` (pipe locale) |
-| `PORT` | `3000` | Porta su cui ascolta il server |
-| `NODE_ENV` | `production` | Ambiente Node.js |
+| `TRANSPORT` | `http` | Mode: `http` (HTTP server) or `stdio` (local pipe) |
+| `PORT` | `3000` | Port the server listens on |
+| `NODE_ENV` | `production` | Node.js environment |
 
-## Configurare Claude Desktop con il container
+## Configuring Claude Desktop with the Container
 
-Una volta avviato il container, in `claude_desktop_config.json`:
+Once the container is running, add the following to `claude_desktop_config.json`:
 
 ```json
 {
@@ -73,18 +73,15 @@ Una volta avviato il container, in `claude_desktop_config.json`:
 }
 ```
 
-## Logs e monitoring
+## Logs and Monitoring
 
 ```bash
-# Segui i log in tempo reale
+# Follow logs in real time
 docker compose logs -f
-
-# Stato healthcheck
-docker inspect ckan-mcp-server | jq '.[0].State.Health'
 ```
 
-## Note tecniche
+## Technical Notes
 
-- **Build multi-stage**: lo stage `builder` compila il TypeScript, lo stage `runtime` include solo il JS compilato e le `node_modules` di produzione → immagine finale ~120–150 MB.
-- **Utente non-root**: il container gira come utente `node` (UID 1000) per sicurezza.
-- **Healthcheck**: verifica ogni 30s che il server risponda alle richieste MCP JSON-RPC.
+- **Multi-stage build**: the `builder` stage compiles TypeScript, the `runtime` stage includes only the compiled JS and production `node_modules` → final image ~120–150 MB.
+- **Non-root user**: the container runs as the `node` user (UID 1000) for security.
+- **Healthcheck**: verifies every 30s that the server responds to MCP JSON-RPC requests.
