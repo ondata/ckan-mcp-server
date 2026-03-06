@@ -1,0 +1,26 @@
+name: Update npm Downloads
+
+on:
+  schedule:
+    - cron: "0 4 * * *"   # 04:00 UTC daily
+  workflow_dispatch:       # manual trigger
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch npm downloads
+        run: bash scripts/npm_downloads.sh
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/npm_downloads.jsonl
+          git diff --cached --quiet || git commit -m "chore(data): update npm downloads $(date -u +%Y-%m-%d)"
+          git push
