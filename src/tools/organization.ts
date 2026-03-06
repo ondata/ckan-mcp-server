@@ -123,8 +123,8 @@ Typical workflow: ckan_organization_list → ckan_organization_show (inspect one
         server_url: z.string().url().describe("Base URL of the CKAN server (e.g., https://dati.gov.it/opendata)"),
         all_fields: z.boolean().optional().default(false).describe("Return full organization objects (true) or just name slugs (false)"),
         sort: z.string().optional().default("name asc").describe("Sort field and direction (e.g., 'name asc', 'package_count desc')"),
-        limit: z.number().int().min(0).optional().default(100).describe("Max organizations to return. Use 0 to get only the count via faceting"),
-        offset: z.number().int().min(0).optional().default(0).describe("Pagination offset"),
+        limit: z.coerce.number().int().min(0).optional().default(100).describe("Max organizations to return. Use 0 to get only the count via faceting"),
+        offset: z.coerce.number().int().min(0).optional().default(0).describe("Pagination offset"),
         response_format: ResponseFormatSchema
       }).strict(),
       annotations: {

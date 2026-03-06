@@ -500,14 +500,14 @@ Typical workflow: ckan_package_search → ckan_package_show (get full metadata +
         fq: z.string()
           .optional()
           .describe("Filter query in Solr syntax; applied after scoring, does not affect relevance. CKAN extras fields use prefix 'extras_' (e.g. extras_hvd_category). For OR on same field use field:(val1 OR val2), never field:val1 OR field:val2 (silently breaks). Examples: 'organization:comune-palermo', 'res_format:CSV', 'extras_hvd_category:(\"uri1\" OR \"uri2\")'."),
-        rows: z.number()
+        rows: z.coerce.number()
           .int()
           .min(0)
           .max(1000)
           .optional()
           .default(10)
           .describe("Number of results to return"),
-        start: z.number()
+        start: z.coerce.number()
           .int()
           .min(0)
           .optional()
@@ -519,18 +519,18 @@ Typical workflow: ckan_package_search → ckan_package_show (get full metadata +
         facet_field: z.array(z.string())
           .optional()
           .describe("Fields to facet on"),
-        facet_limit: z.number()
+        facet_limit: z.coerce.number()
           .int()
           .min(1)
           .optional()
           .default(50)
           .describe("Maximum facet values per field"),
-        page: z.number()
+        page: z.coerce.number()
           .int()
           .min(1)
           .optional()
           .describe("Page number (1-based); alias for start. Overrides start if provided."),
-        page_size: z.number()
+        page_size: z.coerce.number()
           .int()
           .min(1)
           .max(1000)
@@ -545,7 +545,7 @@ Typical workflow: ckan_package_search → ckan_package_show (get full metadata +
           .optional()
           .default(false)
           .describe("Use issued date with fallback to metadata_created for recent content"),
-        content_recent_days: z.number()
+        content_recent_days: z.coerce.number()
           .int()
           .min(1)
           .optional()
@@ -784,7 +784,7 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
         query: z.string()
           .min(2)
           .describe("Natural language or keyword query to match against dataset title, notes, tags, and organization"),
-        limit: z.number()
+        limit: z.coerce.number()
           .int()
           .min(1)
           .max(50)
@@ -792,10 +792,10 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
           .default(10)
           .describe("Number of datasets to return"),
         weights: z.object({
-          title: z.number().min(0).optional().describe("Weight for title match (default 4)"),
-          notes: z.number().min(0).optional().describe("Weight for description match (default 2)"),
-          tags: z.number().min(0).optional().describe("Weight for tag match (default 3)"),
-          organization: z.number().min(0).optional().describe("Weight for organization match (default 1)")
+          title: z.coerce.number().min(0).optional().describe("Weight for title match (default 4)"),
+          notes: z.coerce.number().min(0).optional().describe("Weight for description match (default 2)"),
+          tags: z.coerce.number().min(0).optional().describe("Weight for tag match (default 3)"),
+          organization: z.coerce.number().min(0).optional().describe("Weight for organization match (default 1)")
         }).optional().describe("Per-field scoring weights; unspecified fields use defaults"),
         query_parser: z.enum(["default", "text"])
           .optional()
