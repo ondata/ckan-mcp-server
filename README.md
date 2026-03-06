@@ -444,7 +444,7 @@ Some examples of supported portals:
 
 ### Discover CKAN portals worldwide
 
-[**Datashades.info/portals**](https://datashades.info/portals) maintains a live registry of ~950 CKAN portals from around the world, with metadata on version, plugins, dataset counts, and geographic coordinates.
+[**Datashades.info/portals**](https://datashades.info/portals) maintains a live registry of ~950 CKAN portals from around the world, with metadata on version, plugins, dataset counts, and geographic coordinates. Thanks to [Sara Petti](https://www.linkedin.com/in/sara-petti-2795b5a0/) for bringing it to our attention.
 
 The **`ckan_find_portals`** tool queries this registry directly. You can filter by country, language, minimum dataset count, or DataStore availability:
 
