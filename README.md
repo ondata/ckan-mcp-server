@@ -271,6 +271,19 @@ The MCP server will be available at `http://localhost:3000/mcp`. See [`docker/RE
 - **ckan_get_mqa_quality**: Get MQA quality score and metrics for dati.gov.it datasets (accessibility, reusability, interoperability, findability)
 - **ckan_get_mqa_quality_details**: Get detailed MQA quality reasons and failing flags for dati.gov.it datasets
 
+### Portal Discovery
+
+- **ckan_find_portals**: Discover CKAN portals worldwide by country, language, or topic (uses datashades.info live registry of ~950 portals)
+
+### Catalog Analysis
+
+- **ckan_analyze_datasets**: Search datasets and inspect DataStore schemas of queryable resources
+- **ckan_catalog_stats**: Statistical overview of a portal (totals, breakdown by category, format, organization)
+
+### SPARQL
+
+- **sparql_query**: Execute SPARQL SELECT queries against any public SPARQL endpoint
+
 ### Utilities
 
 - **ckan_status_show**: Verify server status
@@ -433,7 +446,15 @@ Some examples of supported portals:
 
 [**Datashades.info/portals**](https://datashades.info/portals) maintains a live registry of ~950 CKAN portals from around the world, with metadata on version, plugins, dataset counts, and geographic coordinates.
 
-The portal data is available as a public JSON API — no authentication required:
+The **`ckan_find_portals`** tool queries this registry directly. You can filter by country, language, minimum dataset count, or DataStore availability:
+
+```
+ckan_find_portals({ country: "Italy", has_datastore: true, limit: 5 })
+ckan_find_portals({ language: "fr", min_datasets: 500 })
+ckan_find_portals({ query: "transport" })
+```
+
+The portal data is also available as a public JSON API — no authentication required:
 
 | Endpoint | Description |
 |----------|-------------|
