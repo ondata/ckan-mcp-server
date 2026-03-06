@@ -11,8 +11,7 @@ ckan-mcp-server/
 ├── Dockerfile               ← multi-stage build (builder + runtime)
 ├── docker-compose.yml       ← orchestration with variables and healthcheck
 ├── docker/
-│   ├── README.md            ← this file
-│   └── ckan-mcp-bridge.js   ← stdio bridge for Claude Desktop
+│   └── README.md            ← this file
 └── ... (rest of the repo)
 ```
 
@@ -55,25 +54,7 @@ docker run -d \
 
 ## Configuring Claude Desktop with the Container
 
-Once the container is running, add the following to `claude_desktop_config.json`.
-Set `MCP_URL` to point to your Docker host if running on a remote machine.
-
-```json
-{
-  "mcpServers": {
-    "ckan": {
-      "command": "node",
-      "args": ["/path/to/ckan-mcp-server/docker/ckan-mcp-bridge.js"],
-      "env": {
-        "MCP_URL": "http://localhost:3000/mcp"
-      }
-    }
-  },
-  "preferences": {
-    "coworkWebSearchEnabled": true
-  }
-}
-```
+Use the stdio bridge from [`examples/ollama-chat/`](../examples/ollama-chat/README.md) to connect Claude Desktop to the running container.
 
 ## Logs and Monitoring
 

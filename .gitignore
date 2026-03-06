@@ -64,6 +64,8 @@ gha-creds-*.json
 docs/video/
 nanobanana-output/
 README.bak.md
+# examples/ contains tracked community integrations.
+# Add specific entries here only for local-only experiments that should not be committed.
 examples/langgraph/
 tasks/
 skills/
