@@ -1,0 +1,48 @@
+services:
+  ckan-mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ckan-mcp-server:latest
+    container_name: ckan-mcp-server
+    restart: unless-stopped
+
+    ports:
+      - "3000:3000"
+
+    environment:
+      # Modalità di trasporto: "http" per server HTTP, "stdio" per pipe locale
+      TRANSPORT: http
+      PORT: 3000
+      NODE_ENV: production
+
+      # Opzionale: imposta un CKAN portal di default
+      # CKAN_DEFAULT_SERVER_URL: https://www.dati.gov.it/opendata
+
+    # Limiti di risorse (opzionale, regola in base al tuo host)
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+
+    # Log con rotazione automatica
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    healthcheck:
+      test:
+        - CMD
+        - sh
+        - -c
+        - |
+          curl -sf -X POST http://localhost:$${PORT}/mcp \
+            -H 'Content-Type: application/json' \
+            -d '{"jsonrpc":"2.0","method":"tools/list","id":1}' > /dev/null
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
