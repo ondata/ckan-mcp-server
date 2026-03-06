@@ -227,6 +227,18 @@ npm run build
 node dist/index.js
 ```
 
+### Option 3 — Docker
+
+Thanks to [@piersoft](https://github.com/piersoft), you can also run the server via Docker:
+
+```bash
+git clone https://github.com/ondata/ckan-mcp-server.git
+cd ckan-mcp-server
+docker compose up --build -d
+```
+
+The MCP server will be available at `http://localhost:3000/mcp`. See [`docker/README.md`](https://github.com/ondata/ckan-mcp-server/blob/main/docker/README.md) for full details, including how to connect Claude Desktop to the container.
+
 ---
 ## 🛠️ Available Tools
 
