@@ -30,6 +30,12 @@ jobs:
       - name: Generate flat JSONL
         run: python scripts/worker_telemetry_flatten.py
 
+      - name: Install DuckDB
+        run: |
+          curl -fsSL https://github.com/duckdb/duckdb/releases/latest/download/duckdb_cli-linux-amd64.zip -o duckdb.zip
+          unzip duckdb.zip -d /usr/local/bin
+          chmod +x /usr/local/bin/duckdb
+
       - name: Aggregate daily stats
         run: bash scripts/worker_daily_stats.sh
 
