@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-03-06 (v0.4.75)
+
+- feat: new tool `ckan_find_portals` — discovers CKAN portals from datashades.info registry (~950 portals); filters by country, keyword, min_datasets, language, has_datastore; LLM translates country to English
+
 ## 2026-03-06 (v0.4.74)
 
 - fix: use `z.coerce.number()` for all numeric tool parameters — fixes validation errors when MCP clients pass numbers as strings (closes #16)
