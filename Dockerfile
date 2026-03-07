@@ -25,18 +25,7 @@ COPY --from=builder /app/dist ./dist
 
 # Default environment variables
 ENV NODE_ENV=production
-ENV TRANSPORT=http
-ENV PORT=3000
-
-# Expose MCP HTTP server port
-EXPOSE 3000
-
-# Healthcheck: verify the server responds
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-  CMD wget -qO- http://localhost:${PORT}/health 2>/dev/null || \
-      curl -sf -X POST http://localhost:${PORT}/mcp \
-        -H 'Content-Type: application/json' \
-        -d '{"jsonrpc":"2.0","method":"ping","id":1}' || exit 1
+ENV TRANSPORT=stdio
 
 # Run as non-root user for security
 USER node
