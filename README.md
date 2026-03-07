@@ -469,10 +469,10 @@ The skill folder lives at [`skills/ckan-mcp/`](https://github.com/ondata/ckan-mc
 
 ```bash
 # Install globally (available in all your projects)
-npx skills add -g ondata/ckan-mcp-server
+npx skills add -g ondata/ckan-mcp-server --skill ckan-mcp
 
 # Or for a single project (run from your project folder)
-npx skills add ondata/ckan-mcp-server
+npx skills add ondata/ckan-mcp-server --skill ckan-mcp
 ```
 
 ### Claude Desktop — `.skill` file
