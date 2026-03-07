@@ -78,22 +78,34 @@ Example: "Cerca dati sui trasporti su data.gov.uk"
 Use when: user mentions EU-wide data, multi-country comparison, OR France
 (data.gouv.fr is NOT CKAN — always redirect to data.europa.eu).
 
-Default path: `data.europa.eu` REST API (multi-country, fast).
-Structured/linked data: SPARQL endpoint.
+**IMPORTANT — tool choice**:
+- `ckan_package_search` does **NOT** work on data.europa.eu (returns 404) — never use it here
+- For text search: use `Bash` with the REST API `https://data.europa.eu/api/hub/search/search`
+- For precise/structured queries: use `sparql_query(endpoint="https://data.europa.eu/sparql")`
 
 See [references/europa-api.md](references/europa-api.md) for full API patterns.
 
+**REST API known limitations**:
+- `country=XX` filter is not strict — results may include nearby countries (e.g. BE, CH when filtering FR)
+- Many datasets lack English titles → use `lang=XX` matching the target country
+- Filter results post-fetch by `country.id` to remove off-target countries
+- Prefer `sparql_query` when exact country filtering is required
+
+**When to use REST vs SPARQL**:
+- REST (`Bash` + curl): fast broad discovery, when approximate results are acceptable
+- SPARQL (`sparql_query`): exact country filter, date ranges, thematic filtering
+
 ```
 Example: "Trova dati ambientali per Italia e Spagna"
--> REST /search?q=ambiente+environment&country=IT,ES  (see europa-api.md)
+-> Bash: curl "https://data.europa.eu/api/hub/search/search?q=ambiente+environment&country=IT,ES&limit=10"
 
 Example: "Dati aperti francesi sull'energia"
 -> NOTE: data.gouv.fr is NOT CKAN
--> data.europa.eu REST /search?q=energie+energy&country=FR
+-> Bash: curl "https://data.europa.eu/api/hub/search/search?q=energie+energy&country=FR&lang=fr&limit=10"
+-> Filter post-fetch: keep only items where country.id == "fr"
 
-Example: "Dataset recenti sull'ambiente dal portale europeo"
+Example: "Dataset recenti sull'ambiente dal portale europeo" (precise)
 -> sparql_query(query="...", endpoint="https://data.europa.eu/sparql")
-   or ckan_package_search(server_url="https://data.europa.eu", ...)
 ```
 
 ### Flow D — Dataset Detail + DataStore
