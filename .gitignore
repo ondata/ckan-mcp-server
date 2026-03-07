@@ -68,7 +68,6 @@ README.bak.md
 # Add specific entries here only for local-only experiments that should not be committed.
 examples/langgraph/
 tasks/
-skills/
 
 # Python cache
 __pycache__/
