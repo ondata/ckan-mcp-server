@@ -1,3 +1,27 @@
+{"id": "01KK2PP79GFSXFAY9Z1ANYNPB4", "timestamp": "2026-03-06T23:10:57Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.arpae.it/", "query": "subsidenza costa erosione", "error": null}
+{"id": "01KK2PP1RKQ11FDQH8TP2RHJ58", "timestamp": "2026-03-06T23:10:51Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "cartografia topografia territorio", "error": null}
+{"id": "01KK2PNXGWKADXVPNW8ECDZ3Z9", "timestamp": "2026-03-06T23:10:47Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.arpae.it/", "query": "idrografia reticolo fiumi", "error": null}
+{"id": "01KK2PH38BBP2148E68FY37CB7", "timestamp": "2026-03-06T23:08:09Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.arpae.it/", "query": "suolo", "error": null}
+{"id": "01KK2PGZCM4XNS0PC9ANX5PARH", "timestamp": "2026-03-06T23:08:05Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.arpae.it/", "query": "suolo clima ambiente dati geospaziali cartografia", "error": null}
+{"id": "01KK2PGV7Z1BT5ZWT4X9BSKJPW", "timestamp": "2026-03-06T23:08:01Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.arpae.it/", "query": "alluvione frane dissesto rischio idrogeologico", "error": null}
+{"id": "01KK2PGQKZSYAEV46EVAYCKGH8", "timestamp": "2026-03-06T23:07:57Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://dati.arpae.it/", "query": null, "error": null}
+{"id": "01KK2PGGPPH6MEJR9VEV0DJBKM", "timestamp": "2026-03-06T23:07:49Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "uso suolo geospaziale shapefile", "error": null}
+{"id": "01KK2PG9BZG0KZ7B1W4XKQ3FH2", "timestamp": "2026-03-06T23:07:42Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "incendi boschivi", "error": null}
+{"id": "01KK2PG4BWZRR1NT39KXKWVCWW", "timestamp": "2026-03-06T23:07:37Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.toscana.it/", "query": "confini comunali limiti amministrativi regioni province comuni", "error": null}
+{"id": "01KK2PFR0VAYMN32RPYHQW74QG", "timestamp": "2026-03-06T23:07:25Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.arpae.it/", "query": "alluvione", "error": null}
+{"id": "01KK2PFKK7G6W597HBBVZQEFY5", "timestamp": "2026-03-06T23:07:20Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.trentino.it/", "query": "confini comunali limiti amministrativi shapefile", "error": null}
+{"id": "01KK2PFEAVKZSQA5CEVQ2M1G51", "timestamp": "2026-03-06T23:07:15Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.toscana.it/", "query": "alluvione dissesto idrogeologico Emilia-Romagna", "error": null}
+{"id": "01KK2PF9DW0GABF378VEJG7GA6", "timestamp": "2026-03-06T23:07:04Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": null, "error": null}
+{"id": "01KK2M8PD1RV6AGYH13VPF6GC9", "timestamp": "2026-03-06T22:28:32Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": null, "error": null}
+{"id": "01KK2M6YTFRR8ZE6GZTCEWQ78C", "timestamp": "2026-03-06T22:27:39Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://dati.gov.it/opendata", "query": "report-qualita-aria-2005", "error": null}
+{"id": "01KK2M6YPHNWPP7KXJM5EAS1HF", "timestamp": "2026-03-06T22:27:39Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://dati.gov.it/opendata", "query": "rilevazione-qualita-aria-2025", "error": null}
+{"id": "01KK2M6YPG35MP1JH0QAS29EWW", "timestamp": "2026-03-06T22:27:39Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://dati.gov.it/opendata", "query": "report-qualita-aria-2024", "error": null}
+{"id": "01KK2M6YPFN8S56FC5MZ8ZBSS4", "timestamp": "2026-03-06T22:27:39Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://dati.gov.it/opendata", "query": "rilevazione-qualita-aria-2026", "error": null}
+{"id": "01KK2M6JDJV6V60CTN8JDGQ6XV", "timestamp": "2026-03-06T22:27:27Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "qualit\u00e0 aria Milano", "error": null}
+{"id": "01KK2EFC0PP4EYQFPA345K3R81", "timestamp": "2026-03-06T20:47:24Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": null, "error": null}
+{"id": "01KK2B2W8SHXR08P9SD2XX0M7B", "timestamp": "2026-03-06T19:48:07Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": null, "error": null}
+{"id": "01KK2AQS0BB8H8M075R87JT526", "timestamp": "2026-03-06T19:42:02Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": null, "error": null}
+{"id": "01KK2AQ4Z2N71XJWV9W6E9HQZN", "timestamp": "2026-03-06T19:41:44Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "open data Italy", "error": null}
 {"id": "01KK28JTRCMWB1C7Z9GR8695T2", "timestamp": "2026-03-06T19:04:26Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.gov.gr/en", "query": null, "error": null}
 {"id": "01KK28JMNVZKKDYSMMQM00H8KC", "timestamp": "2026-03-06T19:04:19Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.gov.gr", "query": null, "error": null}
 {"id": "01KK27MSW2KYVZWBZZ4SP25E7Y", "timestamp": "2026-03-06T18:48:02Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://repository.data.gov.gr", "query": null, "error": null}
