@@ -89,11 +89,15 @@ See [references/europa-api.md](references/europa-api.md) for full API patterns.
 - `country=XX` filter is not strict — results may include nearby countries (e.g. BE, CH when filtering FR)
 - Many datasets lack English titles → use `lang=XX` matching the target country
 - Filter results post-fetch by `country.id` to remove off-target countries
-- Prefer `sparql_query` when exact country filtering is required
 
-**When to use REST vs SPARQL**:
-- REST (`Bash` + curl): fast broad discovery, when approximate results are acceptable
-- SPARQL (`sparql_query`): exact country filter, date ranges, thematic filtering
+**SPARQL limitations on data.europa.eu**:
+- The endpoint is reachable and returns results for generic queries
+- Country filtering via `dct:spatial` + `skos:exactMatch` does **NOT** work — spatial values are blank nodes, not URIs
+- Do not use `sparql_query` for country-filtered searches on this portal
+- `sparql_query` is only useful for schema exploration or generic graph queries
+
+**Default tool: always REST API via Bash**:
+- REST is the only reliable method for country-filtered searches on data.europa.eu
 
 ```
 Example: "Trova dati ambientali per Italia e Spagna"
@@ -103,9 +107,6 @@ Example: "Dati aperti francesi sull'energia"
 -> NOTE: data.gouv.fr is NOT CKAN
 -> Bash: curl "https://data.europa.eu/api/hub/search/search?q=energie+energy&country=FR&lang=fr&limit=10"
 -> Filter post-fetch: keep only items where country.id == "fr"
-
-Example: "Dataset recenti sull'ambiente dal portale europeo" (precise)
--> sparql_query(query="...", endpoint="https://data.europa.eu/sparql")
 ```
 
 ### Flow D — Dataset Detail + DataStore
