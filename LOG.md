@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-03-08
+
+- fix(`package.ts`): auto-convert `NOW` date math to ISO dates for `issued` and `modified` fields in `q` and `fq` — these are CKAN extra fields not native Solr fields, so `NOW` syntax returned 0 results on all portals tested (dati.gov.it, catalog.data.gov); ISO dates work universally
+- fix(`package.ts`): fix `content_recent` clause to use ISO date for `issued` field (same root cause)
+- docs(`tools.md`): clarify date math limitation — `NOW` only works on `metadata_modified`/`metadata_created`; `issued`/`modified` require explicit ISO dates (now auto-converted by server)
+
 ## 2026-03-07 (v0.4.77)
 
 - fix(`http.ts`): remove `Referer`, `Sec-Fetch-*`, `Upgrade-Insecure-Requests` from axios headers — these triggered WAF block on BA Data (data.buenosaires.gob.ar) and other portals with strict WAF rules; dati.gov.it unaffected

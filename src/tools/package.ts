@@ -295,6 +295,58 @@ export function resolvePageParams(
 }
 
 /**
+ * Resolve a single Solr NOW expression to an ISO 8601 datetime string.
+ * Handles: NOW, NOW±Nunit, NOW/DAY, NOW/MONTH.
+ * Used to convert date math for CKAN extra fields (issued, modified) that
+ * are not native Solr fields and do not support NOW syntax.
+ */
+function resolveNowExpr(nowExpr: string): string {
+  const upper = nowExpr.toUpperCase();
+  const now = new Date();
+  if (upper === 'NOW') return now.toISOString();
+  const floorMatch = upper.match(/^NOW\/(DAY|MONTH)$/);
+  if (floorMatch) {
+    if (floorMatch[1] === 'DAY') now.setUTCHours(0, 0, 0, 0);
+    else { now.setUTCDate(1); now.setUTCHours(0, 0, 0, 0); }
+    return now.toISOString();
+  }
+  const arithMatch = upper.match(/^NOW([+-])(\d+)(YEARS?|MONTHS?|DAYS?|HOURS?|MINUTES?|SECONDS?)$/);
+  if (arithMatch) {
+    const sign = arithMatch[1] === '+' ? 1 : -1;
+    const n = parseInt(arithMatch[2]);
+    const unit = arithMatch[3].replace(/S$/, '');
+    switch (unit) {
+      case 'YEAR':   now.setUTCFullYear(now.getUTCFullYear() + sign * n); break;
+      case 'MONTH':  now.setUTCMonth(now.getUTCMonth() + sign * n); break;
+      case 'DAY':    now.setUTCDate(now.getUTCDate() + sign * n); break;
+      case 'HOUR':   now.setUTCHours(now.getUTCHours() + sign * n); break;
+      case 'MINUTE': now.setUTCMinutes(now.getUTCMinutes() + sign * n); break;
+      case 'SECOND': now.setUTCSeconds(now.getUTCSeconds() + sign * n); break;
+    }
+    return now.toISOString();
+  }
+  return nowExpr;
+}
+
+/**
+ * Convert NOW date math to ISO dates for CKAN extra fields (issued, modified).
+ * These fields are not native Solr date fields and do not support NOW syntax.
+ * Leaves metadata_modified and metadata_created untouched (they are native Solr fields).
+ */
+function convertNowForExtraFields(str: string): string {
+  return str.replace(
+    /\b(issued|modified):\[([^\]]*)\]/gi,
+    (_match, field, range) => {
+      const converted = range.replace(
+        /\bNOW(?:[+-]\d+(?:YEARS?|MONTHS?|DAYS?|HOURS?|MINUTES?|SECONDS?)|\/(?:DAY|MONTH))?\b/gi,
+        (now: string) => resolveNowExpr(now)
+      );
+      return `${field}:[${converted}]`;
+    }
+  );
+}
+
+/**
  * Normalize a package from portals with non-standard field structure (e.g. data.europa.eu).
  * Falls back to translation fields when title/name are null, and handles organization.title
  * as a multilingual object.
@@ -598,7 +650,11 @@ Typical workflow: ckan_package_search → ckan_package_show (get full metadata +
 
         if (params.content_recent) {
           const days = params.content_recent_days ?? 30;
-          const recentClause = `(issued:[NOW-${days}DAYS TO NOW]) OR (-issued:* AND metadata_created:[NOW-${days}DAYS TO NOW])`;
+          const daysAgo = new Date();
+          daysAgo.setUTCDate(daysAgo.getUTCDate() - days);
+          const daysAgoIso = daysAgo.toISOString();
+          const nowIso = new Date().toISOString();
+          const recentClause = `(issued:[${daysAgoIso} TO ${nowIso}]) OR (-issued:* AND metadata_created:[NOW-${days}DAYS TO NOW])`;
           query = userQuery && userQuery !== "*:*" ? `(${userQuery}) AND (${recentClause})` : recentClause;
           if (!effectiveSort) effectiveSort = "issued desc, metadata_created desc";
         }
@@ -612,13 +668,13 @@ Typical workflow: ckan_package_search → ckan_package_show (get full metadata +
         const { effectiveRows, effectiveStart } = resolvePageParams(params.page, params.page_size, params.start, params.rows);
 
         const apiParams: Record<string, any> = {
-          q: effectiveQuery,
+          q: convertNowForExtraFields(effectiveQuery),
           rows: effectiveRows,
           start: effectiveStart,
           include_private: params.include_drafts
         };
 
-        if (params.fq) apiParams.fq = params.fq;
+        if (params.fq) apiParams.fq = convertNowForExtraFields(params.fq);
         if (effectiveSort) apiParams.sort = effectiveSort;
         if (params.facet_field && params.facet_field.length > 0) {
           apiParams['facet.field'] = JSON.stringify(params.facet_field);

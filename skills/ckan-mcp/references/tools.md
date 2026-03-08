@@ -491,7 +491,8 @@ duckdb -jsonlines -c "SELECT column_name, COUNT(*) FROM '$URL' GROUP BY column_n
 | `"phrase"~N` | `title:"climate change"~5` | Proximity |
 | `[a TO b]` | `num_resources:[5 TO 10]` | Inclusive range |
 | `{a TO b}` | `num_resources:{0 TO 100}` | Exclusive range |
-| `[NOW-1YEAR TO *]` | `metadata_modified:[NOW-1YEAR TO *]` | Date math |
+| `[NOW-1YEAR TO *]` | `metadata_modified:[NOW-1YEAR TO *]` | Date math (native Solr fields only: `metadata_modified`, `metadata_created`) |
+| `[ISO TO *]` | `issued:[2025-01-01T00:00:00Z TO *]` | Date range for extra fields (`issued`, `modified`) — use explicit ISO dates, NOW not supported |
 | `field:*` | `organization:*` | Field exists |
 | `-field:*` | `-organization:*` | Field missing |
 | `field:value^N` | `title:climate^2` | Boost |
