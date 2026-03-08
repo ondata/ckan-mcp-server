@@ -26,12 +26,18 @@ GET https://data.europa.eu/api/hub/search/search?q=QUERY&...
 | `q` | Full-text query | `q=pollution` |
 | `filter` | Document type filter | `filter=dataset` |
 | `facets` | JSON object for filtering by facets (see below) | `facets={"country":["pt"]}` |
-| `facetOperator` | How facets within a group combine (`AND`/`OR`) | `facetOperator=AND` |
-| `facetGroupOperator` | How facet groups combine (`AND`/`OR`) | `facetGroupOperator=AND` |
+| `facetOperator` | How **values within the same facet** combine (`AND`/`OR`, default `OR`) | Use `OR` for multi-country/multi-catalog; `AND` always returns 0 with multiple values |
+| `facetGroupOperator` | How **different facet groups** combine (`AND`/`OR`, default `AND`) | `AND` = intersection across facet types (e.g. country AND catalog); `OR` = union |
 | `lang` | Language preference | `lang=it` |
 | `page` | Page number (0-based) | `page=0` |
 | `limit` | Results per page (max 1000) | `limit=10` |
 | `sort` | Sort order | `sort=relevance+desc` or `sort=issued+desc` |
+
+**facetOperator / facetGroupOperator rules (verified)**:
+- `facetOperator=AND` with multiple values in the same facet **always returns 0** — never use with multi-country or multi-catalog
+- `facetOperator=OR` (or omitted) for multiple values within one facet: returns union ✅
+- `facetGroupOperator=AND` (default) when combining different facets (e.g. country + catalog): returns intersection ✅
+- Single value in a facet: `facetOperator` has no effect — safe to omit
 
 ### Country Filtering — Two-Step Recommended Approach
 
@@ -41,7 +47,7 @@ For reliable country-filtered searches, use a two-step approach:
 
 ```bash
 # Find all catalogues for Denmark
-curl "https://data.europa.eu/api/hub/search/search?q=&filter=catalogue&facetOperator=AND&facetGroupOperator=AND&facets=%7B%22superCatalog%22%3A%5B%5D%2C%22country%22%3A%5B%22dk%22%5D%7D&limit=20"
+curl "https://data.europa.eu/api/hub/search/search?q=&filter=catalogue&facets=%7B%22superCatalog%22%3A%5B%5D%2C%22country%22%3A%5B%22dk%22%5D%7D&limit=20"
 ```
 
 Response includes `id` (catalog ID), `title`, `count` (number of datasets), `country`.
@@ -51,10 +57,10 @@ Discovered by intercepting UI network calls — not officially documented.
 
 ```bash
 # Search datasets in Danish catalog "datavejviser"
-curl "https://data.europa.eu/api/hub/search/search?q=QUERY&filter=dataset&facetOperator=AND&facetGroupOperator=AND&facets=%7B%22superCatalog%22%3A%5B%5D%2C%22catalog%22%3A%5B%22datavejviser%22%5D%7D&limit=10"
+curl "https://data.europa.eu/api/hub/search/search?q=QUERY&filter=dataset&facets=%7B%22catalog%22%3A%5B%22datavejviser%22%5D%7D&limit=10"
 
-# Multiple catalogs from same country
-curl "https://data.europa.eu/api/hub/search/search?q=QUERY&filter=dataset&facetOperator=AND&facetGroupOperator=AND&facets=%7B%22superCatalog%22%3A%5B%5D%2C%22catalog%22%3A%5B%22datavejviser%22%2C%22open-data-dk%22%5D%7D&limit=10"
+# Multiple catalogs from same country (facetOperator=OR to union them)
+curl "https://data.europa.eu/api/hub/search/search?q=QUERY&filter=dataset&facetOperator=OR&facets=%7B%22catalog%22%3A%5B%22datavejviser%22%2C%22open-data-dk%22%5D%7D&limit=10"
 ```
 
 **Multi-country searches — run one query per country**:
@@ -75,14 +81,14 @@ For countries well-represented on the portal (IT, FR, ES, DE, etc.) the single-s
 `country` facet on datasets works:
 
 ```bash
-# Strict filter for Portugal
-curl "https://data.europa.eu/api/hub/search/search?q=acidentes+rodoviarios&filter=dataset&facetOperator=AND&facetGroupOperator=AND&facets=%7B%22country%22%3A%5B%22pt%22%5D%7D&limit=10"
+# Single country (no facetOperator needed — single value)
+curl "https://data.europa.eu/api/hub/search/search?q=acidentes+rodoviarios&filter=dataset&facets=%7B%22country%22%3A%5B%22pt%22%5D%7D&limit=10"
 
-# France water quality
-curl "https://data.europa.eu/api/hub/search/search?q=qualite+eau&filter=dataset&facetOperator=AND&facetGroupOperator=AND&facets=%7B%22country%22%3A%5B%22fr%22%5D%7D&limit=10"
+# Single country
+curl "https://data.europa.eu/api/hub/search/search?q=qualite+eau&filter=dataset&facets=%7B%22country%22%3A%5B%22fr%22%5D%7D&limit=10"
 
-# Italy + Spain
-curl "https://data.europa.eu/api/hub/search/search?q=environment&filter=dataset&facetOperator=AND&facetGroupOperator=AND&facets=%7B%22country%22%3A%5B%22it%22%2C%22es%22%5D%7D&limit=10"
+# Multiple countries (facetOperator=OR to union them)
+curl "https://data.europa.eu/api/hub/search/search?q=environment&filter=dataset&facetOperator=OR&facets=%7B%22country%22%3A%5B%22it%22%2C%22es%22%5D%7D&limit=10"
 ```
 
 If country filter returns 0 datasets, fall back to the two-step catalogue approach above.

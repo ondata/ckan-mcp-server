@@ -166,11 +166,11 @@ Example: dataset with catalog.id = "eige"
 
 ```
 Example: "Trova dati ambientali per Italia e Spagna"
--> Bash: curl "https://data.europa.eu/api/hub/search/search?q=ambiente+environment&filter=dataset&facetOperator=AND&facetGroupOperator=AND&facets=%7B%22country%22%3A%5B%22it%22%2C%22es%22%5D%7D&limit=10"
+-> Bash: curl "https://data.europa.eu/api/hub/search/search?q=ambiente+environment&filter=dataset&facetOperator=OR&facets=%7B%22country%22%3A%5B%22it%22%2C%22es%22%5D%7D&limit=10"
 
 Example: "Dati aperti francesi sull'energia"
 -> NOTE: data.gouv.fr is NOT CKAN
--> Bash: curl "https://data.europa.eu/api/hub/search/search?q=energie+energy&filter=dataset&facetOperator=AND&facetGroupOperator=AND&facets=%7B%22country%22%3A%5B%22fr%22%5D%7D&limit=10"
+-> Bash: curl "https://data.europa.eu/api/hub/search/search?q=energie+energy&filter=dataset&facets=%7B%22country%22%3A%5B%22fr%22%5D%7D&limit=10"
 ```
 
 ### Flow D — Dataset Detail + DataStore
