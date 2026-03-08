@@ -87,6 +87,47 @@ curl "https://data.europa.eu/api/hub/search/search?q=environment&filter=dataset&
 
 If country filter returns 0 datasets, fall back to the two-step catalogue approach above.
 
+### Query Syntax (Elasticsearch / Lucene)
+
+The `q` parameter uses **Elasticsearch query string syntax** (Lucene-based). Verified patterns:
+
+| Pattern | Syntax | Results | Notes |
+|---------|--------|---------|-------|
+| Implicit AND | `youth unemployment` | broad | default, space = AND |
+| Exact phrase | `"youth unemployment"` | precise | use for multi-word concepts |
+| OR between words | `desempleo OR paro` | union | works without parentheses |
+| OR between phrases | `("desempleo juvenil" OR "paro juvenil")` | precise | **parentheses mandatory** — without them OR is applied at token level and returns garbage |
+| AND explicit | `term1 AND term2` | strict | more restrictive than implicit |
+| NOT | `desempleo NOT agrario` | filtered | excludes term |
+| Wildcard | `trasport*` | broad | suffix wildcard |
+| Proximity | `"youth unemployment"~5` | targeted | terms within 5 words of each other — very effective for multi-word topics |
+| Fuzzy | `groundwter~1` | typo-tolerant | allows 1 edit distance — use carefully, can return millions of results |
+| Date range | `term AND issued:[2023-01-01 TO *]` | time-filtered | filters by publication date in `q` string |
+| Boosting | `groundwater^3 OR water` | ranked | boosts relevance of first term |
+| Field-specific | `title:groundwater` | ❌ broken | returns 0 — ES fields not exposed via `q` |
+
+**Key rules**:
+- OR between quoted phrases **always requires parentheses**: `("a b" OR "c d")`
+- Fuzzy (`~N`) on short queries can match millions — prefer exact or proximity instead
+- Date range works in `q` string: `groundwater AND issued:[2023-01-01 TO *]`
+- `minDate` API parameter returns HTTP 400 — use date range in `q` instead
+- `fields=title` API parameter returns 0 — field-specific search is not supported
+
+**Recommended patterns for open data searches**:
+```bash
+# Exact topic, recent only
+q=groundwater+AND+issued:%5B2023-01-01+TO+%2A%5D
+
+# Two native-language synonyms for same concept
+q=%28%22desempleo+juvenil%22+OR+%22paro+juvenil%22%29
+
+# Proximity: terms near each other (more precise than implicit AND)
+q=%22renewable+energy%22~3
+
+# Broad topic + NOT to exclude noise
+q=unemployment+NOT+agrario
+```
+
 ### Parsing Results with jq
 
 Use this verified template to extract key fields from any search response:
