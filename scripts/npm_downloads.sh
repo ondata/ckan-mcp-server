@@ -67,6 +67,17 @@ if [[ "$recorded_count" -eq 0 ]]; then
 else
   echo "Fetching yesterday (${yesterday})..."
   fetch_day "$yesterday"
+
+  # Re-fetch any previously recorded zero-count days (API may not have been ready)
+  if [[ -s "$OUTPUT" ]]; then
+    zero_dates=$(jq -r 'select(.downloads == 0) | .date' "$OUTPUT")
+    if [[ -n "$zero_dates" ]]; then
+      echo "Re-fetching zero-count records..."
+      while IFS= read -r day; do
+        fetch_day "$day"
+      done <<< "$zero_dates"
+    fi
+  fi
 fi
 
 # Sort file by date ascending
