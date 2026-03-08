@@ -206,10 +206,19 @@ Always show this link when presenting results — e.g. `catalog.id = "eige"` →
 **Field notes (verified)**:
 - `country.id` is always **lowercase** (e.g. `"it"`, `"fr"`, `"gb"`) — never uppercase
 - `country` is always an **object**, never an array
-- `distributions` is an array when present, but **may be absent** on some datasets (e.g. aggregated/Copernicus entries) — always check with `select(has("distributions"))`
+- `distributions` may be `null` or absent on some datasets (e.g. aggregated/Copernicus entries) — always use `[]?` or `select(.distributions)`
 - `distributions[].access_url` is an **array** of strings, not a single string
-- `distributions[].format` is an **object** `{id, label}`, not a plain string
+- `distributions[].format` is always an **object** `{id, label, resource}` or **null** — never a plain string. Access via `.format.id` or `.format.label`
+- `distributions[].title` — object (multilingual) or null
+- `distributions[].description` — object (multilingual) or null
+- `distributions[].license`, `.rights`, `.availability` — object or null
+- `distributions[].language` — array or null
+- `publisher` — object or null (some datasets have no publisher)
+- `issued`, `modified` — string or null
+- `keywords` — array or null
 - `resource` is a string URL (the dataset's canonical URI on data.europa.eu) — always present
+
+**Python note**: "unhashable type: 'dict'" errors when aggregating formats come from calling `set()` on format objects. Always extract the string field first: `{d.get('format', {}).get('id', '') for d in distributions if d.get('format')}`
 
 ## CKAN-Compatible API
 
