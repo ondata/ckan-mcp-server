@@ -136,8 +136,15 @@ See [references/europa-api.md](references/europa-api.md) for full API patterns.
 **Recommended country search — two-step via catalogue**:
 1. Find catalogues for the country: `filter=catalogue&facets={"superCatalog":[],"country":["xx"]}`
 2. Search datasets by catalog ID: `filter=dataset&facets={"superCatalog":[],"catalog":["catalog-id"]}`
-This is more reliable than the direct `country` facet on datasets, which returns 0 for some countries (e.g. Denmark).
+This is more reliable than the direct `country` facet on datasets, which returns 0 for some countries (e.g. Denmark, Germany, Poland).
 If step 1 returns 0 catalogues, fall back to direct country filter on datasets.
+
+**Multi-country via catalogue — run one query per country**:
+When querying multiple countries via their catalogues, do NOT mix catalogue IDs in a single query with a combined multilingual query string — it returns 0 results.
+Run one query per country, using native language terms for each:
+- DE → GovData catalogue + German terms
+- PL → dane.gov.pl catalogue + Polish terms
+Then merge and present results together.
 
 **Publisher catalog URL**:
 Each dataset result contains a `catalog.id` field (e.g. `"eige"`, `"dane-gov-pl"`).

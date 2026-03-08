@@ -57,6 +57,18 @@ curl "https://data.europa.eu/api/hub/search/search?q=QUERY&filter=dataset&facetO
 curl "https://data.europa.eu/api/hub/search/search?q=QUERY&filter=dataset&facetOperator=AND&facetGroupOperator=AND&facets=%7B%22superCatalog%22%3A%5B%5D%2C%22catalog%22%3A%5B%22datavejviser%22%2C%22open-data-dk%22%5D%7D&limit=10"
 ```
 
+**Multi-country searches — run one query per country**:
+When searching across countries from different catalogues, do NOT combine catalogue IDs in a single query with a mixed-language query string — it returns 0 results.
+Instead, run one query per country using native language terms:
+
+```bash
+# DE: use German terms, GovData catalogue
+curl "https://data.europa.eu/api/hub/search/search?q=erneuerbare+energie&filter=dataset&facets=%7B%22catalog%22%3A%5B%22govdata%22%5D%7D&limit=10"
+
+# PL: use Polish terms, dane.gov.pl catalogue
+curl "https://data.europa.eu/api/hub/search/search?q=energia+odnawialna&filter=dataset&facets=%7B%22catalog%22%3A%5B%22dane-gov-pl%22%5D%7D&limit=10"
+```
+
 ### Direct Country Filter (simpler, works for many countries)
 
 For countries well-represented on the portal (IT, FR, ES, DE, etc.) the single-step
@@ -75,6 +87,27 @@ curl "https://data.europa.eu/api/hub/search/search?q=environment&filter=dataset&
 
 If country filter returns 0 datasets, fall back to the two-step catalogue approach above.
 
+### Parsing Results with jq
+
+Use this verified template to extract key fields from any search response:
+
+```bash
+curl -s "https://data.europa.eu/api/hub/search/search?q=QUERY&filter=dataset&limit=10" | \
+  jq '[.result.results[] | {
+    title: (.title | if type=="object" then (.en // .it // .fr // (to_entries[0].value)) else . end),
+    publisher: .publisher.name,
+    country: .country.id,
+    id: .id,
+    formats: ([.distributions[]?.format.label] | unique)
+  }]'
+```
+
+Notes:
+- `country.id` is always lowercase — use it directly for filtering
+- `title` is always a multilingual object — extract `.en` first, then fall back
+- `distributions` may be absent — use `[]?` to avoid errors
+- `catalog.id` (for publisher page link) is nested as `.catalog.id`
+
 ### Publisher Catalog URL
 
 Each dataset result contains `catalog.id`. Use it to build a direct link to the publisher's
@@ -91,7 +124,6 @@ Always show this link when presenting results — e.g. `catalog.id = "eige"` →
 
 ```json
 {
-  "success": true,
   "result": {
     "count": 1234,
     "results": [
@@ -101,21 +133,36 @@ Always show this link when presenting results — e.g. `catalog.id = "eige"` →
         "description": {"en": "..."},
         "issued": "2024-01-15",
         "modified": "2024-06-01",
-        "country": {"id": "IT", "label": "Italy"},
-        "publisher": {"name": "Ministero dell'Ambiente"},
-        "themes": ["http://publications.europa.eu/resource/authority/data-theme/ENVI"],
+        "country": {"id": "it", "label": "Italy", "resource": "http://publications.europa.eu/resource/authority/country/ITA"},
+        "publisher": {"name": "Ministero dell'Ambiente", "type": "Agent", "homepage": "..."},
+        "resource": "http://data.europa.eu/88u/dataset/...",
         "distributions": [
-          {"url": "https://...", "format": "CSV", "license": "..."}
+          {
+            "access_url": ["https://..."],
+            "format": {"id": "CSV", "label": "CSV"},
+            "media_type": "text/csv",
+            "id": "...",
+            "issued": "2024-01-15",
+            "modified": "2024-06-01"
+          }
         ]
       }
     ],
     "facets": {
-      "country": [{"id": "IT", "count": 456}, {"id": "ES", "count": 312}],
+      "country": [{"id": "it", "count": 456}, {"id": "es", "count": 312}],
       "theme": [{"id": "ENVI", "count": 1200}]
     }
   }
 }
 ```
+
+**Field notes (verified)**:
+- `country.id` is always **lowercase** (e.g. `"it"`, `"fr"`, `"gb"`) — never uppercase
+- `country` is always an **object**, never an array
+- `distributions` is an array when present, but **may be absent** on some datasets (e.g. aggregated/Copernicus entries) — always check with `select(has("distributions"))`
+- `distributions[].access_url` is an **array** of strings, not a single string
+- `distributions[].format` is an **object** `{id, label}`, not a plain string
+- `resource` is a string URL (the dataset's canonical URI on data.europa.eu) — always present
 
 ## CKAN-Compatible API
 
