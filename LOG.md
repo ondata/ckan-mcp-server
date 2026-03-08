@@ -2,6 +2,8 @@
 
 ## 2026-03-08
 
+- feat(`package.ts`): auto-detect Solr parser mode for unknown portals via probe query `data OR dati` (2 parallel rows=0 calls); if text count > default count × 2 → use text:(...) wrapping; result cached per portal URL for session lifetime
+- feat(`portal-config.ts`): add `isPortalSearchExplicitlyConfigured()` to distinguish known vs unknown portals
 - fix(`package.ts`): auto-convert `NOW` date math to ISO dates for `issued` and `modified` fields in `q` and `fq` — these are CKAN extra fields not native Solr fields, so `NOW` syntax returned 0 results on all portals tested (dati.gov.it, catalog.data.gov); ISO dates work universally
 - fix(`package.ts`): fix `content_recent` clause to use ISO date for `issued` field (same root cause)
 - docs(`tools.md`): clarify date math limitation — `NOW` only works on `metadata_modified`/`metadata_created`; `issued`/`modified` require explicit ISO dates (now auto-converted by server)

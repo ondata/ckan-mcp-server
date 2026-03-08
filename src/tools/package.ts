@@ -8,8 +8,39 @@ import { makeCkanRequest } from "../utils/http.js";
 import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter } from "../utils/formatting.js";
 import { getDatasetViewUrl } from "../utils/url-generator.js";
 import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from "../utils/search.js";
-import { getPortalHvdConfig, getPortalApiPath, requiresMultilingualNormalization } from "../utils/portal-config.js";
+import { getPortalHvdConfig, getPortalApiPath, requiresMultilingualNormalization, isPortalSearchExplicitlyConfigured } from "../utils/portal-config.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+
+/**
+ * Session cache for auto-detected parser mode on unknown portals.
+ * Key: normalized server URL. Value: true = needs text:(...) wrapping.
+ * Populated by probePortalParser() on first call to an unconfigured portal.
+ */
+const _portalParserCache = new Map<string, boolean>();
+
+/**
+ * Probe a portal to detect whether it needs force_text_field.
+ * Runs two parallel rows=0 queries (default vs text parser) using "data OR dati".
+ * If text count > default count * 2, the portal has the Solr df bug and needs wrapping.
+ * Result is cached for the session lifetime.
+ */
+async function probePortalParser(serverUrl: string): Promise<boolean> {
+  const key = serverUrl.replace(/\/$/, '').toLowerCase();
+  if (_portalParserCache.has(key)) return _portalParserCache.get(key)!;
+
+  const probe = 'data OR dati';
+  const [defaultRes, textRes] = await Promise.allSettled([
+    makeCkanRequest<any>(serverUrl, 'package_search', { q: probe, rows: 0 }),
+    makeCkanRequest<any>(serverUrl, 'package_search', { q: `text:(${probe})`, rows: 0 })
+  ]);
+
+  const defaultCount = defaultRes.status === 'fulfilled' ? (defaultRes.value.count ?? 0) : 0;
+  const textCount = textRes.status === 'fulfilled' ? (textRes.value.count ?? 0) : 0;
+
+  const needsText = textCount > 0 && (defaultCount === 0 || textCount > defaultCount * 2);
+  _portalParserCache.set(key, needsText);
+  return needsText;
+}
 
 type RelevanceWeights = {
   title: number;
@@ -659,10 +690,18 @@ Typical workflow: ckan_package_search → ckan_package_show (get full metadata +
           if (!effectiveSort) effectiveSort = "issued desc, metadata_created desc";
         }
 
+        // For portals not explicitly configured in portals.json, auto-detect
+        // whether they need text:(...) wrapping by probing with a two-term OR query.
+        let parserOverride = params.query_parser;
+        if (!parserOverride && !isPortalSearchExplicitlyConfigured(params.server_url)) {
+          const needsText = await probePortalParser(params.server_url);
+          if (needsText) parserOverride = "text";
+        }
+
         const { effectiveQuery } = resolveSearchQuery(
           params.server_url,
           query,
-          params.query_parser
+          parserOverride
         );
 
         const { effectiveRows, effectiveStart } = resolvePageParams(params.page, params.page_size, params.start, params.rows);

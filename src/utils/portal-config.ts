@@ -60,6 +60,12 @@ export function getPortalSearchConfig(serverUrl: string): PortalSearchConfig {
   };
 }
 
+/** Returns true if the portal has an explicit force_text_field setting in portals.json */
+export function isPortalSearchExplicitlyConfigured(serverUrl: string): boolean {
+  const portal = getPortalConfig(serverUrl);
+  return portal?.search?.force_text_field !== undefined;
+}
+
 export function normalizePortalUrl(serverUrl: string): string {
   return normalizeUrl(serverUrl);
 }

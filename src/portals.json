@@ -23,6 +23,17 @@
       "organization_view_url": "https://www.dati.gov.it/view-dataset?organization={name}"
     },
     {
+      "id": "dati-arpae-it",
+      "name": "dati.arpae.it",
+      "api_url": "https://dati.arpae.it",
+      "api_url_aliases": [
+        "http://dati.arpae.it"
+      ],
+      "search": {
+        "force_text_field": true
+      }
+    },
+    {
       "id": "anac-opendata",
       "name": "dati.anticorruzione.it/opendata",
       "api_url": "https://dati.anticorruzione.it/opendata",
@@ -42,6 +53,9 @@
         "http://www.data.gov.uk"
       ],
       "api_path": "/api/action",
+      "search": {
+        "force_text_field": true
+      },
       "dataset_view_url": "https://www.data.gov.uk/dataset/{id}/{name}",
       "organization_view_url": "https://www.data.gov.uk/organization/{name}"
     },
@@ -51,7 +65,10 @@
       "api_url": "https://catalog.data.gov",
       "api_url_aliases": [
         "http://catalog.data.gov"
-      ]
+      ],
+      "search": {
+        "force_text_field": true
+      }
     },
     {
       "id": "open-canada",
@@ -61,7 +78,10 @@
         "http://open.canada.ca/data",
         "https://open.canada.ca",
         "http://open.canada.ca"
-      ]
+      ],
+      "search": {
+        "force_text_field": true
+      }
     },
     {
       "id": "data-gov-au",
