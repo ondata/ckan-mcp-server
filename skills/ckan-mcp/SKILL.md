@@ -68,26 +68,26 @@ Use when: user mentions a country but no specific portal URL.
 6. Always summarize which portal was actually used and why (national CKAN / regional CKAN / data.europa.eu fallback)
 
 ```
-Example: "Quali dati sull'inquinamento in Canada?"
+Example: "What data on pollution is available in Canada?"
 -> ckan_find_portals(country="Canada")
 -> ckan_status_show(server_url="https://open.canada.ca/data")
--> ckan_package_search(server_url=..., q="pollution OR inquinamento OR air quality")
+-> ckan_package_search(server_url=..., q="pollution OR air quality")
 
 Example: national portal unreachable
 -> ckan_find_portals(country="Argentina")
 -> ckan_status_show(national_portal) -> FAIL
--> [tell user] "Il portale nazionale (X) non è raggiungibile. Provo i portali regionali disponibili..."
+-> [tell user] "The national portal (X) is unreachable. Trying available regional portals..."
 -> ckan_status_show(next_portal) -> OK
 -> ckan_package_search(server_url=next_portal, ...)
--> [tell user] "Ho trovato risultati sul portale della Provincia di Buenos Aires (non il portale nazionale)."
+-> [tell user] "Results found on the Buenos Aires Province portal (not the national portal)."
 
 Example: no national CKAN portal, European country, 0 results on regional portals
 -> ckan_find_portals(country="Portugal") -> 3 regional portals, no national
 -> ckan_package_search on all 3 -> 0 results
--> [tell user] "Nessun risultato sui portali CKAN portoghesi. Cerco su data.europa.eu..."
--> Bash: curl "...?q=acidentes+rodoviarios&filter=dataset&facetOperator=AND&facetGroupOperator=AND&facets=%7B%22country%22%3A%5B%22pt%22%5D%7D&limit=10"
+-> [tell user] "No results on Portuguese CKAN portals. Searching data.europa.eu..."
+-> Bash: curl "...?q=acidentes+rodoviarios&filter=dataset&facets=%7B%22country%22%3A%5B%22pt%22%5D%7D&limit=10"
 -> 157 results found on data.europa.eu
--> [tell user] "Trovati 157 dataset su data.europa.eu (filtro paese=PT)."
+-> [tell user] "Found 157 datasets on data.europa.eu (country filter: PT)."
 ```
 
 ### Flow B — Named Portal
@@ -102,9 +102,9 @@ Use when: user provides a specific portal URL or a well-known portal name.
 4. If >100 results, guide refinement with `fq` filters or a narrower query
 
 ```
-Example: "Cerca dati sui trasporti su data.gov.uk"
+Example: "Find transport data on data.gov.uk"
 -> ckan_status_show(server_url="https://data.gov.uk")
--> ckan_package_search(server_url="https://data.gov.uk", q="transport OR transportation OR trasporti")
+-> ckan_package_search(server_url="https://data.gov.uk", q="transport OR transportation")
 ```
 
 ### Flow C — European Portal
@@ -165,12 +165,12 @@ Example: dataset with catalog.id = "eige"
 ```
 
 ```
-Example: "Trova dati ambientali per Italia e Spagna"
--> Bash: curl "https://data.europa.eu/api/hub/search/search?q=ambiente+environment&filter=dataset&facetOperator=OR&facets=%7B%22country%22%3A%5B%22it%22%2C%22es%22%5D%7D&limit=10"
+Example: "Find environmental data for Italy and Spain"
+-> Bash: curl "https://data.europa.eu/api/hub/search/search?q=environment&filter=dataset&facetOperator=OR&facets=%7B%22country%22%3A%5B%22it%22%2C%22es%22%5D%7D&limit=10"
 
-Example: "Dati aperti francesi sull'energia"
+Example: "French open data on energy"
 -> NOTE: data.gouv.fr is NOT CKAN
--> Bash: curl "https://data.europa.eu/api/hub/search/search?q=energie+energy&filter=dataset&facets=%7B%22country%22%3A%5B%22fr%22%5D%7D&limit=10"
+-> Bash: curl "https://data.europa.eu/api/hub/search/search?q=energy&filter=dataset&facets=%7B%22country%22%3A%5B%22fr%22%5D%7D&limit=10"
 ```
 
 ### Flow D — Dataset Detail + DataStore
@@ -195,7 +195,7 @@ Use when: user asks about the content of a specific dataset or wants to query ta
    download URL and tell the user they need to open it locally.
 
 ```
-Example: "Mostrami i dati del dataset clima-2024"
+Example: "Show me the data in dataset clima-2024"
 -> ckan_package_show(server_url=..., id="clima-2024")
 -> ckan_list_resources(server_url=..., dataset_id="clima-2024")
 -> [if datastore_active] ckan_datastore_search(resource_id=..., limit=0)
@@ -211,14 +211,14 @@ Use when: user asks about publishers, organizations, thematic categories, or gro
 ckan_organization_list(server_url=...)
 
 # Find a specific publisher
-ckan_organization_search(server_url=..., query="ministero")
+ckan_organization_search(server_url=..., query="ministry")
 
 # Show publisher + their datasets
 ckan_organization_show(server_url=..., id="org-name")
 
 # Thematic categories
 ckan_group_list(server_url=...)
-ckan_group_search(server_url=..., query="ambiente")
+ckan_group_search(server_url=..., query="environment")
 ckan_group_show(server_url=..., id="group-name")
 ```
 
@@ -233,7 +233,7 @@ use them on any other portal — they will return an error or no result.
 2. `ckan_get_mqa_quality_details(dataset_id=..., server_url=...)` — dimension breakdown
 
 ```
-Example: "Com'e la qualita dei metadati di questo dataset?"
+Example: "What is the metadata quality of this dataset?"
 -> ckan_get_mqa_quality(server_url=..., dataset_id="...")
 -> ckan_get_mqa_quality_details(server_url=..., dataset_id="...")
 ```
@@ -250,11 +250,11 @@ their query — not just keyword hits. Use `ckan_analyze_datasets` when the user
 wants a structured comparison of several datasets (e.g., coverage, formats, publishers).
 
 ```
-Example: "Trova i dataset più rilevanti sull'inquinamento dell'aria in Italia"
+Example: "Find the most relevant datasets on air pollution in Italy"
 -> ckan_find_relevant_datasets(server_url="https://www.dati.gov.it/opendata",
-                               query="inquinamento aria OR air pollution")
+                               query="air pollution OR inquinamento aria")
 
-Example: "Confronta questi tre dataset sul traffico"
+Example: "Compare these three traffic datasets"
 -> ckan_analyze_datasets(server_url=..., dataset_ids=[...])
 ```
 
