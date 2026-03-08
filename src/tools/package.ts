@@ -8,7 +8,7 @@ import { makeCkanRequest } from "../utils/http.js";
 import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter } from "../utils/formatting.js";
 import { getDatasetViewUrl } from "../utils/url-generator.js";
 import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from "../utils/search.js";
-import { getPortalHvdConfig, getPortalApiPath } from "../utils/portal-config.js";
+import { getPortalHvdConfig, getPortalApiPath, requiresMultilingualNormalization } from "../utils/portal-config.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type RelevanceWeights = {
@@ -295,13 +295,39 @@ export function resolvePageParams(
 }
 
 /**
+ * Normalize a package from portals with non-standard field structure (e.g. data.europa.eu).
+ * Falls back to translation fields when title/name are null, and handles organization.title
+ * as a multilingual object.
+ */
+function normalizePackage(pkg: CkanPackage): CkanPackage {
+  const translation = pkg.translation as Record<string, Record<string, string>> | undefined;
+
+  if (!pkg.title && translation) {
+    pkg = { ...pkg, title: translation.en?.title || Object.values(translation)[0]?.title };
+  }
+  if (!pkg.name) {
+    pkg = { ...pkg, name: pkg.id };
+  }
+  if (pkg.organization?.title && typeof pkg.organization.title === 'object') {
+    const titleObj = pkg.organization.title as Record<string, string>;
+    pkg = { ...pkg, organization: { ...pkg.organization, title: titleObj.en || Object.values(titleObj)[0] } };
+  }
+  if (pkg.tags) {
+    pkg = { ...pkg, tags: pkg.tags.map((t: CkanTag) => t.name ? t : { ...t, name: t.id || t['display-name'] || '' }) };
+  }
+  return pkg;
+}
+
+/**
  * Compact JSON representation of package_search results.
  * Keeps only essential fields to reduce token usage (~80% reduction).
  */
 export function compactSearchResult(result: any, serverUrl?: string): object {
   return {
     count: result.count,
-    results: (result.results || []).map((pkg: CkanPackage) => ({
+    results: (result.results || []).map((rawPkg: CkanPackage) => {
+      const pkg = serverUrl && requiresMultilingualNormalization(serverUrl) ? normalizePackage(rawPkg) : rawPkg;
+      return {
       id: pkg.id,
       name: pkg.name,
       title: pkg.title || pkg.name,
@@ -311,7 +337,8 @@ export function compactSearchResult(result: any, serverUrl?: string): object {
       num_resources: pkg.num_resources ?? 0,
       metadata_modified: pkg.metadata_modified,
       ...(serverUrl ? { view_url: getDatasetViewUrl(serverUrl, pkg) } : {})
-    })),
+      };
+    }),
     ...(result.facets && Object.keys(result.facets).length > 0 ? { facets: result.facets } : {}),
     ...(result.search_facets && Object.keys(result.search_facets).length > 0 ? { search_facets: result.search_facets } : {})
   };
@@ -693,7 +720,8 @@ ${hvdNote}`;
         // Show results
         if (result.results && result.results.length > 0) {
           markdown += `## Datasets\n\n`;
-          for (const pkg of result.results) {
+          for (const rawPkg of result.results) {
+            const pkg = requiresMultilingualNormalization(params.server_url) ? normalizePackage(rawPkg) : rawPkg;
             markdown += `### ${pkg.title || pkg.name}\n\n`;
             markdown += `- **ID**: \`${pkg.id}\`\n`;
             markdown += `- **Name**: \`${pkg.name}\`\n`;

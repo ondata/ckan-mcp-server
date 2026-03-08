@@ -20,6 +20,7 @@ type PortalConfig = {
   search?: PortalSearchConfig;
   hvd?: HvdConfig;
   sparql?: SparqlConfig;
+  normalize?: string;
 };
 
 type PortalDefaults = {
@@ -95,4 +96,9 @@ export function getPortalSparqlConfig(serverUrl: string): SparqlConfig | null {
 export function getPortalApiPath(serverUrl: string): string {
   const portal = getPortalConfig(serverUrl);
   return portal?.api_path || '/api/3/action';
+}
+
+export function requiresMultilingualNormalization(serverUrl: string): boolean {
+  const portal = getPortalConfig(serverUrl);
+  return portal?.normalize === 'multilingual';
 }

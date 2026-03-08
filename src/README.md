@@ -45,6 +45,13 @@ Each entry in `portals` array supports:
   - Default if omitted: `"{server_url}/organization/{name}"`
   - Example: `"https://www.dati.gov.it/view-dataset?organization={name}"`
 
+- **`normalize`** (string): Response normalization mode for portals with non-standard field structures
+  - Omit for standard CKAN portals (default behavior, no normalization applied)
+  - `"multilingual"`: enables normalization for portals that return multilingual fields as objects
+    instead of plain strings (e.g. `title: {"en": "...", "fr": "..."}`) and store dataset title
+    in a `translation` object rather than the `title` field directly
+  - Example: data.europa.eu requires this due to its DCAT-AP based field structure
+
 - **`search`** (object): Search behavior configuration
   - **`force_text_field`** (boolean): Force wrapping non-fielded queries in `text:(...)`
     - Default: `false`
@@ -73,6 +80,7 @@ The `defaults` object provides fallback values when a portal is not found in the
 4. Set `api_path` if the portal uses non-standard API path (e.g., `/api/action/` instead of `/api/3/action/`)
 5. Customize `dataset_view_url` and/or `organization_view_url` only if non-standard
 6. Set `search.force_text_field: true` if the portal has query parser issues
+7. Set `normalize: "multilingual"` if the portal uses multilingual/DCAT-AP field structures
 
 **Note**: To determine the correct `api_path`, test the portal's API endpoints:
 ```bash
@@ -121,7 +129,18 @@ curl "https://portal.example.com/api/action/package_search?q=test&rows=1"
 }
 ```
 
-**Note**: The `api_path` field was added in v0.4.37 to support portals like data.gov.uk that use `/api/action/` instead of the standard `/api/3/action/` endpoint.
+#### Portal with Multilingual Field Structure (e.g., data.europa.eu)
+
+```json
+{
+  "id": "data-europa-eu",
+  "name": "data.europa.eu",
+  "api_url": "https://data.europa.eu",
+  "api_path": "/api/hub/search/ckan",
+  "normalize": "multilingual",
+  "dataset_view_url": "https://data.europa.eu/data/datasets/{id}"
+}
+```
 
 ### URL Placeholder Reference
 
@@ -153,12 +172,12 @@ The following portals have been tested and verified (as of v0.4.37):
 | Portal | Country | API Path | Notes |
 |--------|---------|----------|-------|
 | data.gov.uk | 🇬🇧 UK | `/api/action/` | `status_show` blocked, but search works |
+| data.europa.eu | 🇪🇺 EU | `/api/hub/search/ckan` | CKAN-compatible endpoint; `normalize: "multilingual"` required (DCAT-AP field structure, 200k+ datasets from 36+ countries) |
 
 #### ❌ Known Issues
 
 | Portal | Country | Issue | Reason |
 |--------|---------|-------|--------|
-| data.europa.eu | 🇪🇺 EU | — | Not CKAN — uses proprietary API (`/api/hub/`) |
 | data.opentransportdata.swiss | 🇨🇭 Switzerland | — | API on separate domain (`api.opentransportdata.swiss/ckan-api/`) and requires API key — not publicly accessible |
 | datos.gob.es | 🇪🇸 Spain | — | Not CKAN — uses Linked Data API (`/apidata/`) with SPARQL endpoint |
 | data.gouv.fr | 🇫🇷 France | — | Not CKAN — uses own API (`/api/1/`) |
@@ -169,4 +188,5 @@ The following portals have been tested and verified (as of v0.4.37):
 - **Search Query Resolution**: `src/utils/search.ts`
 - **Portal Matching**: Uses exact match on `api_url` or any `api_url_aliases`
 - **API Path Resolution**: `src/utils/portal-config.ts` (`getPortalApiPath()`)
+- **Multilingual Normalization**: `src/utils/portal-config.ts` (`requiresMultilingualNormalization()`), applied in `src/tools/package.ts`
 - **HTTP Client**: `src/utils/http.ts` (uses dynamic API paths)
