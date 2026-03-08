@@ -475,10 +475,6 @@ npx skills add -g ondata/ckan-mcp-server --skill ckan-mcp
 npx skills add ondata/ckan-mcp-server --skill ckan-mcp
 ```
 
-### Claude Desktop — `.skill` file
-
-For Claude Desktop, a ready-to-import `.skill` package is attached to each [GitHub release](https://github.com/ondata/ckan-mcp-server/releases/latest). Download `ckan-mcp.skill` and drag it into Claude Desktop to install directly.
-
 ---
 
 ## 🌍 Supported CKAN Portals
