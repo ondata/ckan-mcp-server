@@ -21,7 +21,7 @@
     "test:coverage": "vitest --coverage",
     "build:dxt": "esbuild src/index.ts --bundle --platform=node --format=cjs --outfile=dxt-staging/server/index.js",
     "pack:dxt": "rm -rf dxt-staging && mkdir -p dxt-staging/server && npm run build:dxt && echo '{\"type\":\"commonjs\"}' > dxt-staging/server/package.json && cp manifest.json icon.png dxt-staging/ && dxt pack dxt-staging ckan-mcp-server.dxt && rm -rf dxt-staging",
-    "pack:skill": "cd skills && zip -r ../ckan-mcp.skill ckan-mcp/ && cd ..",
+    "pack:skill": "mkdir -p tmp && cd skills && zip -r ../tmp/ckan-mcp.skill ckan-mcp/ && cd ..",
     "prepack": "cp README.md .readme-full.md && cp .readme-npm.md README.md",
     "postpack": "mv .readme-full.md README.md"
   },

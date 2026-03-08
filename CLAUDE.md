@@ -459,8 +459,8 @@ When releasing a new version:
 4. **Push to GitHub**: `git push origin main`
 5. **Create tag**: `git tag -a v0.x.0 -m "..." && git push origin v0.x.0`
 6. **Build DXT**: `npm run pack:dxt` → produces `ckan-mcp-server.dxt`
-7. **Build skill**: `npm run pack:skill` → produces `ckan-mcp.skill`
-8. **Attach to release**: `gh release upload v0.x.0 ckan-mcp-server.dxt ckan-mcp.skill`
+7. **Build skill**: `npm run pack:skill` → produces `tmp/ckan-mcp.skill`
+8. **Attach to release**: `gh release upload v0.x.0 ckan-mcp-server.dxt tmp/ckan-mcp.skill`
 9. **Publish to npm** (optional): `npm publish`
 10. **Deploy to Cloudflare** (if code changed): `npm run deploy`
 
