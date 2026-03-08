@@ -2,6 +2,11 @@
 
 ## 2026-03-08
 
+- fix(skill): bilingual query rule made conditional — use native language only on monolingual portals (dati.gov.it → IT, data.gov → EN); bilingual only on multilingual portals (data.europa.eu, open.canada.ca)
+- fix(skill): geographic qualifiers (city/region/country) must never be OR-joined with topic terms — always use `fq` or AND; OR-joining a place name inflates results with off-topic datasets
+
+## 2026-03-08
+
 - feat(`package.ts`): auto-detect Solr parser mode for unknown portals via probe query `data OR dati` (2 parallel rows=0 calls); if text count > default count × 2 → use text:(...) wrapping; result cached per portal URL for session lifetime
 - feat(`portal-config.ts`): add `isPortalSearchExplicitlyConfigured()` to distinguish known vs unknown portals
 - fix(`package.ts`): auto-convert `NOW` date math to ISO dates for `issued` and `modified` fields in `q` and `fq` — these are CKAN extra fields not native Solr fields, so `NOW` syntax returned 0 results on all portals tested (dati.gov.it, catalog.data.gov); ISO dates work universally

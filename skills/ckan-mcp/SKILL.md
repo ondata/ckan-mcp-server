@@ -267,10 +267,28 @@ Example: "Compare these three traffic datasets"
 
 ### Query Construction
 
-- Always use bilingual queries: `q="TERM_NATIVE OR TERM_EN"`
-  CKAN portals store metadata in the publisher's native language; many datasets
-  have no English translation, so a single-language query silently misses them.
-- Example: `q="ambiente OR environment OR pollution OR inquinamento"`
+- Use bilingual queries **only on multilingual portals** (e.g. data.europa.eu,
+  open.canada.ca EN+FR). On monolingual portals query in the portal's language only.
+
+  | Portal | Query language |
+  |--------|---------------|
+  | data.europa.eu | bilingual/multilingual — use EN + native |
+  | open.canada.ca | bilingual — use EN + FR |
+  | dati.gov.it | Italian only — no EN terms |
+  | catalog.data.gov | English only |
+  | data.gov.uk | English only |
+
+- Example (multilingual): `q="environment OR ambiente OR environnement"`
+- Example (monolingual IT): `q="qualità aria"` — no English needed
+- **Geographic qualifiers are never OR-joined**: city/region/country names go in
+  `fq` or AND-ed in `q`, never in the OR pool.
+  ```
+  # Correct — topic bilingue, place as filter
+  q="qualità aria OR air quality"  fq="organization:comune-di-milano"
+
+  # Wrong — OR-joining a place name explodes results with off-topic datasets
+  q="qualità aria OR air quality OR Milano"
+  ```
 - Use Solr `fq` for hard filters: `fq="organization:regione-toscana"`
 - Wildcard for broad match: `q="trasport*"` (matches trasporto, trasporti, transport...)
 - Use `ckan_tag_list` to discover available tags on a portal before building
