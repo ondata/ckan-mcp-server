@@ -99,19 +99,6 @@
       "organization_view_url": "https://ckan-prod.zurich.datopian.com/organization/{name}"
     },
     {
-      "id": "data-europa-eu",
-      "name": "data.europa.eu",
-      "api_url": "https://data.europa.eu",
-      "api_url_aliases": [
-        "https://data.europa.eu/data",
-        "http://data.europa.eu"
-      ],
-      "api_path": "/api/hub/search/ckan",
-      "normalize": "multilingual",
-      "dataset_view_url": "https://data.europa.eu/data/datasets/{id}",
-      "organization_view_url": "https://data.europa.eu/data/organisations/{name}"
-    },
-    {
       "id": "govdata-de",
       "name": "govdata.de",
       "api_url": "https://ckan.govdata.de",

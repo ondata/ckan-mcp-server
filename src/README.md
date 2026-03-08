@@ -172,12 +172,12 @@ The following portals have been tested and verified (as of v0.4.37):
 | Portal | Country | API Path | Notes |
 |--------|---------|----------|-------|
 | data.gov.uk | 🇬🇧 UK | `/api/action/` | `status_show` blocked, but search works |
-| data.europa.eu | 🇪🇺 EU | `/api/hub/search/ckan` | CKAN-compatible endpoint; `normalize: "multilingual"` required (DCAT-AP field structure, 200k+ datasets from 36+ countries) |
 
 #### ❌ Known Issues
 
 | Portal | Country | Issue | Reason |
 |--------|---------|-------|--------|
+| data.europa.eu | 🇪🇺 EU | Poor search relevance, timeouts, no DataStore | DCAT-AP aggregator with CKAN-like endpoint — search scoring is non-standard, `name` fields are UUIDs, API response times are unpredictable |
 | data.opentransportdata.swiss | 🇨🇭 Switzerland | — | API on separate domain (`api.opentransportdata.swiss/ckan-api/`) and requires API key — not publicly accessible |
 | datos.gob.es | 🇪🇸 Spain | — | Not CKAN — uses Linked Data API (`/apidata/`) with SPARQL endpoint |
 | data.gouv.fr | 🇫🇷 France | — | Not CKAN — uses own API (`/api/1/`) |
