@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-03-10
+
+- fix(`worker.ts`): `sparql_query` now logs correct `server` field — was always `""` because logging code read `server_url` but SPARQL tool uses `endpoint_url`; fix: `a['server_url'] ?? a['endpoint_url'] ?? ''`
+
 ## 2026-03-08
 
 - fix(skill): bilingual query rule made conditional — use native language only on monolingual portals (dati.gov.it → IT, data.gov → EN); bilingual only on multilingual portals (data.europa.eu, open.canada.ca)

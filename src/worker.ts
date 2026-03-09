@@ -221,7 +221,7 @@ export default {
     if (request.method === 'GET' && url.pathname === '/health') {
       return new Response(JSON.stringify({
         status: 'ok',
-        version: '0.4.79',
+        version: '0.4.80',
         tools: 20,
         resources: 7,
         prompts: 6,
@@ -244,7 +244,7 @@ export default {
           if (body?.method === 'tools/call' && body?.params?.name) {
             const tool = body.params.name;
             const a = body.params.arguments ?? {};
-            const entry: Record<string, unknown> = { tool, server: a['server_url'] ?? '' };
+            const entry: Record<string, unknown> = { tool, server: a['server_url'] ?? a['endpoint_url'] ?? '' };
             if (a['q'] !== undefined)             entry['q'] = a['q'];
             if (a['fq'] !== undefined)            entry['fq'] = a['fq'];
             if (a['query'] !== undefined)         entry['query'] = a['query'];
