@@ -13,15 +13,17 @@ if [[ ! -s "$INPUT" ]]; then
   exit 0
 fi
 
-duckdb -jsonlines -c "
-  SELECT
-    strftime(timestamp::TIMESTAMP, '%Y-%m-%d') AS date,
-    count(*)                                   AS calls,
-    count(*) FILTER (WHERE outcome = 'ok')     AS ok,
-    count(*) FILTER (WHERE outcome != 'ok')    AS errors
-  FROM read_json('$INPUT', format='newline_delimited')
-  GROUP BY 1
-  ORDER BY 1
-" > "$OUTPUT"
+duckdb -c "
+  COPY (
+    SELECT
+      strftime(timestamp::TIMESTAMP, '%Y-%m-%d') AS date,
+      count(*)                                   AS calls,
+      count(*) FILTER (WHERE outcome = 'ok')     AS ok,
+      count(*) FILTER (WHERE outcome != 'ok')    AS errors
+    FROM read_json('$INPUT', format='newline_delimited')
+    GROUP BY 1
+    ORDER BY 1
+  ) TO '${OUTPUT}' (FORMAT JSON)
+"
 
 echo "Done. $(wc -l < "$OUTPUT") daily records written to $OUTPUT"
