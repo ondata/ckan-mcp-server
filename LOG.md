@@ -2,6 +2,7 @@
 
 ## 2026-03-10
 
+- fix(`worker.ts`+`worker_telemetry_flatten.py`): `ckan_find_portals` now logs `country`, `language`, `has_datastore`, `min_datasets` — previously always `null` in `worker_events_flat.jsonl`
 - fix(`worker.ts`): `sparql_query` now logs correct `server` field — was always `""` because logging code read `server_url` but SPARQL tool uses `endpoint_url`; fix: `a['server_url'] ?? a['endpoint_url'] ?? ''`
 
 ## 2026-03-08

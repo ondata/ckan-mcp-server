@@ -15,6 +15,15 @@ OUTPUT_FILE = DATA_DIR / "worker_events_flat.jsonl"
 
 def extract_query(source: dict) -> str | None:
     """Restituisce il termine di ricerca unificato dal source del tool."""
+    # For ckan_find_portals, build a combined criteria string
+    if source.get("tool") == "ckan_find_portals":
+        parts = []
+        for key in ("country", "query", "language", "has_datastore", "min_datasets"):
+            val = source.get(key)
+            if val is not None:
+                parts.append(f"{key}={val}")
+        return " ".join(parts) or None
+
     return (
         source.get("q")
         or source.get("query")

@@ -221,7 +221,7 @@ export default {
     if (request.method === 'GET' && url.pathname === '/health') {
       return new Response(JSON.stringify({
         status: 'ok',
-        version: '0.4.80',
+        version: '0.4.81',
         tools: 20,
         resources: 7,
         prompts: 6,
@@ -257,6 +257,10 @@ export default {
             if (a['rows'] !== undefined)          entry['rows'] = a['rows'];
             if (a['limit'] !== undefined)         entry['limit'] = a['limit'];
             if (a['sql'] !== undefined)           entry['sql'] = String(a['sql']).slice(0, 200);
+            if (a['country'] !== undefined)       entry['country'] = a['country'];
+            if (a['language'] !== undefined)      entry['language'] = a['language'];
+            if (a['has_datastore'] !== undefined) entry['has_datastore'] = a['has_datastore'];
+            if (a['min_datasets'] !== undefined)  entry['min_datasets'] = a['min_datasets'];
             console.log(JSON.stringify(entry));
           }
         } catch { /* ignore parse errors (e.g. non-JSON requests) */ }
