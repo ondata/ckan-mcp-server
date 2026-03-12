@@ -40,6 +40,8 @@ User asks about data
   +-- Asks about data quality? ------> Flow F (Quality)
   |
   +-- Wants best/most relevant? -----> Flow G (Relevance Ranking + Analysis)
+  |
+  +-- Wants to schema/annotate data? -> Flow H (Ontology & Schema Discovery)
 ```
 
 ## Flows
@@ -282,6 +284,48 @@ Example: "Compare these three traffic datasets"
 - `ckan_package_search` returns many loosely-matched results and you need to surface the closest ones
 - User wants a comparison or summary across multiple datasets
 
+### Flow H — Ontology & Schema Discovery
+
+Use when: the user wants to define a schema for a dataset, find existing standards
+for their domain, discover controlled vocabularies, or map dataset fields to
+semantic terms (DCAT, GeoSPARQL, Schema.org, SSN, Data Cube, etc.).
+
+This is relevant when the user:
+- asks "which ontology should I use for X?"
+- wants to make their data interoperable or linked-data ready
+- needs field names aligned with existing W3C/OGC/EU standards
+- asks "is there a vocabulary for X?"
+
+**Tool**: query the Open Knowledge Graphs API via `Bash` with curl.
+
+```bash
+# Search ontologies for a domain
+curl -s "https://api.openknowledgegraphs.com/ontologies?q=TOPIC&limit=5" | jq .
+
+# Narrow to a category (Government & Public Sector, Geospatial, Environment & Agriculture, ...)
+curl -s "https://api.openknowledgegraphs.com/ontologies?q=TOPIC&category=CATEGORY&limit=5" | jq .
+
+# Search across all types (ontologies + software)
+curl -s "https://api.openknowledgegraphs.com/search?q=TOPIC&limit=5" | jq .
+```
+
+See [references/open-knowledge-graphs.md](references/open-knowledge-graphs.md) for
+the full API reference and a complete end-to-end example (air quality sensor dataset
+→ SSN/SOSA ontology → field mapping).
+
+```
+Example: "I have a CSV with sensor readings — what schema should I use?"
+-> curl "https://api.openknowledgegraphs.com/ontologies?q=sensor+observation+measurement&limit=5"
+-> top result: SSN/SOSA (W3C) — score 0.69
+-> follow homepage: https://www.w3.org/TR/vocab-ssn/
+-> map CSV columns to sosa:Observation, sosa:Sensor, sosa:resultTime, sosa:hasResult
+
+Example: "Which vocabulary covers open government datasets?"
+-> curl "https://api.openknowledgegraphs.com/ontologies?q=open+data+government&limit=5"
+-> results: DCAT, NIEMOpen, Core Organization Ontology
+-> recommend DCAT (W3C) for dataset metadata, schema.org for web publishing
+```
+
 ## Key Rules
 
 ### Query Construction
@@ -419,3 +463,4 @@ curl -s -X POST "https://data.europa.eu/sparql" \
 - [`references/europa-api.md`](references/europa-api.md) — Read this for any query involving data.europa.eu: REST API patterns, country filtering, SPARQL examples, EU data themes and country codes.
 - [`references/tools.md`](references/tools.md) — Full `ckanapi` CLI equivalents for every MCP tool, with jq formatting patterns and DuckDB analysis examples. Read this when you need to replicate or extend tool behavior via Bash, or when the user needs to explore CSV resources directly.
 - [`references/hvd.md`](references/hvd.md) — High Value Datasets (EU Regulation 2023/138): API filters, the 6 thematic categories and sub-categories, country breakdowns, and HVD on national CKAN portals. Read this when the user asks about HVD or "dati ad alto valore".
+- [`references/open-knowledge-graphs.md`](references/open-knowledge-graphs.md) — Open Knowledge Graphs API: semantic search over 1,800+ ontologies, vocabularies, and taxonomies. Read this when the user wants to find existing schemas for a dataset, discover controlled vocabularies, adopt W3C/OGC standards (DCAT, SSN, GeoSPARQL...), or map dataset fields to semantic terms.
