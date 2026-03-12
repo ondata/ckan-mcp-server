@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Fetch daily npm download counts for ckan-mcp-server.
-# - Normal run: fetches yesterday's count (append if not already present).
+# - Normal run: fetches yesterday + re-checks last 7 days for zeros or missing data.
 # - First run / backfill: fetches the last 7 days individually.
 # Output: data/npm_downloads.jsonl  (one JSON object per line, sorted by date)
 
@@ -68,16 +68,13 @@ else
   echo "Fetching yesterday (${yesterday})..."
   fetch_day "$yesterday"
 
-  # Re-fetch any previously recorded zero-count days (API may not have been ready)
-  if [[ -s "$OUTPUT" ]]; then
-    zero_dates=$(jq -r 'select(.downloads == 0) | .date' "$OUTPUT")
-    if [[ -n "$zero_dates" ]]; then
-      echo "Re-fetching zero-count records..."
-      while IFS= read -r day; do
-        fetch_day "$day"
-      done <<< "$zero_dates"
-    fi
-  fi
+  # Re-check last 7 days: re-fetch any day with 0 downloads or missing data
+  echo "Re-checking last 7 days for zeros or missing data..."
+  for i in $(seq 6 -1 1); do
+    day=$(date -u -d "${yesterday} -${i} days" +%Y-%m-%d 2>/dev/null \
+          || date -u -v-${i}d -jf "%Y-%m-%d" "$yesterday" +%Y-%m-%d)
+    fetch_day "$day"
+  done
 fi
 
 # Sort file by date ascending
