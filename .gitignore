@@ -29,6 +29,7 @@ Thumbs.db
 # MCP and Claude local config
 .mcp.json
 .claude/*.local.json
+.mcpregistry_*
 
 # Logs
 logs/
