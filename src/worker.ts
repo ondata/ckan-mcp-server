@@ -205,7 +205,7 @@ export default {
     <pre><code>curl ${url.origin}/health</code></pre>
 
     <div class="footer">
-      Version 0.4.50 • Running on Cloudflare Workers •<a href="https://github.com/ondata/ckan-mcp-server/blob/main/LICENSE" target="_blank">MIT License</a>
+      Running on Cloudflare Workers •<a href="https://github.com/ondata/ckan-mcp-server/blob/main/LICENSE" target="_blank">MIT License</a>
     </div>
   </div>
 </body>
