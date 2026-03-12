@@ -63,6 +63,66 @@ under these themes. The `hvd_category` field in the API response contains the
 
 ## Counting and filtering by sub-category
 
+**When querying data.europa.eu for counts or breakdowns, always prefer SPARQL (Option A).**
+The REST API requires downloading up to 500 records and filtering client-side; SPARQL returns
+server-side aggregates with no payload, no 500-record ceiling, and a single query.
+
+### Option A — SPARQL (preferred for category breakdown)
+
+The SPARQL endpoint on data.europa.eu supports server-side `COUNT(DISTINCT) + GROUP BY`,
+returning only aggregates — no payload download, no client-side filtering, no 500-record limit.
+
+**Country filtering via catalogue** (the only reliable method — `dct:spatial` does NOT work):
+
+```sparql
+PREFIX dcatap: <http://data.europa.eu/r5r/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+
+SELECT ?categoryLabel (COUNT(DISTINCT ?dataset) AS ?count)
+WHERE {
+  VALUES ?catalogue {
+    <http://data.europa.eu/88u/catalogue/dati-gov-it>
+    <http://data.europa.eu/88u/catalogue/rndt>
+  }
+  ?catalogue dcat:dataset ?dataset .
+  ?dataset dcatap:applicableLegislation <http://data.europa.eu/eli/reg_impl/2023/138/oj> ;
+           dcatap:hvdCategory ?category .
+  ?category skos:prefLabel ?categoryLabel .
+  FILTER(LANG(?categoryLabel) = "en")
+}
+GROUP BY ?categoryLabel
+ORDER BY DESC(?count)
+```
+
+**How to find catalogue URIs for a country** — query the triplestore:
+
+```sparql
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX dct: <http://purl.org/dc/terms/>
+
+SELECT ?catalogue ?title WHERE {
+  ?catalogue a dcat:Catalog ;
+             dct:title ?title ;
+             dct:spatial <http://publications.europa.eu/resource/authority/country/ITA> .
+  FILTER(LANG(?title) = "en" || LANG(?title) = "it" || LANG(?title) = "")
+}
+```
+
+Country URI pattern: `http://publications.europa.eu/resource/authority/country/{ISO3}` (e.g. `ITA`, `DEU`, `FRA`).
+
+**Known Italian catalogues** (verified):
+- `http://data.europa.eu/88u/catalogue/dati-gov-it` — dati.gov.it
+- `http://data.europa.eu/88u/catalogue/rndt` — Italian Catalogue of Spatial Data
+
+**SPARQL limitations**:
+- `dct:spatial` + `skos:exactMatch` on datasets does NOT work (spatial values are blank nodes)
+- Country filtering must go through the catalogue URI (see query above)
+- Use `sparql_query` tool or `curl` POST to `https://data.europa.eu/sparql`
+
+### Option B — REST API + jq (fallback, limited to 500 records)
+
 The API does not expose `hvd_category` as a facet filter — you must filter client-side
 with `jq` after fetching results. Use `limit=500` (max) and count matches:
 
@@ -79,7 +139,7 @@ curl -s "https://data.europa.eu/api/hub/search/search?q=&filter=dataset&facets=%
 **jq note**: always wrap jq expressions in single quotes in bash — the `//` alternative operator
 inside double quotes causes syntax errors.
 
-If total HVD count for a country exceeds 500, paginate with `&offset=N` and aggregate.
+If total HVD count for a country exceeds 500, use SPARQL (Option A) or paginate with `&offset=N`.
 
 **Interpreting category gaps**: if a country shows 0 datasets in a mandatory category, this may
 indicate either real non-compliance OR a harvesting/indexing gap on data.europa.eu. To confirm
@@ -123,6 +183,10 @@ minimal harvesting lag, not a structural gap.
 "How many HVD datasets does Italy have?"
 -> curl with is_hvd:true + country:it, limit=0 → read .result.count
 
+"How many Italian HVDs per category?"
+-> SPARQL (Option A): find Italian catalogue URIs, then COUNT(DISTINCT ?dataset) GROUP BY ?categoryLabel
+-> returns server-side aggregates, no payload download
+
 "Find Italian HVD datasets on geospatial data"
 -> curl with is_hvd:true + country:it, limit=500
 -> jq filter by hvd_category.id == "c_ac64a52d"
@@ -132,6 +196,5 @@ minimal harvesting lag, not a structural gap.
 -> jq group_by(.country[].id) | sort_by(-.count)
 
 "Are there HVD meteorological datasets in Germany?"
--> Two-step: find German catalogue ID, then search with is_hvd:true
--> jq filter by hvd_category.id == "c_164e0bf5"
+-> SPARQL (Option A): find German catalogue URI (ISO3: DEU), then COUNT with dcatap:hvdCategory filter
 ```
