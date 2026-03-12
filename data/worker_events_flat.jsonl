@@ -1,3 +1,4 @@
+{"id": "01KKF3FNVTKZ3YK60JC2XAFH3Q", "timestamp": "2026-03-11T18:45:27Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy min_datasets=1000", "error": null}
 {"id": "01KKEY72VT1J3XD00PFX7NVHFH", "timestamp": "2026-03-11T17:13:23Z", "outcome": "ok", "tool": "ckan_datastore_search_sql", "server": "https://bdap-opendata.rgs.mef.gov.it/SpodCkanApi", "query": "SELECT * FROM \"388717d4-5892-424c-84e9-b72229363744\" LIMIT 3", "error": null}
 {"id": "01KKEY6YYB4SJHCKGV6SYXMWT4", "timestamp": "2026-03-11T17:13:19Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://bdap-opendata.rgs.mef.gov.it", "query": null, "error": null}
 {"id": "01KKEY6RQWDNV1NYPPESTPJZCX", "timestamp": "2026-03-11T17:13:12Z", "outcome": "ok", "tool": "ckan_datastore_search_sql", "server": "https://www.dati.gov.it/opendata", "query": "SELECT * FROM \"23112912\" LIMIT 3", "error": null}
