@@ -137,5 +137,5 @@ standard for sensor observation data:
 - If `homepage` is absent, use `wikidataId` to find the resource on Wikidata and
   follow its "official website" or "described at URL" statements.
 - Use `category` filter to narrow to a domain and avoid off-topic ontologies.
-- Cross-check found ontologies against schema.gov.it (`mcp__schema-gov-it__*` tools)
-  if the dataset is for the Italian public administration context.
+- If the `mcp__schema-gov-it__*` tools are available, cross-check found ontologies
+  against schema.gov.it for the Italian public administration context.
