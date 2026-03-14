@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-03-14
+
+- fix(`worker.ts`): add OPTIONS preflight handler at `/mcp` — was returning 405, blocking CORS-based connectors (e.g. Dify)
+
 ## 2026-03-12
 
 - chore(`package.json`, `server.json`): fix mcpName to `io.github.aborruso/ckan-mcp-server` (ondata org not authorized); bump to v0.4.83

@@ -236,6 +236,19 @@ export default {
 
     // MCP protocol endpoint - delegate to transport
     if (url.pathname === '/mcp') {
+      // Handle CORS preflight
+      if (request.method === 'OPTIONS') {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization, Mcp-Session-Id',
+            'Access-Control-Max-Age': '86400'
+          }
+        });
+      }
+
       try {
         // Clone request to read body for logging without consuming it
         const clonedRequest = request.clone();
