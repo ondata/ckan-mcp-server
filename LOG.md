@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-03-15
+
+- security(`utils/http.ts`): add `validateServerUrl()` — blocks SSRF via private/loopback IPs, link-local, and non-HTTP/S protocols; 15 new tests
+
 ## 2026-03-14
 
 - fix(`worker.ts`): add OPTIONS preflight handler at `/mcp` — was returning 405, blocking CORS-based connectors (e.g. Dify)

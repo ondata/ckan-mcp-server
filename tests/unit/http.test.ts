@@ -1,10 +1,72 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { brotliCompressSync, deflateSync, gzipSync } from 'node:zlib';
 import axios from 'axios';
-import { makeCkanRequest } from '../../src/utils/http';
+import { makeCkanRequest, validateServerUrl } from '../../src/utils/http';
 import successResponse from '../fixtures/responses/status-success.json';
 
 vi.mock('axios');
+
+describe('validateServerUrl', () => {
+  it('allows valid http URL', () => {
+    expect(() => validateServerUrl('http://demo.ckan.org')).not.toThrow();
+  });
+
+  it('allows valid https URL', () => {
+    expect(() => validateServerUrl('https://dati.gov.it')).not.toThrow();
+  });
+
+  it('blocks non-http/s protocol (file://)', () => {
+    expect(() => validateServerUrl('file:///etc/passwd')).toThrow('Disallowed protocol');
+  });
+
+  it('blocks non-http/s protocol (ftp://)', () => {
+    expect(() => validateServerUrl('ftp://example.com')).toThrow('Disallowed protocol');
+  });
+
+  it('blocks localhost', () => {
+    expect(() => validateServerUrl('http://localhost/api')).toThrow('not allowed');
+  });
+
+  it('blocks loopback 127.0.0.1', () => {
+    expect(() => validateServerUrl('http://127.0.0.1')).toThrow('private/internal');
+  });
+
+  it('blocks loopback 127.x.x.x range', () => {
+    expect(() => validateServerUrl('http://127.0.0.2')).toThrow('private/internal');
+  });
+
+  it('blocks AWS metadata 169.254.169.254', () => {
+    expect(() => validateServerUrl('http://169.254.169.254/latest/meta-data/')).toThrow('private/internal');
+  });
+
+  it('blocks private class A (10.x.x.x)', () => {
+    expect(() => validateServerUrl('http://10.0.0.1')).toThrow('private/internal');
+  });
+
+  it('blocks private class B (172.16.x.x)', () => {
+    expect(() => validateServerUrl('http://172.16.0.1')).toThrow('private/internal');
+  });
+
+  it('blocks private class C (192.168.x.x)', () => {
+    expect(() => validateServerUrl('http://192.168.1.1')).toThrow('private/internal');
+  });
+
+  it('blocks IPv6 loopback ::1', () => {
+    expect(() => validateServerUrl('http://[::1]')).toThrow('private/internal');
+  });
+
+  it('blocks IPv6 unique local fc00::', () => {
+    expect(() => validateServerUrl('http://[fc00::1]')).toThrow('private/internal');
+  });
+
+  it('blocks IPv6 link-local fe80::', () => {
+    expect(() => validateServerUrl('http://[fe80::1]')).toThrow('private/internal');
+  });
+
+  it('throws on invalid URL', () => {
+    expect(() => validateServerUrl('not-a-url')).toThrow('Invalid URL');
+  });
+});
 
 describe('makeCkanRequest', () => {
   beforeEach(() => {

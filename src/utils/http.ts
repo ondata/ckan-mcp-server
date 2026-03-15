@@ -174,6 +174,63 @@ async function decodePossiblyCompressed(
 }
 
 /**
+ * Validate that a server URL is safe to request (SSRF prevention).
+ * Blocks non-HTTP/S protocols and private/internal IP ranges.
+ */
+export function validateServerUrl(serverUrl: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(serverUrl);
+  } catch {
+    throw new Error(`Invalid URL: ${serverUrl}`);
+  }
+
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error(`Disallowed protocol "${parsed.protocol}". Only http and https are allowed.`);
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+
+  if (hostname === 'localhost') {
+    throw new Error(`Access to "${hostname}" is not allowed.`);
+  }
+
+  // Block IPv4 private/special ranges
+  const ipv4 = hostname.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (ipv4) {
+    const [o1, o2] = ipv4.slice(1).map(Number);
+    const blocked =
+      o1 === 0 ||                              // 0.0.0.0/8
+      o1 === 10 ||                             // 10.0.0.0/8 private
+      o1 === 127 ||                            // 127.0.0.0/8 loopback
+      (o1 === 100 && o2 >= 64 && o2 <= 127) || // 100.64.0.0/10 shared
+      (o1 === 169 && o2 === 254) ||            // 169.254.0.0/16 link-local / AWS metadata
+      (o1 === 172 && o2 >= 16 && o2 <= 31) ||  // 172.16.0.0/12 private
+      (o1 === 192 && o2 === 168) ||            // 192.168.0.0/16 private
+      o1 === 255;                              // broadcast
+    if (blocked) {
+      throw new Error(`Access to private/internal IP addresses is not allowed.`);
+    }
+  }
+
+  // Block IPv6 private/loopback
+  if (hostname.startsWith('[')) {
+    const ipv6 = hostname.slice(1, -1);
+    const lower = ipv6.toLowerCase();
+    const blockedIpv6 =
+      lower === '::1' ||           // loopback
+      lower === '::' ||            // unspecified
+      lower.startsWith('fc') ||    // fc00::/7 unique local
+      lower.startsWith('fd') ||    // fd00::/8 unique local
+      lower.startsWith('fe80') ||  // fe80::/10 link-local
+      lower.startsWith('::ffff:'); // IPv4-mapped
+    if (blockedIpv6) {
+      throw new Error(`Access to private/internal IPv6 addresses is not allowed.`);
+    }
+  }
+}
+
+/**
  * Make HTTP request to CKAN API
  */
 export async function makeCkanRequest<T>(
@@ -184,6 +241,8 @@ export async function makeCkanRequest<T>(
   const isNode =
     typeof process !== "undefined" &&
     !!(process as { versions?: { node?: string } }).versions?.node;
+
+  validateServerUrl(serverUrl);
 
   let resolvedServerUrl = serverUrl;
   try {
