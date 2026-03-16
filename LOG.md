@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-03-16
+
+- security(`tools/sparql.ts`): apply `validateServerUrl()` to `sparql_query` — blocks SSRF via private IPs (gap from GHSA-3xm7-qw7j-qc8v); 1 new test
+
 ## 2026-03-15
 
 - security(`utils/http.ts`): add `validateServerUrl()` — blocks SSRF via private/loopback IPs, link-local, and non-HTTP/S protocols; 15 new tests
