@@ -61,6 +61,12 @@ describe('sparql_query', () => {
       ).rejects.toThrow('Only HTTPS endpoints are allowed');
     });
 
+    it('rejects private IP endpoints (SSRF prevention)', async () => {
+      await expect(
+        querySparqlEndpoint('https://169.254.169.254/sparql', 'SELECT * WHERE { }')
+      ).rejects.toThrow('private/internal');
+    });
+
     it('throws on HTTP error response', async () => {
       mockFetch({ error: 'bad query' }, false, 400);
 

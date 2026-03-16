@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ResponseFormatSchema, ResponseFormat, CHARACTER_LIMIT } from "../types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getSparqlConfig } from "../utils/portal-config.js";
+import { validateServerUrl } from "../utils/http.js";
 
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 1000;
@@ -44,6 +45,7 @@ export function injectLimit(query: string, limit: number): string {
 }
 
 export async function querySparqlEndpoint(endpointUrl: string, query: string): Promise<SparqlResults> {
+  validateServerUrl(endpointUrl);
   const url = new URL(endpointUrl);
   if (url.protocol !== "https:") {
     throw new Error("Only HTTPS endpoints are allowed");
