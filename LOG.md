@@ -2,6 +2,10 @@
 
 ## 2026-03-19
 
+### v0.4.89
+
+- fix(`tools/organization.ts`): `ckan_organization_search` lowercases pattern before Solr query — fixes case-sensitive search (e.g. "Roma" → no results)
+
 ### v0.4.88
 
 - fix(`tools/organization.ts`): `ckan_organization_search` now shows `view_url` in markdown table and JSON output; `ckan_organization_show` JSON includes `view_url` — all using `portals.json` custom patterns

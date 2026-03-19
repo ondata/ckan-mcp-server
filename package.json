@@ -1,6 +1,6 @@
 {
   "name": "@aborruso/ckan-mcp-server",
-  "version": "0.4.88",
+  "version": "0.4.89",
   "mcpName": "io.github.aborruso/ckan-mcp-server",
   "description": "MCP server for interacting with CKAN open data portals",
   "main": "dist/index.js",

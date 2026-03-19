@@ -389,8 +389,8 @@ Typical workflow: ckan_organization_search → ckan_organization_show (get detai
     },
     async (params) => {
       try {
-        // Build Solr query with wildcards
-        const query = `organization:*${params.pattern}*`;
+        // Build Solr query with wildcards (lowercase: Solr org names are always lowercase)
+        const query = `organization:*${params.pattern.toLowerCase()}*`;
 
         // Search using package_search with faceting
         const result = await makeCkanRequest<any>(
