@@ -1,5 +1,9 @@
 # LOG
 
+## 2026-03-19
+
+- evals(`evals/tool-selection`): tool selection eval pipeline — synthetic NL query generation (Gemini, 1583 records), train/eval split, fine-tuning Qwen2.5-0.5B with Unsloth on Colab T4; 86.3% accuracy on 8 tools; model published at huggingface.co/aborruso/ckan-tool-selector
+
 ## 2026-03-17
 
 - fix(`tools/sparql.ts`): add `; charset=utf-8` to POST Content-Type — fixes accented chars corruption in SPARQL queries (issue #22)
