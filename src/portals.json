@@ -7,7 +7,9 @@
       "api_url_aliases": [
         "https://dati.gov.it/opendata",
         "http://www.dati.gov.it/opendata",
-        "http://dati.gov.it/opendata"
+        "http://dati.gov.it/opendata",
+        "https://dati.gov.it",
+        "https://www.dati.gov.it"
       ],
       "search": {
         "force_text_field": true
