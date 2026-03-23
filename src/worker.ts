@@ -7,19 +7,6 @@
 import { createServer, registerAll } from "./server.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 
-// Create and configure MCP server (singleton for Workers)
-const server = createServer();
-registerAll(server);
-
-// Create transport (stateless mode for Workers)
-const transport = new WebStandardStreamableHTTPServerTransport({
-  sessionIdGenerator: undefined,  // Stateless mode
-  enableJsonResponse: true         // Use JSON instead of SSE for simplicity
-});
-
-// Connect server to transport
-await server.connect(transport);
-
 export default {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
@@ -221,7 +208,7 @@ export default {
     if (request.method === 'GET' && url.pathname === '/health') {
       return new Response(JSON.stringify({
         status: 'ok',
-        version: '0.4.90',
+        version: '0.4.91',
         tools: 20,
         resources: 7,
         prompts: 6,
@@ -250,6 +237,15 @@ export default {
       }
 
       try {
+        // Create server + transport per request (stateless mode requirement)
+        const server = createServer();
+        registerAll(server);
+        const transport = new WebStandardStreamableHTTPServerTransport({
+          sessionIdGenerator: undefined,  // Stateless mode
+          enableJsonResponse: true
+        });
+        await server.connect(transport);
+
         // Clone request to read body for logging without consuming it
         const clonedRequest = request.clone();
         try {
