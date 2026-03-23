@@ -2,6 +2,10 @@
 
 ## 2026-03-23
 
+### v0.4.92
+
+- fix(http): create server + transport per request — SDK 1.26.0 security fix enforces stateless transport cannot be reused across requests
+
 ### v0.4.91
 
 - fix(worker): create server + transport per request — SDK 1.27.1 enforces stateless transport cannot be reused across requests
