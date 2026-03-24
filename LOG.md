@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-03-24
+
+### v0.4.93
+
+- fix(worker): return 405 immediately for GET /mcp — prevents bot scanners from hanging the Worker and consuming CPU quota
+
 ## 2026-03-23
 
 ### v0.4.92

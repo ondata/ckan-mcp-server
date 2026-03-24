@@ -208,7 +208,7 @@ export default {
     if (request.method === 'GET' && url.pathname === '/health') {
       return new Response(JSON.stringify({
         status: 'ok',
-        version: '0.4.92',
+        version: '0.4.93',
         tools: 20,
         resources: 7,
         prompts: 6,
@@ -223,6 +223,17 @@ export default {
 
     // MCP protocol endpoint - delegate to transport
     if (url.pathname === '/mcp') {
+      // Reject non-POST requests immediately (bots/scanners sending GET)
+      if (request.method !== 'POST' && request.method !== 'OPTIONS') {
+        return new Response('Method Not Allowed', {
+          status: 405,
+          headers: {
+            'Allow': 'POST, OPTIONS',
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
+      }
+
       // Handle CORS preflight
       if (request.method === 'OPTIONS') {
         return new Response(null, {
