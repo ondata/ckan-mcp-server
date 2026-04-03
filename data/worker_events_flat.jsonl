@@ -3021,3 +3021,10 @@
 {"id": "01KN7FXGR922FY2JETT1RGYSX7", "timestamp": "2026-04-02T16:20:12Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://www.dati.gov.it/opendata", "query": null, "error": null}
 {"id": "01KN7FXR6VA3HK35MSJ7WDANHC", "timestamp": "2026-04-02T16:20:19Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "qualit\u00e0 aria centraline Bologna misurazioni", "error": null}
 {"id": "01KN7FY0W4RJCYVFV73GNB56WM", "timestamp": "2026-04-02T16:20:28Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://www.dati.gov.it/opendata", "query": "centraline-qualita-dellaria-misurazioni-giornaliere", "error": null}
+{"id": "01KN90BTNP9K5CMWH319CMGR1R", "timestamp": "2026-04-03T06:26:52Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://dati.anticorruzione.it/opendata", "query": null, "error": null}
+{"id": "01KN90C34RK5WGNRB9Y0ZWSY89", "timestamp": "2026-04-03T06:27:01Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://dati.anticorruzione.it/opendata", "query": "cup", "error": null}
+{"id": "01KN90CAGBNYPY0W472MWPESK1", "timestamp": "2026-04-03T06:27:08Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://dati.anticorruzione.it/opendata", "query": "aggiudicatari", "error": null}
+{"id": "01KN90CCB15XNGD5SZM5175GGS", "timestamp": "2026-04-03T06:27:10Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://dati.anticorruzione.it/opendata", "query": "aggiudicazioni", "error": null}
+{"id": "01KN9AP9MKV9KZQYWYT7S12A16", "timestamp": "2026-04-03T09:27:21Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=istruzione", "error": null}
+{"id": "01KNA48GEW9QBV63JNGR25PHYR", "timestamp": "2026-04-03T16:54:12Z", "outcome": "ok", "tool": "ckan_group_list", "server": "https://www.dati.gov.it/opendata", "query": null, "error": null}
+{"id": "01KNA48NJAA99J3TVT14RC1F4J", "timestamp": "2026-04-03T16:54:17Z", "outcome": "ok", "tool": "ckan_tag_list", "server": "https://www.dati.gov.it/opendata", "query": null, "error": null}
