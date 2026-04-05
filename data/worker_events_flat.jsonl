@@ -3063,3 +3063,6 @@
 {"id": "01KNCCHXAPCJG60P6V4S2CGZRK", "timestamp": "2026-04-04T13:57:38Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://bdap-opendata.rgs.mef.gov.it/SpodCkanApi", "query": "LEA", "error": null}
 {"id": "01KNCCJG97V1ZVFZ1NH2702EY9", "timestamp": "2026-04-04T13:57:57Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://bdap-opendata.rgs.mef.gov.it/SpodCkanApi", "query": "LEA", "error": null}
 {"id": "01KNCD29WHY5HY0RB7R0SY68RS", "timestamp": "2026-04-04T14:06:35Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://bdap-opendata.rgs.mef.gov.it/SpodCkanApi", "query": "d598ebd9-949d-4214-bb33-cd9c1be08f15", "error": null}
+{"id": "01KNCYXBVWHV2F820BGNNFA2G8", "timestamp": "2026-04-04T19:18:27Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://data.europa.eu/api/hub/search", "query": "electric vehicle registration share new cars Europe", "error": null}
+{"id": "01KNCZH7BVK25XN5W40C5T072J", "timestamp": "2026-04-04T19:29:18Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://dati.isprambiente.it/node", "query": null, "error": null}
+{"id": "01KND6AD886PSDWRVBRHKZXSQT", "timestamp": "2026-04-04T21:27:55Z", "outcome": "ok", "tool": "ckan_package_search", "server": "", "query": "ISPRA", "error": null}
