@@ -37,7 +37,7 @@ Hosted endpoint: `https://ckan-mcp-server.andy-pr.workers.dev/mcp`
 
 ## 🔌 Use it in your favorite tool
 
-[ChatGPT](#chatgpt) | [Claude Desktop](#claude-desktop) | [Claude Code](#claude-code) | [Le Chat (Mistral)](#le-chat-mistral) | [Gemini CLI](#gemini-cli) | [VS Code](#vs-code) | [Codex CLI](#codex-cli)
+[ChatGPT](#chatgpt) | [Claude Desktop](#claude-desktop) | [Claude Code](#claude-code) | [Le Chat (Mistral)](#le-chat-mistral) | [Perplexity Pro](#perplexity-pro) | [Gemini CLI](#gemini-cli) | [VS Code](#vs-code) | [Codex CLI](#codex-cli)
 
 This server works with any MCP-compatible client. The sections below cover some of the most popular ones — if your tool isn't listed, check its documentation for MCP configuration and use the same endpoint URL or command.
 
@@ -141,6 +141,22 @@ claude mcp add --transport http ckan https://ckan-mcp-server.andy-pr.workers.dev
 5. Open a new chat, click **+**, then **Connectors**, and enable **CKAN**
 
 > For a step-by-step walkthrough with screenshots, see the [full Le Chat guide](https://github.com/ondata/ckan-mcp-server/blob/main/docs/guide/mistral/mistral_web.md).
+
+### Perplexity Pro
+
+> Requires a Perplexity Pro account.
+
+1. Click the "+" (Attach) icon in the message input bar and select **Connectors & sources**
+2. Click **Connect external app**
+3. Fill in the details:
+   - **Name:** CKAN MCP Server
+   - **MCP Server URL:** `https://ckan-mcp-server.andy-pr.workers.dev/mcp`
+   - **Authorization Type:** No Authentication
+   - **Connection Type:** HTTP Streamable
+4. Check the confirmation box and click **Save**
+5. In a new chat, click **+** → **Connectors & sources** and enable **ckan_mcp_server**
+
+> For a step-by-step walkthrough with screenshots, see the [full Perplexity guide](https://github.com/ondata/ckan-mcp-server/blob/main/docs/guide/perplexity/perplexity.md).
 
 ### Gemini CLI
 
