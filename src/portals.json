@@ -143,6 +143,16 @@
       }
     },
     {
+      "id": "bdap-rgs-mef",
+      "name": "bdap-opendata.rgs.mef.gov.it",
+      "api_url": "https://bdap-opendata.rgs.mef.gov.it/SpodCkanApi",
+      "api_url_aliases": [
+        "http://bdap-opendata.rgs.mef.gov.it/SpodCkanApi"
+      ],
+      "dataset_view_url": "https://bdap-opendata.rgs.mef.gov.it/SpodCkanApi/dataset/{name}",
+      "organization_view_url": "https://bdap-opendata.rgs.mef.gov.it/SpodCkanApi/organization/{name}"
+    },
+    {
       "id": "govdata-de",
       "name": "govdata.de",
       "api_url": "https://ckan.govdata.de",
