@@ -40,7 +40,7 @@ Select **No Authentication** on *Authorization Type* and **HTTP Streamable** for
 Click "+" -> Connectors & sources.
 
 Enable CKAN MCP Server from the list **ckan_mcp_server**<br>
-![ckan_mcp_server](images/ckan_mcp_server.jpg)<br>
+![ckan_mcp_server](images/ckan_mcp_server.JPG)<br>
 You can now start asking questions in natural language.
 
 ## 4) Example Prompts
