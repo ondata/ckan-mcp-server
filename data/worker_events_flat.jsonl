@@ -3165,3 +3165,7 @@
 {"id": "01KNPNENJRADZQMTZSAZRV97JF", "timestamp": "2026-04-08T13:45:33Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://datosabiertos.navarra.es/", "query": "natural OR parque OR reserva OR bosque OR r\u00edo OR monta\u00f1a OR lago OR humedal OR paisaje OR ecolog\u00eda OR especie OR h\u00e1bitat", "error": null}
 {"id": "01KNPNRK81DAMYCY0J93N5HGPW", "timestamp": "2026-04-08T13:50:58Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://datosabiertos.navarra.es/", "query": "espacios-naturales", "error": null}
 {"id": "01KNPNRR7BWRT70TSJEDG1FATX", "timestamp": "2026-04-08T13:51:03Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://datosabiertos.navarra.es/", "query": "spasitnabiodiv_pol_reservasnat-xml", "error": null}
+{"id": "01KNQAZBF3969ADC51HHFPSJ01", "timestamp": "2026-04-08T20:01:40Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy", "error": null}
+{"id": "01KNRE128W412SWJCGPR0CJVR9", "timestamp": "2026-04-09T06:14:16Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Japan query=BODIK ODCS", "error": null}
+{"id": "01KNRE1QEZKPWWCSG0CAXQPZS4", "timestamp": "2026-04-09T06:14:31Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Japan language=ja", "error": null}
+{"id": "01KNRE2BZYWDHMG6X4DSQ9HRME", "timestamp": "2026-04-09T06:14:59Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://odcs.bodik.jp", "query": null, "error": null}
