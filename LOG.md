@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-04-09
+
+### v0.4.99
+
+- Fix `resolveSearchQuery`: `*:*` and fielded queries (e.g. `title:X`) are no longer wrapped in `text:(...)` when auto-detected parser override is "text" — `escapeSolrQuery` was turning `*:*` into `\*\:\*`, returning 0 results on portals like dati.comune.messina.it
+
 ## 2026-04-05
 
 - Fix `ckan_package_search`: quoted phrases (e.g. `"aree protette"`) now work inside `text:(...)` wrapping — removed `"` from `escapeSolrQuery` special chars so phrase queries are preserved

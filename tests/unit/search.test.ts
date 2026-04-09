@@ -46,14 +46,25 @@ describe('resolveSearchQuery', () => {
     expect(result.forcedTextField).toBe(false);
   });
 
-  it('forces text field when override is text', () => {
+  it('skips text wrapping for fielded queries even when override is text', () => {
     const result = resolveSearchQuery(
       'http://demo.ckan.org',
       'title:hotel OR title:alberghi',
       'text'
     );
 
-    expect(result.effectiveQuery).toBe('text:(title\\:hotel OR title\\:alberghi)');
+    expect(result.effectiveQuery).toBe('title:hotel OR title:alberghi');
+    expect(result.forcedTextField).toBe(false);
+  });
+
+  it('forces text field when override is text and query is plain', () => {
+    const result = resolveSearchQuery(
+      'http://demo.ckan.org',
+      'hotel OR alberghi',
+      'text'
+    );
+
+    expect(result.effectiveQuery).toBe('text:(hotel OR alberghi)');
     expect(result.forcedTextField).toBe(true);
   });
 

@@ -88,7 +88,8 @@ export function resolveSearchQuery(
   let forceTextField = false;
 
   if (parserOverride === "text") {
-    forceTextField = true;
+    const trimmedQuery = query.trim();
+    forceTextField = trimmedQuery !== DEFAULT_SEARCH_QUERY && !isFieldedQuery(trimmedQuery);
   } else if (parserOverride === "default") {
     forceTextField = false;
   } else if (portalForce) {
