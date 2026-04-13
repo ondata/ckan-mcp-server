@@ -177,7 +177,10 @@ export default {
       <li><code>ckan_tag_list</code> - List tags</li>
       <li><code>ckan_get_mqa_quality</code> - Get MQA quality metrics for dati.gov.it datasets</li>
       <li><code>ckan_get_mqa_quality_details</code> - Get detailed MQA quality reasons/flags</li>
+      <li><code>ckan_analyze_datasets</code> - Analyze datasets across a CKAN portal</li>
+      <li><code>ckan_catalog_stats</code> - Get catalog-level statistics</li>
       <li><code>ckan_find_portals</code> - Discover CKAN portals worldwide by country, language, or topic</li>
+      <li><code>sparql_query</code> - Execute SPARQL SELECT queries against any public HTTPS endpoint</li>
     </ul>
 
     <h2>📚 Resources</h2>
