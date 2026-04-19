@@ -3390,3 +3390,10 @@
 {"id": "01KPASEP08J1ZEKHTZGGSQQMCK", "timestamp": "2026-04-16T09:20:16Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://open.canada.ca/data/en", "query": null, "error": null}
 {"id": "01KPB8KDX7R1M9GJ5Q8X8SCYBX", "timestamp": "2026-04-16T13:45:01Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://gudang.lokadata.id", "query": "pdrb", "error": null}
 {"id": "01KPB9A5RPHB0KVS9RFX4AA7EZ", "timestamp": "2026-04-16T13:57:26Z", "outcome": "ok", "tool": "ckan_datastore_search_sql", "server": "https://gudang.lokadata.id", "query": "SELECT provinsi, MAX(Nilai) as PDRB_Terbaru FROM \"b86a095c-8aac-4b8f-86fc-7f8699f51352\" WHERE tahun = 2024 GROUP BY provinsi ORDER BY PDRB_Terbaru DESC LIMIT 10", "error": null}
+{"id": "01KPJM6YYTDB0DVNVZ9RYV8MSC", "timestamp": "2026-04-19T10:22:36Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://opencoesione.gov.it", "query": "progetti CUP finanziamenti", "error": null}
+{"id": "01KPJM777TX3597Q1727YECT4R", "timestamp": "2026-04-19T10:22:44Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://opencoesione.gov.it", "query": "progetti", "error": null}
+{"id": "01KPJM7J4R238M1TX0PXBYGC79", "timestamp": "2026-04-19T10:22:56Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://opencoesione.gov.it", "query": null, "error": null}
+{"id": "01KPJM7SWCPXPBNADX6M3SD296", "timestamp": "2026-04-19T10:23:04Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=coesione", "error": null}
+{"id": "01KPJM85X4Z33A7VTFQ43ABPYE", "timestamp": "2026-04-19T10:23:16Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://opencoesione.gov.it/opendata", "query": null, "error": null}
+{"id": "01KPJM895V4PX26A0YHYFB33MA", "timestamp": "2026-04-19T10:23:19Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy has_datastore=True", "error": null}
+{"id": "01KPJMBFZH4NG1AFHR025JFZ58", "timestamp": "2026-04-19T10:25:05Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it", "query": "B56C20000010006", "error": null}
