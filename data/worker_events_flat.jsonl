@@ -3397,3 +3397,4 @@
 {"id": "01KPJM85X4Z33A7VTFQ43ABPYE", "timestamp": "2026-04-19T10:23:16Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://opencoesione.gov.it/opendata", "query": null, "error": null}
 {"id": "01KPJM895V4PX26A0YHYFB33MA", "timestamp": "2026-04-19T10:23:19Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy has_datastore=True", "error": null}
 {"id": "01KPJMBFZH4NG1AFHR025JFZ58", "timestamp": "2026-04-19T10:25:05Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it", "query": "B56C20000010006", "error": null}
+{"id": "01KPKFRGE0MEB5ZXAK5EJ28WP7", "timestamp": "2026-04-19T18:24:03Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy language=it min_datasets=100", "error": null}
