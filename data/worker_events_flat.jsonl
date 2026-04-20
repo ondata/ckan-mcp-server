@@ -3398,3 +3398,7 @@
 {"id": "01KPJM895V4PX26A0YHYFB33MA", "timestamp": "2026-04-19T10:23:19Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy has_datastore=True", "error": null}
 {"id": "01KPJMBFZH4NG1AFHR025JFZ58", "timestamp": "2026-04-19T10:25:05Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it", "query": "B56C20000010006", "error": null}
 {"id": "01KPKFRGE0MEB5ZXAK5EJ28WP7", "timestamp": "2026-04-19T18:24:03Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy language=it min_datasets=100", "error": null}
+{"id": "01KPN006XCB1ZVA23MTAS0GG16", "timestamp": "2026-04-20T08:27:07Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.regione.sicilia.it/opendata", "query": "raccolta differenziata 2024 comuni", "error": null}
+{"id": "01KPN00DXTECV5Y3T823CF8ADF", "timestamp": "2026-04-20T08:27:14Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.regione.sicilia.it/opendata", "query": "raccolta differenziata", "error": null}
+{"id": "01KPN00K36E9TZMNQ6HST5GWXF", "timestamp": "2026-04-20T08:27:19Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "raccolta differenziata sicilia 2024", "error": null}
+{"id": "01KPN0E2PG2JKT1DFFTQC030KT", "timestamp": "2026-04-20T08:34:41Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://opencoesione.gov.it", "query": "programma regionale FESR 2021-2027 dotazione", "error": null}
