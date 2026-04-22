@@ -424,6 +424,8 @@ To test with Claude Desktop, add MCP configuration to config file.
 - **Caching**: Read-through cache in `makeCkanRequest`. Action-based TTL (metadata 300s, datastore 60s, status 3600s). Backend: Cloudflare Cache API on Workers, in-memory LRU on Node. Disable with `CKAN_CACHE_ENABLED=false`. Env vars: `CKAN_CACHE_TTL_DEFAULT`, `CKAN_CACHE_MAX_ENTRIES`, `CKAN_CACHE_MAX_ENTRY_BYTES`.
 - **No authentication**: Uses only public CKAN endpoints
 - **No WebSocket**: MCP over HTTP uses JSON responses (not SSE streaming in Workers)
+- **Domain allowlist**: Optional SSRF hardening via `CKAN_ALLOWED_DOMAINS=domain1.com,domain2.org`. If set, requests to unlisted domains are blocked. Default: no restriction (all public domains allowed). Enforced in `validateServerUrl()`.
+- **Audit logging**: Every `makeCkanRequest` call writes a JSON line to stderr (Node modes only; Workers use `console.log`). Fields: `ts`, `server`, `action`, `cache_hit`, plus relevant query params (`q`, `fq`, `sql` truncated to 200 chars, `id`, `rows`, `limit`).
 
 ### Adding New Tools
 

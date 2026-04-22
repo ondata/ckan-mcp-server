@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-04-22
+
+- Security: add optional domain allowlist (`CKAN_ALLOWED_DOMAINS` env var) in `validateServerUrl()`; blocks requests to unlisted public domains — CERT-AgID MCP recommendation
+- Security: add structured audit logging to stderr for all `makeCkanRequest` calls in Node modes (stdio + http); fields: `ts`, `server`, `action`, `cache_hit`, query params — CERT-AgID MCP recommendation
+- Tests: 8 new tests (4 allowlist, 3 audit log) → 383 total (377 pass, 6 skipped)
+
 ## 2026-04-14
 
 ### v0.4.102

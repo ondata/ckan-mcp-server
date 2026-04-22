@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest';
 import { brotliCompressSync, deflateSync, gzipSync } from 'node:zlib';
 import axios from 'axios';
 import { makeCkanRequest, validateServerUrl } from '../../src/utils/http';
@@ -357,5 +357,92 @@ describe('makeCkanRequest cache integration', () => {
     await makeCkanRequest('http://demo.ckan.org', 'status_show', {}, { cache: false });
 
     expect(vi.mocked(axios.get)).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('validateServerUrl — CKAN_ALLOWED_DOMAINS', () => {
+  const origEnv = process.env.CKAN_ALLOWED_DOMAINS;
+
+  afterEach(() => {
+    if (origEnv === undefined) delete process.env.CKAN_ALLOWED_DOMAINS;
+    else process.env.CKAN_ALLOWED_DOMAINS = origEnv;
+  });
+
+  it('allows any domain when env var is unset', () => {
+    delete process.env.CKAN_ALLOWED_DOMAINS;
+    expect(() => validateServerUrl('https://data.gov.uk')).not.toThrow();
+  });
+
+  it('allows domain present in the list', () => {
+    process.env.CKAN_ALLOWED_DOMAINS = 'dati.gov.it,demo.ckan.org';
+    expect(() => validateServerUrl('https://dati.gov.it')).not.toThrow();
+  });
+
+  it('blocks domain not in the list', () => {
+    process.env.CKAN_ALLOWED_DOMAINS = 'dati.gov.it';
+    expect(() => validateServerUrl('https://data.gov.uk')).toThrow('not in the allowed list');
+  });
+
+  it('ignores empty entries (trailing/leading commas)', () => {
+    process.env.CKAN_ALLOWED_DOMAINS = ',dati.gov.it,';
+    expect(() => validateServerUrl('https://dati.gov.it')).not.toThrow();
+  });
+});
+
+describe('audit logging', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    __resetCacheForTests();
+  });
+
+  it('writes JSON log to stderr after successful HTTP request', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: successResponse });
+    const writeSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    await makeCkanRequest('http://demo.ckan.org', 'package_search', { q: 'test', rows: 5 });
+
+    expect(writeSpy).toHaveBeenCalledOnce();
+    const line = String(writeSpy.mock.calls[0][0]).trim();
+    const log = JSON.parse(line);
+    expect(log).toMatchObject({
+      server: 'http://demo.ckan.org',
+      action: 'package_search',
+      q: 'test',
+      rows: 5,
+      cache_hit: false
+    });
+    expect(typeof log.ts).toBe('string');
+    writeSpy.mockRestore();
+  });
+
+  it('logs cache_hit=true when served from cache', async () => {
+    process.env.CKAN_CACHE_ENABLED = 'true';
+    vi.mocked(axios.get).mockResolvedValue({ data: successResponse });
+
+    // First call — cache miss
+    await makeCkanRequest('http://demo.ckan.org', 'status_show');
+
+    const writeSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    // Second call — cache hit
+    await makeCkanRequest('http://demo.ckan.org', 'status_show');
+
+    expect(writeSpy).toHaveBeenCalledOnce();
+    const log = JSON.parse(String(writeSpy.mock.calls[0][0]).trim());
+    expect(log.cache_hit).toBe(true);
+    writeSpy.mockRestore();
+    delete process.env.CKAN_CACHE_ENABLED;
+  });
+
+  it('truncates sql field to 200 chars in log', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: successResponse });
+    const writeSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    const longSql = 'SELECT * FROM "abc" WHERE ' + 'x=1 AND '.repeat(30);
+    await makeCkanRequest('http://demo.ckan.org', 'datastore_search_sql', { sql: longSql });
+
+    const log = JSON.parse(String(writeSpy.mock.calls[0][0]).trim());
+    expect((log.sql as string).length).toBeLessThanOrEqual(200);
+    writeSpy.mockRestore();
   });
 });

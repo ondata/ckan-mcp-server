@@ -250,6 +250,30 @@ export function validateServerUrl(serverUrl: string): void {
       throw new Error(`Access to private/internal IPv6 addresses is not allowed.`);
     }
   }
+
+  // Optional domain allowlist: CKAN_ALLOWED_DOMAINS=domain1.com,domain2.org
+  const rawAllowed = typeof process !== 'undefined' ? (process.env.CKAN_ALLOWED_DOMAINS ?? '') : '';
+  const allowedDomains = rawAllowed.split(',').map(s => s.trim()).filter(Boolean);
+  if (allowedDomains.length > 0 && !allowedDomains.includes(hostname)) {
+    throw new Error(`Domain "${hostname}" is not in the allowed list (CKAN_ALLOWED_DOMAINS).`);
+  }
+}
+
+function auditLog(serverUrl: string, action: string, params: Record<string, any>, cacheHit: boolean): void {
+  if (typeof process === 'undefined' || !(process as { versions?: { node?: string } }).versions?.node) return;
+  const entry: Record<string, unknown> = {
+    ts: new Date().toISOString(),
+    server: serverUrl,
+    action,
+    cache_hit: cacheHit
+  };
+  if (params.q !== undefined)    entry.q    = params.q;
+  if (params.fq !== undefined)   entry.fq   = params.fq;
+  if (params.sql !== undefined)  entry.sql  = String(params.sql).slice(0, 200);
+  if (params.id !== undefined)   entry.id   = params.id;
+  if (params.rows !== undefined) entry.rows = params.rows;
+  if (params.limit !== undefined) entry.limit = params.limit;
+  try { process.stderr.write(JSON.stringify(entry) + '\n'); } catch { /* ignore */ }
 }
 
 /**
@@ -295,6 +319,7 @@ export async function makeCkanRequest<T>(
     const cached = await cache.get(cacheKey);
     if (cached !== undefined) {
       _lastCacheHit = true;
+      auditLog(serverUrl, action, params, true);
       return cached as T;
     }
   }
@@ -385,6 +410,7 @@ export async function makeCkanRequest<T>(
           // Non-serializable payload: skip caching silently.
         }
       }
+      auditLog(serverUrl, action, params, false);
       return result;
     } else {
       throw new Error(
