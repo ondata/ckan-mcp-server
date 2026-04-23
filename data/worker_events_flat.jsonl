@@ -3415,3 +3415,4 @@
 {"id": "01KPTW3TRDD46A0NBP09RE0EFX", "timestamp": "2026-04-22T15:14:37Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "aziende obbligate OR prospetto informativo OR collocamento mirato Milano", "error": null}
 {"id": "01KPTW49D294VM1SAZ791TC6WG", "timestamp": "2026-04-22T15:14:52Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.comune.milano.it", "query": "legge 68 OR collocamento mirato OR disabilit\u00e0 lavoro", "error": null}
 {"id": "01KPTW4ZK4196TV8X69YM8BNJA", "timestamp": "2026-04-22T15:15:15Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.lombardia.it/", "query": "prospetto informativo OR aziende obbligate OR collocamento obbligatorio", "error": null}
+{"id": "01KPVSTC3N3VEMMC8X3MZVKP81", "timestamp": "2026-04-22T23:53:45Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": null, "error": null}
