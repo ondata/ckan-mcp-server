@@ -3426,3 +3426,24 @@
 {"id": "01KPWQP07ATKC1EVWEK7W260X2", "timestamp": "2026-04-23T08:35:39Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://dati.gov.it/opendata", "query": "6c507e5e-18c0-4a25-9537-76a86c0f6511", "error": null}
 {"id": "01KPWR2ZMVH3TBHFV6W2S2D90Q", "timestamp": "2026-04-23T08:42:44Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "retribuzione provincia lavoratori dipendenti INPS", "error": null}
 {"id": "01KPWR339A99V3S4D7DC47E2HT", "timestamp": "2026-04-23T08:42:48Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "INPS lavoratori dipendenti retribuzione provincia anno settore privato non agricolo", "error": null}
+{"id": "01KPZ9ZD0CEVR9VHZ7V5VMYX76", "timestamp": "2026-04-24T08:33:50Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://dati.gov.it", "query": null, "error": null}
+{"id": "01KPZA2RP9RMR56N8MX17SRSXX", "timestamp": "2026-04-24T08:35:40Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it", "query": "*:*", "error": null}
+{"id": "01KPZA2WR75MY495GYP83RFVEY", "timestamp": "2026-04-24T08:35:45Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it", "query": "2025", "error": null}
+{"id": "01KPZA3BR9A18YPZMFBTV84CE2", "timestamp": "2026-04-24T08:36:00Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it", "query": "*:*", "error": null}
+{"id": "01KPZA9R6QKYKJPNB5RCSBRRVS", "timestamp": "2026-04-24T08:39:29Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it", "query": "Ariccia", "error": null}
+{"id": "01KPZA9VF91QEQM3ECD55NX3NQ", "timestamp": "2026-04-24T08:39:33Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it", "query": "\"Santarcangelo di Romagna\"", "error": null}
+{"id": "01KPZAA00P98SRDTK8EV204V4M", "timestamp": "2026-04-24T08:39:37Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it", "query": "*:*", "error": null}
+{"id": "01KPZAA38ZB4N9YNDC2Z92FWBN", "timestamp": "2026-04-24T08:39:41Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it", "query": "*:*", "error": null}
+{"id": "01KPZAAE8J527HTEA2YXPEXMCV", "timestamp": "2026-04-24T08:39:52Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it", "query": "ariccia", "error": null}
+{"id": "01KPZAAJPXRVJN9C2Y4HVWGMF3", "timestamp": "2026-04-24T08:39:56Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it", "query": "santarcangelo", "error": null}
+{"id": "01KPZAAZKG3X0XCJ6S8N9ZTXEG", "timestamp": "2026-04-24T08:40:10Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it", "query": "Ariccia", "error": null}
+{"id": "01KPZAB2WWQX8BHTNB74041W9J", "timestamp": "2026-04-24T08:40:13Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it", "query": "Santarcangelo di Romagna", "error": null}
+{"id": "01KPZDZ6WRC7BZGX6RMQEXE7N7", "timestamp": "2026-04-24T09:43:38Z", "outcome": "ok", "tool": "ckan_organization_search", "server": "https://dati.gov.it", "query": "ariccia", "error": null}
+{"id": "01KPZDZE926GRGK1PR5H1J6SA7", "timestamp": "2026-04-24T09:43:46Z", "outcome": "ok", "tool": "ckan_organization_search", "server": "https://dati.gov.it", "query": "santarcangelo", "error": null}
+{"id": "01KPZE0066BZH1WQ9AG975YWSE", "timestamp": "2026-04-24T09:44:04Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it", "query": "frascati", "error": null}
+{"id": "01KPZEBJNN08NT5XAEM84ZG9E6", "timestamp": "2026-04-24T09:50:23Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy", "error": null}
+{"id": "01KPZECA5QZ93XB5T34BXHGCWH", "timestamp": "2026-04-24T09:50:47Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.lazio.it", "query": "ariccia", "error": null}
+{"id": "01KPZECGPWBJQJ04R0PY5QZKM1", "timestamp": "2026-04-24T09:50:54Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://opendata.cittametropolitanaroma.it", "query": "ariccia", "error": null}
+{"id": "01KPZECVPXGH2DEEY4Q9DBSTKR", "timestamp": "2026-04-24T09:51:05Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.emilia-romagna.it", "query": "santarcangelo", "error": null}
+{"id": "01KPZED80BPK0M3Z8FWA0GBZ46", "timestamp": "2026-04-24T09:51:18Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.arpae.it", "query": "santarcangelo", "error": null}
+{"id": "01KPZEHWTK8D43XHH6YTYF33Y4", "timestamp": "2026-04-24T09:53:50Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://opendata.cittametropolitanaroma.it", "query": "mosaico-prg-piano-regolatore-generale", "error": null}
