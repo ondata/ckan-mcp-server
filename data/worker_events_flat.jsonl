@@ -3447,3 +3447,9 @@
 {"id": "01KPZECVPXGH2DEEY4Q9DBSTKR", "timestamp": "2026-04-24T09:51:05Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.emilia-romagna.it", "query": "santarcangelo", "error": null}
 {"id": "01KPZED80BPK0M3Z8FWA0GBZ46", "timestamp": "2026-04-24T09:51:18Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.arpae.it", "query": "santarcangelo", "error": null}
 {"id": "01KPZEHWTK8D43XHH6YTYF33Y4", "timestamp": "2026-04-24T09:53:50Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://opendata.cittametropolitanaroma.it", "query": "mosaico-prg-piano-regolatore-generale", "error": null}
+{"id": "01KQ7AG8V1FBXDDFS73VG62NYC", "timestamp": "2026-04-27T11:16:58Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://datos.tenerife.es/api/3", "query": "*:*", "error": null}
+{"id": "01KQ7AHY8VZVTMSVRM1TT0C4HD", "timestamp": "2026-04-27T11:17:53Z", "outcome": "ok", "tool": "ckan_group_list", "server": "https://datos.tenerife.es/api/3", "query": null, "error": null}
+{"id": "01KQ7YPB8CJWN0CFN4X984VBW9", "timestamp": "2026-04-27T17:09:49Z", "outcome": "ok", "tool": "ckan_analyze_datasets", "server": "https://dati.istat.it", "query": "coltivazioni agricole", "error": null}
+{"id": "01KQ7YPTVFM7R3FSZBF6QTGJ8K", "timestamp": "2026-04-27T17:10:05Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=istat language=it", "error": null}
+{"id": "01KQ7YQ4SM2BZVSY0Q3EN055P4", "timestamp": "2026-04-27T17:10:15Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy language=it min_datasets=100", "error": null}
+{"id": "01KQ7YQC5AAWRMGAQZP5A8VPD3", "timestamp": "2026-04-27T17:10:23Z", "outcome": "ok", "tool": "ckan_analyze_datasets", "server": "https://dati.toscana.it", "query": "agricoltura coltivazioni", "error": null}
