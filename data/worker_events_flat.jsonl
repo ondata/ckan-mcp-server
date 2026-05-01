@@ -3480,3 +3480,17 @@
 {"id": "01KQD0Z2NRRGWVWWRSR2T6YV31", "timestamp": "2026-04-29T16:25:44Z", "outcome": "ok", "tool": "ckan_tag_list", "server": "https://dati.gov.it/opendata", "query": null, "error": null}
 {"id": "01KQD12XBMD2FVG1B4V2Z7ZDXT", "timestamp": "2026-04-29T16:27:50Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "Farmacia", "error": null}
 {"id": "01KQD136G32BG1Y55JCMGXJ8ZK", "timestamp": "2026-04-29T16:27:59Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "Farmacia", "error": null}
+{"id": "01KQGS7PA2SGABXT7RR2C1J4Z1", "timestamp": "2026-05-01T03:27:36Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org/", "query": "air quality", "error": null}
+{"id": "01KQGTNSNB07S2Y24BTGHWWXY1", "timestamp": "2026-05-01T03:52:47Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.wprdc.org/", "query": null, "error": null}
+{"id": "01KQGTP7RXETNQ6Y1JYZZNPT8J", "timestamp": "2026-05-01T03:53:01Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://data.wprdc.org/", "query": null, "error": null}
+{"id": "01KQGV6TDQZ23CE4DWK6077ASX", "timestamp": "2026-05-01T04:02:04Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org/", "query": null, "error": null}
+{"id": "01KQGV8GGGTG0C0Z0ARZVCBEVW", "timestamp": "2026-05-01T04:03:00Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org/", "query": null, "error": null}
+{"id": "01KQGV8QNP70HRA7GJSG9JC91R", "timestamp": "2026-05-01T04:03:07Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org/", "query": null, "error": null}
+{"id": "01KQGV8ZRRH3ZJJTKM8DTEX3HG", "timestamp": "2026-05-01T04:03:15Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org/", "query": null, "error": null}
+{"id": "01KQGV98EA7GSCEE26MPT6NSB0", "timestamp": "2026-05-01T04:03:24Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org/", "query": null, "error": null}
+{"id": "01KQGVD1SD0JDT4G164Y6HDP1P", "timestamp": "2026-05-01T04:05:29Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.wprdc.org/", "query": null, "error": null}
+{"id": "01KQGVD9XW3D1S79BXZSZ40PQN", "timestamp": "2026-05-01T04:05:37Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://data.wprdc.org/", "query": null, "error": null}
+{"id": "01KQGVDPTKMJ8RBHCJKPMMJHH2", "timestamp": "2026-05-01T04:05:50Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org/", "query": null, "error": null}
+{"id": "01KQGVDZH9C7GBN95BW3N11YXB", "timestamp": "2026-05-01T04:05:59Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org/", "query": null, "error": null}
+{"id": "01KQGVE092KSVXPS0W35537XP1", "timestamp": "2026-05-01T04:06:00Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org/", "query": null, "error": null}
+{"id": "01KQGVE87PX011R9HFK7SY3H4A", "timestamp": "2026-05-01T04:06:08Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org/", "query": null, "error": null}
