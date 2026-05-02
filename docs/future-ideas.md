@@ -12,12 +12,34 @@ design tools around the real questions users want to answer.
 
 ### Examples of user journey tools for CKAN
 
-- "Which Italian portals have the best data quality on environment topics?" → multi-portal composite tool
-- "What comparable datasets exist on topic X across multiple portals?" → cross-portal search + dedup
-- "How fresh is the data published by organization Y?" → freshness audit tool
-- "What is the thematic coverage of a portal?" → catalog overview / topic map
-- "Find the most downloaded datasets in the last 6 months on topic Z" → trend tool
-- "Are there datasets from city X on topic Y that I can join with national data?" → join-readiness check
+Standard CKAN API always exposes: metadata, organizations, groups, tags, facets, resource formats,
+`metadata_modified`, declared update frequency. DataStore (schema + row queries) is optional and
+often absent (e.g., dati.gov.it). Download counts are not available in CKAN core.
+
+**High applicability** (standard CKAN API is sufficient):
+
+- "How fresh is the data published by organization Y?" → compare `metadata_modified` against
+  declared frequency for every dataset in an org; flag stale ones
+- "What is the thematic coverage of a portal?" → aggregate groups, tags, facets into a topic map
+- "Which organizations are most active on topic X?" → faceted search by theme + org ranking
+- "Find all machine-readable datasets on topic X" → filter by format (CSV, JSON, GeoJSON, XLSX)
+  and rank by recency
+
+**Partial applicability** (requires DataStore, not always available):
+
+- "Can I query this dataset directly?" → check `datastore_active` flag on resources, return
+  schema + sample rows when available
+- "Are datasets from city X and national level compatible for joining?" → compare DataStore
+  schemas for field overlap; only works when both have DataStore enabled
+
+**Cross-portal** (feasible, requires querying multiple portals):
+
+- "What comparable datasets exist on topic X across multiple portals?" → parallel search on
+  known portals, deduplicate by title similarity; no native CKAN dedup signal
+
+**Not applicable** (data not in standard CKAN API):
+
+- "Most downloaded datasets" → CKAN does not expose download counts via API
 
 ### Principle
 
