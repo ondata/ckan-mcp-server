@@ -3494,3 +3494,6 @@
 {"id": "01KQGVDZH9C7GBN95BW3N11YXB", "timestamp": "2026-05-01T04:05:59Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org/", "query": null, "error": null}
 {"id": "01KQGVE092KSVXPS0W35537XP1", "timestamp": "2026-05-01T04:06:00Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org/", "query": null, "error": null}
 {"id": "01KQGVE87PX011R9HFK7SY3H4A", "timestamp": "2026-05-01T04:06:08Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org/", "query": null, "error": null}
+{"id": "01KQKBBP4HMG65GVYDPDEJ0DVS", "timestamp": "2026-05-02T03:22:50Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://data.wprdc.org", "query": "real-estate-sales", "error": null}
+{"id": "01KQKCG5ASTZ6N99NRR2BEMC4A", "timestamp": "2026-05-02T03:42:45Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://data.wprdc.org", "query": "allegheny-county-911-dispatches-ems-and-fire", "error": null}
+{"id": "01KQKCNC2KP5RNXJP3Q3M6DAHQ", "timestamp": "2026-05-02T03:45:36Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org", "query": null, "error": null}
