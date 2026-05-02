@@ -2,6 +2,29 @@
 
 Ideas and enhancements for CKAN MCP Server, collected from analysis and external inspiration.
 
+## Beyond 1:1 API Mapping — User Journey Tools (2026-05-02)
+
+Source: David Soria Parra (MCP co-creator) at AI Engineer summit.
+
+The core insight: MCP servers should be **products**, not REST wrappers.
+Instead of exposing low-level API calls (e.g., `organization_list`, `tag_list`),
+design tools around the real questions users want to answer.
+
+### Examples of user journey tools for CKAN
+
+- "Which Italian portals have the best data quality on environment topics?" → multi-portal composite tool
+- "What comparable datasets exist on topic X across multiple portals?" → cross-portal search + dedup
+- "How fresh is the data published by organization Y?" → freshness audit tool
+- "What is the thematic coverage of a portal?" → catalog overview / topic map
+- "Find the most downloaded datasets in the last 6 months on topic Z" → trend tool
+- "Are there datasets from city X on topic Y that I can join with national data?" → join-readiness check
+
+### Principle
+
+Each tool should answer a question a data analyst would actually ask,
+not mirror a single CKAN API endpoint. Tools can internally call multiple
+CKAN endpoints and synthesize the result.
+
 ## From Data.gov MCP Server Analysis (2026-01-08)
 
 Source: https://skywork.ai/skypage/en/unlocking-government-data-mcp-server/
