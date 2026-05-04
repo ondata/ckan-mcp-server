@@ -3570,3 +3570,74 @@
 {"id": "01KQRDA7A8DYK6DBNJW2F3M5QB", "timestamp": "2026-05-04T02:33:11Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://open.canada.ca/data", "query": "building permit", "error": null}
 {"id": "01KQRDMTE41XAP91TNHBEEM34B", "timestamp": "2026-05-04T02:38:59Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://open.canada.ca/data", "query": null, "error": null}
 {"id": "01KQRDRXH93DBQBNYXC921D0N7", "timestamp": "2026-05-04T02:41:13Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://open.canada.ca/data", "query": null, "error": null}
+{"id": "01KQS3YT45AWM3SNSJVZCQG0QJ", "timestamp": "2026-05-04T09:08:55Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy min_datasets=500", "error": null}
+{"id": "01KQS447J2EC5STC99YS7CDT81", "timestamp": "2026-05-04T09:11:52Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy language=it min_datasets=100", "error": null}
+{"id": "01KQS45BCZMXAGF423W9N7Q9RC", "timestamp": "2026-05-04T09:12:29Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy language=it min_datasets=100", "error": null}
+{"id": "01KQS4EB3VB4BH3Q9DK58DKHYX", "timestamp": "2026-05-04T09:17:23Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "comuni confini limiti shapefile", "error": null}
+{"id": "01KQS4EQ74EC4MFVN1Q701M33G", "timestamp": "2026-05-04T09:17:36Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "comuni OR confini OR limiti amministrativi", "error": null}
+{"id": "01KQS4F0SEM3AXX4X683FB9J84", "timestamp": "2026-05-04T09:17:46Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "strade viabilit\u00e0 rete stradale", "error": null}
+{"id": "01KQS4FB2QSENKX3ER960H452J", "timestamp": "2026-05-04T09:17:56Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "scuole OR ospedali OR monumenti OR punti interesse", "error": null}
+{"id": "01KQS4FW4JAJSTM70M4YSCN64V", "timestamp": "2026-05-04T09:18:14Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "fiumi OR corsi acqua OR idrografia", "error": null}
+{"id": "01KQS4G8GKS67C25K6YER1D8NZ", "timestamp": "2026-05-04T09:18:26Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.trentino.it/", "query": "confini comuni limiti comunali", "error": null}
+{"id": "01KQS4GFNNKQJRM1EV293QA8RA", "timestamp": "2026-05-04T09:18:34Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.trentino.it/", "query": "confini OR comuni OR shapefile OR geojson", "error": null}
+{"id": "01KQS4GXQS41ZTWXKKANFVAMR6", "timestamp": "2026-05-04T09:18:48Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "comuni confini limiti amministrativi", "error": null}
+{"id": "01KQS4H6AFCTCJJ0M3BVE62HMS", "timestamp": "2026-05-04T09:18:57Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "comuni OR confini OR shapefile OR limiti", "error": null}
+{"id": "01KQS4HFERJ1QC1TG179B01960", "timestamp": "2026-05-04T09:19:06Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "strade OR viabilit\u00e0 OR rete stradale", "error": null}
+{"id": "01KQS4HS6MRGM0VTRYWCTQ066W", "timestamp": "2026-05-04T09:19:16Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "scuole OR ospedali OR farmacie OR musei OR punti di interesse", "error": null}
+{"id": "01KQS4J766SY6AEKGGKA2BEM91", "timestamp": "2026-05-04T09:19:31Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "capoluoghi OR sedi comunali OR municipi OR localita", "error": null}
+{"id": "01KQS4JGG62H0S41P8528W5BQ8", "timestamp": "2026-05-04T09:19:40Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "fiumi OR corsi acqua OR idrografia OR reticolo idrografico", "error": null}
+{"id": "01KQS4JT22HYHKYH602QYB8W48", "timestamp": "2026-05-04T09:19:50Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "*:*", "error": null}
+{"id": "01KQS4ZCF423M0HY4JW6PJJZ85", "timestamp": "2026-05-04T09:26:42Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "comuni confini shapefile", "error": null}
+{"id": "01KQS4ZMP5TFHE9G1YHSEAV2TD", "timestamp": "2026-05-04T09:26:50Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "comuni OR confini OR limiti amministrativi", "error": null}
+{"id": "01KQS50181471PRAN6KKBS1AKV", "timestamp": "2026-05-04T09:27:03Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "strade OR viabilit\u00e0 OR rete stradale", "error": null}
+{"id": "01KQS509RPPQEX2GYXCD77WPY8", "timestamp": "2026-05-04T09:27:12Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "scuole OR farmacie OR ospedali OR punti interesse", "error": null}
+{"id": "01KQS514QJBWWDDYZ1BXPSWJ4S", "timestamp": "2026-05-04T09:27:40Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "farmacie", "error": null}
+{"id": "01KQS5D90Q33YKTA4JZ2ZAFND4", "timestamp": "2026-05-04T09:34:17Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://dati.toscana.it/", "query": "limiti-amministrativi-comunali-citta-metropolitana-di-firenze", "error": null}
+{"id": "01KQS5DFVTW87JMEZWA0SDGTQ4", "timestamp": "2026-05-04T09:34:24Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://dati.toscana.it/", "query": "farmacie", "error": null}
+{"id": "01KQS5DQFBTZ237XEH1QCN675S", "timestamp": "2026-05-04T09:34:32Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "musei OR biblioteche OR monumenti", "error": null}
+{"id": "01KQS5E09VZECKXTYDC36D8E5Y", "timestamp": "2026-05-04T09:34:41Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://dati.toscana.it/", "query": "turismo-luoghi-di-interesse-citta-metropolitana-di-firenze", "error": null}
+{"id": "01KQS5R5MYRRZ4TKKTXKJZD3S0", "timestamp": "2026-05-04T09:40:14Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy language=it min_datasets=100", "error": null}
+{"id": "01KQS5RH62E0NE0T5C3ZPFKM94", "timestamp": "2026-05-04T09:40:26Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=Lombardia", "error": null}
+{"id": "01KQS5SVJ5KQRPY24T7NT09HVE", "timestamp": "2026-05-04T09:41:09Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy min_datasets=100", "error": null}
+{"id": "01KQS61N9AC7BK50QZB2J6M7ME", "timestamp": "2026-05-04T09:45:25Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=lombardia", "error": null}
+{"id": "01KQS620FJD71N1Z8J9K9Z6J9G", "timestamp": "2026-05-04T09:45:37Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=regione", "error": null}
+{"id": "01KQS941V4G42ARM0A95QZA45H", "timestamp": "2026-05-04T10:39:09Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://open.canada.ca/data", "query": "grants", "error": null}
+{"id": "01KQSK4VJXPJMHNJCDZBKCSJMG", "timestamp": "2026-05-04T13:34:21Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSK503XSMGVGJXSNR3NCYR3", "timestamp": "2026-05-04T13:34:26Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSK544W70B8DNMGWHE62KQV", "timestamp": "2026-05-04T13:34:30Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSK59A895X81XKR3C7YNAS1", "timestamp": "2026-05-04T13:34:35Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
+{"id": "01KQSK5E78TEX3484CCE57YCZB", "timestamp": "2026-05-04T13:34:40Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQSK687EY2ZD1ZS8SGN1C9NK", "timestamp": "2026-05-04T13:35:07Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQSKDH1BYTWZRBQZJE01BRF2", "timestamp": "2026-05-04T13:39:05Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSKDN4KCK9FNWRGVDYXFBVA", "timestamp": "2026-05-04T13:39:10Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSKDT2R5ERMNCGTPHVNB469", "timestamp": "2026-05-04T13:39:15Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSKE6T6RJNEFPTY1ZA6GPS4", "timestamp": "2026-05-04T13:39:28Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQSKEBM6YY7K8FY7720TEN4B", "timestamp": "2026-05-04T13:39:33Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSKEJD4AMHFC90HP7XHTCQX", "timestamp": "2026-05-04T13:39:40Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQSKEQB2EBTZK14A7C16XD4E", "timestamp": "2026-05-04T13:39:45Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSKEYZ0D46PTBPQV5R58Y4Q", "timestamp": "2026-05-04T13:39:52Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQSKF62CV1VW4TH01KKNSR88", "timestamp": "2026-05-04T13:40:00Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQSKFARZ13JY3GRJF20M4SVM", "timestamp": "2026-05-04T13:40:05Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
+{"id": "01KQSKFG0BX042EG4Y0V1WA791", "timestamp": "2026-05-04T13:40:10Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQSKFQ5XDJCQ8654CH8QAF5G", "timestamp": "2026-05-04T13:40:17Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQSKFZ0AWAYMQGFE8TYJE5HZ", "timestamp": "2026-05-04T13:40:25Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQSKN32BY7FWAVFEEK3R1CHT", "timestamp": "2026-05-04T13:43:13Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQSM09AVNTCDENBF8H8KTE1Y", "timestamp": "2026-05-04T13:49:20Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSM0P3B2RX3E8BPPSFJFP82", "timestamp": "2026-05-04T13:49:33Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSM0TDV9RSA0MS676H847Q9", "timestamp": "2026-05-04T13:49:38Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSM0YQZM60DMP10PG98XQMA", "timestamp": "2026-05-04T13:49:42Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSM140N9TEVK5V5CK3P6E6X", "timestamp": "2026-05-04T13:49:47Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSM17YKHNAXM50GV9FPFJZ3", "timestamp": "2026-05-04T13:49:51Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSM1C4Z9MF2BZHT0VYT3MAT", "timestamp": "2026-05-04T13:49:56Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQSM1KM9E5APN87MDAAZEGW7", "timestamp": "2026-05-04T13:50:03Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQSM1ZDW0639CZRVAA37GDBK", "timestamp": "2026-05-04T13:50:15Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSM24ARKXCZKZEQKJ316H1S", "timestamp": "2026-05-04T13:50:21Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQSM2E29H0KGWSENYE9YZRT1", "timestamp": "2026-05-04T13:50:30Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSM2JA4918KTTT3QRE6BR28", "timestamp": "2026-05-04T13:50:35Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQSM2PEWY7Z4M7MH9K5F4BFZ", "timestamp": "2026-05-04T13:50:39Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSM2TEHAYM6BNBSXZKMRKME", "timestamp": "2026-05-04T13:50:43Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQSM2ZNJKDDJ30BSN1PS1B9K", "timestamp": "2026-05-04T13:50:49Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQSM378NH0APT433H5KZTVD9", "timestamp": "2026-05-04T13:50:56Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQSM3CF2Z2JNN086GSNH7YZK", "timestamp": "2026-05-04T13:51:02Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQSM3K2WH7GDNKBTZPX74C94", "timestamp": "2026-05-04T13:51:08Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQSYDMHS970GA9TTZB5KAG6T", "timestamp": "2026-05-04T16:51:23Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": null, "error": null}
