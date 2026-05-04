@@ -3566,3 +3566,7 @@
 {"id": "01KQPH71BEE6GFP4DDQHHNAA8M", "timestamp": "2026-05-03T09:02:52Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://dati.gov.it/opendata", "query": "volumi-invasati-nelle-dighe", "error": null}
 {"id": "01KQPH8WDH9NZ1V9D2710G34NV", "timestamp": "2026-05-03T09:03:53Z", "outcome": "ok", "tool": "ckan_datastore_search_sql", "server": "https://dati.gov.it/opendata", "query": "SELECT * FROM \"fa7a69b2-5b7f-4e93-9fe4-f75cd7bdbeea\" LIMIT 20", "error": null}
 {"id": "01KQQ65NJ2XA1XE8VEGKMW3JWM", "timestamp": "2026-05-03T15:09:08Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://dati.gov.it", "query": null, "error": null}
+{"id": "01KQRDA0G3MM0Z4FFPARCH462S", "timestamp": "2026-05-04T02:33:04Z", "outcome": "ok", "tool": "ckan_package_search", "server": "", "query": "building permit", "error": null}
+{"id": "01KQRDA7A8DYK6DBNJW2F3M5QB", "timestamp": "2026-05-04T02:33:11Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://open.canada.ca/data", "query": "building permit", "error": null}
+{"id": "01KQRDMTE41XAP91TNHBEEM34B", "timestamp": "2026-05-04T02:38:59Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://open.canada.ca/data", "query": null, "error": null}
+{"id": "01KQRDRXH93DBQBNYXC921D0N7", "timestamp": "2026-05-04T02:41:13Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://open.canada.ca/data", "query": null, "error": null}
