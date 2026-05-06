@@ -3695,3 +3695,216 @@
 {"id": "01KQXEXVVKNC6YKJBAN0DPN19X", "timestamp": "2026-05-06T01:37:36Z", "outcome": "ok", "tool": "ckan_analyze_datasets", "server": "https://www.data.gv.at/katalog/", "query": "air quality", "error": null}
 {"id": "01KQXEY63CDXZ0NGTHWAHGEMMX", "timestamp": "2026-05-06T01:37:46Z", "outcome": "ok", "tool": "ckan_analyze_datasets", "server": "https://catalog.data.gov", "query": "air quality", "error": null}
 {"id": "01KQXEYFKM3N9FSXVVBYVA64C8", "timestamp": "2026-05-06T01:37:56Z", "outcome": "ok", "tool": "ckan_analyze_datasets", "server": "https://dati.gov.it/opendata", "query": "climate", "error": null}
+{"id": "01KQY68MW3XCEJ07QWW5NYW819", "timestamp": "2026-05-06T08:25:26Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=France query=Parigi", "error": null}
+{"id": "01KQY68TRCR7XCK0AGVCEMNJ2A", "timestamp": "2026-05-06T08:25:32Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=France query=Paris", "error": null}
+{"id": "01KQY690JGMB7BPV8HZJ52G4ZS", "timestamp": "2026-05-06T08:25:38Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=France", "error": null}
+{"id": "01KQY695M33N8AA7VW2AA4Z6NT", "timestamp": "2026-05-06T08:25:43Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=France query=population", "error": null}
+{"id": "01KQY698SGBH21QGA3MC8FV6XZ", "timestamp": "2026-05-06T08:25:47Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://opendata.paris.fr", "query": "piramide popolazione OR pyramide population OR popolazione OR population", "error": null}
+{"id": "01KQY6N5JFC24FFDJQTP4SF0BA", "timestamp": "2026-05-06T08:32:16Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=France query=Parigi", "error": null}
+{"id": "01KQY6NCJDTT939P39E651NTDR", "timestamp": "2026-05-06T08:32:24Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=France query=population", "error": null}
+{"id": "01KQY6NHQ1P5F1H9A41V5FDEWC", "timestamp": "2026-05-06T08:32:29Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=France", "error": null}
+{"id": "01KQY6NQWRJC1GSQB5F8CF9Z1B", "timestamp": "2026-05-06T08:32:35Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=France query=Paris", "error": null}
+{"id": "01KQY6NY3209EVKDWMR3DWXEBB", "timestamp": "2026-05-06T08:32:42Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=France query=INSEE", "error": null}
+{"id": "01KQY6V2HGXJTJQW84FGE3VZ5D", "timestamp": "2026-05-06T08:35:30Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Europe query=eurostat unemployment", "error": null}
+{"id": "01KQY6V7GKD4GS6ZFSSTWG22PA", "timestamp": "2026-05-06T08:35:35Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "query=eurostat", "error": null}
+{"id": "01KQY6VCYDGCAK633ARE7BT017", "timestamp": "2026-05-06T08:35:41Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy", "error": null}
+{"id": "01KQY6VFXPWXNXAPQ1M4Q6XSPX", "timestamp": "2026-05-06T08:35:44Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.europa.eu/sparql", "query": null, "error": null}
+{"id": "01KQY6VPQTNXCKC8PNE9WS9VS6", "timestamp": "2026-05-06T08:35:51Z", "outcome": "ok", "tool": "sparql_query", "server": "https://data.europa.eu/sparql", "query": "PREFIX qb: <http://purl.org/linked-data/cube#> PREFIX sdmx-dimension: <http://purl.org/linked-data/sdmx/2009/dimension#> PREFIX sdmx-measure: <http://purl.org/linked-data/sdmx/2009/measure#> PREFIX sdmx-attribute: <http://purl.org/linked-data/sdmx/2009/attribute#> PREFIX skos: <http://www.w3.org/2004/02/skos/core#> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  SELECT DISTINCT ?country ?countryLabel ?unemploymentRate WHERE {   ?dataset a qb:DataSet ;     qb:structure <http://data.europa.eu/88m/d7if73v> .   ?observation a qb:Observation ;     qb:dataSet ?dataset ;     sdmx-dimension:refArea ?country ;     sdmx-dimension:time ?date ;     sdmx-measure:obsValue ?unemploymentRate .   ?country skos:prefLabel ?countryLabel .   FILTER(?date >= \"2025-01-01\"^^xsd:date)   FILTER(REGEX(?countryLabel, \"Italy|France|Germany|Spain|Poland|Greece|Portugal|Netherlands|Belgium|Sweden|Austria|Denmark|Finland|Ireland|Luxembourg|Czech Republic|Estonia|Hungary|Latvia|Lithuania|Slovakia|Slovenia|Cyprus|Malta|Bulgaria|Romania|Croatia\", \"i\")) } ORDER BY ?countryLabel", "error": null}
+{"id": "01KQY6VWJNV0JWFBCV93BDFQCV", "timestamp": "2026-05-06T08:35:57Z", "outcome": "ok", "tool": "sparql_query", "server": "https://data.europa.eu/sparql", "query": "PREFIX qb: <http://purl.org/linked-data/cube#> \nPREFIX sdmx-dimension: <http://purl.org/linked-data/sdmx/2009/dimension#> \nPREFIX sdmx-measure: <http://purl.org/linked-data/sdmx/2009/measure#> \nPREFIX skos: <http://www.w3.org/2004/02/skos/core#> \nPREFIX xsd: <http://www.w3.org/2001/XMLSchema#> \n\nSELECT DISTINCT ?country ?countryLabel ?unemploymentRate ?date \nWHERE { \n  ?dataset a qb:DataSet ; \n    qb:structure <http://data.europa.eu/88m/d7if73v> . \n  ?observation a qb:Observation ; \n    qb:dataSet ?dataset ; \n    sdmx-dimension:refArea ?country ; \n    sdmx-dimension:time ?date ; \n    sdmx-measure:obsValue ?unemploymentRate . \n  ?country skos:prefLabel ?countryLabel . \n  FILTER(?date >= \"2025-01-01\"^^xsd:date) \n  FILTER(REGEX(?countryLabel, \"Italy|France|Germany|Spain|Poland|Greece|Portugal|Netherlands|Belgium|Sweden|Austria|Denmark|Finland|Ireland|Luxembourg|Czech Republic|Estonia|Hungary|Latvia|Lithuania|Slovakia|Slovenia|Cyprus|Malta|Bulgaria|Romania|Croatia\", \"i\")) \n} \nORDER BY ?countryLabel", "error": null}
+{"id": "01KQY7M4AAA752503MC196SETY", "timestamp": "2026-05-06T08:49:11Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQY7N26PGQ72JEMC7CKXQM95", "timestamp": "2026-05-06T08:49:42Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQY7P12EDKYGNDD09GVZ6XDX", "timestamp": "2026-05-06T08:50:13Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQY7P0RYRVZHZ1G96VEF6NAH", "timestamp": "2026-05-06T08:50:13Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQY7PQ5Z264H7TRE1TES1R3G", "timestamp": "2026-05-06T08:50:36Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQY7PSFNZGZ4B99PDQNSM37T", "timestamp": "2026-05-06T08:50:38Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQY7PVPSTXYN81JC2N629NEN", "timestamp": "2026-05-06T08:50:40Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQY7PWXXKNB81N6TKHWQD357", "timestamp": "2026-05-06T08:50:42Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQY7PYRCJQSSJ6ZK85CQ6PGB", "timestamp": "2026-05-06T08:50:44Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQY7PZYYBN58X53VD1S60VNN", "timestamp": "2026-05-06T08:50:45Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQY7Q3W06DMTC3V2855KM855", "timestamp": "2026-05-06T08:50:49Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY7Q6AM2VNPGC40RWZVA3NB", "timestamp": "2026-05-06T08:50:51Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY7Q85TG8ZMMA02F1BTXWG2", "timestamp": "2026-05-06T08:50:53Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY7QBDDWEQDPTS3212H4HYN", "timestamp": "2026-05-06T08:50:57Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY7QFMF9S61GWEEXGMVH4N4", "timestamp": "2026-05-06T08:51:01Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY7QJPS02H6EKPQ8RJ0FCBT", "timestamp": "2026-05-06T08:51:04Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQY7QNHFSKGP8NT1JWY9Z639", "timestamp": "2026-05-06T08:51:07Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQY7QQ2X8EMKV43ZBMZ0WARK", "timestamp": "2026-05-06T08:51:09Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQY7QRXKTCCKZY493YF21JQG", "timestamp": "2026-05-06T08:51:10Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQY7QVQ1X13TQWBNT7YBZXQ1", "timestamp": "2026-05-06T08:51:13Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY7R12XE3XA99RGQAH2VXS8", "timestamp": "2026-05-06T08:51:19Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7R6QHZ026E15KV45T8EEG", "timestamp": "2026-05-06T08:51:25Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY7R855M5CK2XDJNEYYDN14", "timestamp": "2026-05-06T08:51:26Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY7R9VCD4WW2MNWC34CDA05", "timestamp": "2026-05-06T08:51:28Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY7RC77JVQKCDP8XQ0P0149", "timestamp": "2026-05-06T08:51:30Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7RF1HPDZS6ZEJZBBKYGCP", "timestamp": "2026-05-06T08:51:33Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7RGRPFQK2TVXWVRCTKSF0", "timestamp": "2026-05-06T08:51:35Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7RJJV0EQDHYPVAB7K155S", "timestamp": "2026-05-06T08:51:37Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7RM0F99YNM2XPYN0XAGMY", "timestamp": "2026-05-06T08:51:38Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY7STADJMA4HS05Z7DW1W6P", "timestamp": "2026-05-06T08:52:17Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7T33RZ84299VT6HN0V41E", "timestamp": "2026-05-06T08:52:26Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7T61MEGGD5CDRTESQBBSB", "timestamp": "2026-05-06T08:52:29Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KQY7TAPMVHRV2NF75Z8G2T5Z", "timestamp": "2026-05-06T08:52:34Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7TF5W32G8YDKBKX2Z9SRG", "timestamp": "2026-05-06T08:52:39Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7THSDERQC3YGW8TFCEHEH", "timestamp": "2026-05-06T08:52:41Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7TKXCMYWW2C48FXN3MFX6", "timestamp": "2026-05-06T08:52:44Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7TRFJDCAH7EP9G04P5S0Q", "timestamp": "2026-05-06T08:52:48Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7TVENMGHTVEAM9JXMX37N", "timestamp": "2026-05-06T08:52:51Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7TWW4DQCP5WF650S07VP3", "timestamp": "2026-05-06T08:52:53Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7TYR9BYWBJW50VMDY2V3D", "timestamp": "2026-05-06T08:52:55Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7V221WXCCF39SFTQBJHQ4", "timestamp": "2026-05-06T08:52:58Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KQY7V4XS6BE9CTYY6QF7A14T", "timestamp": "2026-05-06T08:53:01Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY7V71JF1Z5JEJEK3QK5QFD", "timestamp": "2026-05-06T08:53:03Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
+{"id": "01KQY7V8ZAMCTYT88RG0KCWFVA", "timestamp": "2026-05-06T08:53:05Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY82265EF7XX7C1RKCJKBE5", "timestamp": "2026-05-06T08:56:48Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8295E9S3M75C63ZHXERX0", "timestamp": "2026-05-06T08:56:55Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY82MV940ZR8T5M6BA164FC", "timestamp": "2026-05-06T08:57:07Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY82RTMXN3PQFDHVRHPCAEB", "timestamp": "2026-05-06T08:57:11Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY82Y9EYMSY8HF140H7EFKH", "timestamp": "2026-05-06T08:57:16Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY832G28DDRKB0N5R9SPXH3", "timestamp": "2026-05-06T08:57:21Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY83615NWG048QYRS3E743W", "timestamp": "2026-05-06T08:57:24Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY83946KSSY7GMY6D78A192", "timestamp": "2026-05-06T08:57:27Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY83BTYN2QXNZE3HDC8ZWC5", "timestamp": "2026-05-06T08:57:30Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY83EN33GFC9K34922HYE7V", "timestamp": "2026-05-06T08:57:33Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8C5XVBQS7F0V09EBN2WAV", "timestamp": "2026-05-06T09:02:19Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQY8C92XGMHZQ1PFED41TNWF", "timestamp": "2026-05-06T09:02:22Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY8CCR203FS9XB68MC51Y02", "timestamp": "2026-05-06T09:02:26Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY8CEQHPT15YWNEEG9P2PED", "timestamp": "2026-05-06T09:02:28Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY8CTCJMCDRSXVBK2G3613E", "timestamp": "2026-05-06T09:02:40Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8D0YJ37X1WRBS4ZBHKRPE", "timestamp": "2026-05-06T09:02:47Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8D71E6QZEWGKM92R2YMFW", "timestamp": "2026-05-06T09:02:53Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8DCEP7YYWD24KRGADTTXK", "timestamp": "2026-05-06T09:02:59Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8DGT2698G37CB8X2JA2F8", "timestamp": "2026-05-06T09:03:03Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8DVQZ3CXRJP7C0SJZW9XW", "timestamp": "2026-05-06T09:03:14Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8E0NARDG5DSY9CTDVZ5YX", "timestamp": "2026-05-06T09:03:19Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8E4BNKT1M27D0J973A00J", "timestamp": "2026-05-06T09:03:23Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8E6V54ZX6Q11JN7ZMVAPY", "timestamp": "2026-05-06T09:03:26Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8E9X3Y5N4P344TSFX5VGP", "timestamp": "2026-05-06T09:03:29Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8F3RBRF94ATDCA5BR536S", "timestamp": "2026-05-06T09:03:55Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8F79V3369ZADEXK9KX9MA", "timestamp": "2026-05-06T09:03:59Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8FB6RKD7ZJ031387TZCKJ", "timestamp": "2026-05-06T09:04:03Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQY8FEEMT58Y28F5A16FJRYE", "timestamp": "2026-05-06T09:04:06Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY8G7N8F8YEQAFRAJHB6AM1", "timestamp": "2026-05-06T09:04:32Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY8GCN37GZEEE5BM6T06QTM", "timestamp": "2026-05-06T09:04:37Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQY984A6YMFW2MTBPERHHASG", "timestamp": "2026-05-06T09:17:35Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "dotazione organica diritto sicilia docenti", "error": null}
+{"id": "01KQY988KXP0Y8TZTH4F54HW7X", "timestamp": "2026-05-06T09:17:39Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "dotazione organica docenti scuola", "error": null}
+{"id": "01KQYD48A6EJPDWSQRCAGSZG3F", "timestamp": "2026-05-06T10:25:22Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "(aria OR \"qualit\u00e0 dell'aria\") AND Milano", "error": null}
+{"id": "01KQYD4DS4QCB0Y9GTFVT349SH", "timestamp": "2026-05-06T10:25:28Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://www.dati.gov.it/opendata", "query": "cdba5f1a-873e-497b-b729-bab65140ed6f", "error": null}
+{"id": "01KQYD7K38GDXBMEF68QFY03C3", "timestamp": "2026-05-06T10:27:12Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "popolazione OR demografia", "error": null}
+{"id": "01KQYVTAFN16671TV6MB0QA22K", "timestamp": "2026-05-06T14:42:05Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "air quality Milan", "error": null}
+{"id": "01KQYVV1SRZGS4KC35TPZZYMKW", "timestamp": "2026-05-06T14:42:29Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "qualit\u00e0 aria Milano", "error": null}
+{"id": "01KQYVVKAY6BX6NT2J04NY01RE", "timestamp": "2026-05-06T14:42:47Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://www.dati.gov.it/opendata", "query": "rilevazione-qualita-aria-20251", "error": null}
+{"id": "01KQYVZ7BXYGBBMZDZRNBQW5AG", "timestamp": "2026-05-06T14:44:46Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://www.dati.gov.it/opendata", "query": "report-qualita-aria-20241", "error": null}
+{"id": "01KQYXBHEENJ0BYDYWE98AF9QT", "timestamp": "2026-05-06T15:08:58Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy", "error": null}
+{"id": "01KQYXD3HD80C0GMZV3D3SDFVT", "timestamp": "2026-05-06T15:09:49Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://dati.gov.it/opendata", "query": null, "error": null}
+{"id": "01KQYXEZWQ6TXYDYY6NKZ8PKA9", "timestamp": "2026-05-06T15:10:51Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": null, "error": null}
+{"id": "01KQYXJH1FEMBMQ6STQAWMSEF8", "timestamp": "2026-05-06T15:12:47Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "comuni italiani elenco", "error": null}
+{"id": "01KQYXJXM7WZBBVG6JXVGAWCAG", "timestamp": "2026-05-06T15:13:00Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://dati.gov.it/opendata", "query": "elenco-comuni-italiani-al-censimento-2021", "error": null}
+{"id": "01KQYXKM1V2G170RFFESESTFGW", "timestamp": "2026-05-06T15:13:23Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://dati.gov.it/opendata", "query": "istat-limiti-amministrativi-italiani", "error": null}
+{"id": "01KQYXKT9SMRQX6N85NEZT4W1Y", "timestamp": "2026-05-06T15:13:29Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "comuni italiani", "error": null}
+{"id": "01KQYXZMMCZSF3898TS3XZNPP3", "timestamp": "2026-05-06T15:19:57Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYXZRNK75X82XPFKCNF397E", "timestamp": "2026-05-06T15:20:01Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYXZYXZRBJYBSJYEZ4HF9AA", "timestamp": "2026-05-06T15:20:07Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYY0C8MZNGKA5A75D9Q5SMT", "timestamp": "2026-05-06T15:20:21Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYY0RMDNMQXE384A3QRKY9F", "timestamp": "2026-05-06T15:20:34Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYYGS62S68Z25DAD97T001N", "timestamp": "2026-05-06T15:29:19Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KQYYM3969W5MZPZJEHVSDN79", "timestamp": "2026-05-06T15:31:07Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYYYJHJMP1595MSH4PQMW6N", "timestamp": "2026-05-06T15:36:50Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYYYKXZ2N5KMC4BG97RCE03", "timestamp": "2026-05-06T15:36:52Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYYYP36Z4J32SSZR2EAEBRH", "timestamp": "2026-05-06T15:36:54Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYYYQ9RAC27YNT4H52DGBF7", "timestamp": "2026-05-06T15:36:55Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYYYRHRZFK25C1WHG6AB2B2", "timestamp": "2026-05-06T15:36:57Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYYYV6S8XPXW28WSYA9W48P", "timestamp": "2026-05-06T15:36:59Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYYYWZAT1F9G0GJC88HAAM0", "timestamp": "2026-05-06T15:37:01Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQYYYY0HA27G214YY5WCDZ04", "timestamp": "2026-05-06T15:37:02Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQYYZ0WBAEPACS8GRCTFFKHB", "timestamp": "2026-05-06T15:37:05Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQYYZ3HZ39TFYKCJWN5CHP1P", "timestamp": "2026-05-06T15:37:08Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQYYZ5FK1NQP6N7JPJKTG41Q", "timestamp": "2026-05-06T15:37:10Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQYYZ8DCD2XXGF1BZRW1WF2Y", "timestamp": "2026-05-06T15:37:13Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQYYZ9XZF228SZBF8FYJMMVZ", "timestamp": "2026-05-06T15:37:14Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQYYZD8983RP3HJS0KPFBGCV", "timestamp": "2026-05-06T15:37:18Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYYZEP63MV7ZX45NH5B7Q56", "timestamp": "2026-05-06T15:37:19Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYYZGXRM7WBHB4B0P268WJR", "timestamp": "2026-05-06T15:37:22Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYYZJ5N9KEQ5N8SQ5GV3YM5", "timestamp": "2026-05-06T15:37:23Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQYYZKRGJ5BZSZDCG2SB3XDX", "timestamp": "2026-05-06T15:37:25Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQYYZNYYWDNE2SR8HV6K63NQ", "timestamp": "2026-05-06T15:37:27Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYYZZDPKXRT211Y4X10QV7D", "timestamp": "2026-05-06T15:37:36Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZ01FZ4WE02AN0YWYHXJS4", "timestamp": "2026-05-06T15:37:39Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZ032X0MD5QBBV7C0B473F", "timestamp": "2026-05-06T15:37:40Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQYZ0856DQW5AW0Z1PFN1NKK", "timestamp": "2026-05-06T15:37:45Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQYZ0AMEPXEMN0KAYKTQY688", "timestamp": "2026-05-06T15:37:48Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQYZ0P1P3AGG8ME7QW6GQZ28", "timestamp": "2026-05-06T15:38:00Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZ0QYYQVVH7JJZ96V02NX4", "timestamp": "2026-05-06T15:38:02Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZ0X25TGMX8YRNWGRNS8EG", "timestamp": "2026-05-06T15:38:07Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZ14VZFVBCDEQ9M603H231", "timestamp": "2026-05-06T15:38:15Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZ170BZ8MWHZYC22NXCZW9", "timestamp": "2026-05-06T15:38:17Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZ18ZGR7G71QZJGJPCNGEB", "timestamp": "2026-05-06T15:38:19Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQYZ1JFYYQHZSHRHE7EGFHT5", "timestamp": "2026-05-06T15:38:29Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZ1PH23N5BVVEACDYMB1QY", "timestamp": "2026-05-06T15:38:33Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZ2GCBBD0SKSNSYSSNNCDT", "timestamp": "2026-05-06T15:38:59Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYZ534ADRC2N7PNPNS3GRCM", "timestamp": "2026-05-06T15:40:24Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYZ59GHRVHGM9CYJKRVFJYF", "timestamp": "2026-05-06T15:40:31Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYZ5ERVW2TMGQ5WH8WR3NSJ", "timestamp": "2026-05-06T15:40:36Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYZ5PXX6YTGMPZ6G7Z2SF9K", "timestamp": "2026-05-06T15:40:44Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQYZ5ZSP2VED2K72X3VXZHHE", "timestamp": "2026-05-06T15:40:53Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQYZ67R76SE58PW89ZA2SVWV", "timestamp": "2026-05-06T15:41:02Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQYZ6E6PMMCBD4WHKTDZQMAS", "timestamp": "2026-05-06T15:41:08Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZ6KBS8GVGTBNX4SPBY0ZK", "timestamp": "2026-05-06T15:41:13Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
+{"id": "01KQYZ6Y3K7CC80S66H0GJ2PKH", "timestamp": "2026-05-06T15:41:24Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZDPZ7WDGDC022ZPN9Z4VW", "timestamp": "2026-05-06T15:45:07Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYZFB9SE7AX1DRMWDVE92JD", "timestamp": "2026-05-06T15:46:00Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZFHEZSS0K87D9CCGNPXHN", "timestamp": "2026-05-06T15:46:06Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYZFRTXP5BC05YR188JT5DN", "timestamp": "2026-05-06T15:46:14Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYZFWWMCT12E9YZFATRZZ20", "timestamp": "2026-05-06T15:46:18Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYZG34A8HE2YG0YHRPB92V4", "timestamp": "2026-05-06T15:46:25Z", "outcome": "ok", "tool": "sdmx_tree", "server": null, "query": null, "error": null}
+{"id": "01KQYZGAJBJTVR2AG4MPNWQMZ3", "timestamp": "2026-05-06T15:46:32Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQYZGER2APT442HR06CFN5G4", "timestamp": "2026-05-06T15:46:36Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYZGJTBXH3YBXG1Y5AW90TV", "timestamp": "2026-05-06T15:46:41Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYZH1AAE4G61578R62625M5", "timestamp": "2026-05-06T15:46:55Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQYZH83Z77J4D536Q5V2D5HG", "timestamp": "2026-05-06T15:47:02Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQYZHDNWPZDPTFJVRHD5YANJ", "timestamp": "2026-05-06T15:47:08Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZHPMR3FY0YF7EXFZY25RB", "timestamp": "2026-05-06T15:47:17Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYZJA7CFBZV6GRG8R3M74AM", "timestamp": "2026-05-06T15:47:37Z", "outcome": "ok", "tool": "sdmx_providers", "server": null, "query": null, "error": null}
+{"id": "01KQYZJGK9H36ESGY904TC0KY3", "timestamp": "2026-05-06T15:47:44Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQYZKMNRHB7KGG11ATTRNTRV", "timestamp": "2026-05-06T15:48:21Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZKQYCAMA8AM7DFXHEAQXH", "timestamp": "2026-05-06T15:48:24Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZKTCKEQBZ461701R21RW3", "timestamp": "2026-05-06T15:48:27Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZM1KZHKEBWGY6Q61YB0GR", "timestamp": "2026-05-06T15:48:34Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZM4ARBK0ET0EP8QA5FQCN", "timestamp": "2026-05-06T15:48:37Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KQYZMGMM9B2D9ZKCSS43S7TC", "timestamp": "2026-05-06T15:48:49Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZMK6WBGNBVSQB512JRJE0", "timestamp": "2026-05-06T15:48:52Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KQYZMNCRVXJD86XQ3GAZ7PE2", "timestamp": "2026-05-06T15:48:54Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KQYZMRM6PDBMDV9XDEQN8762", "timestamp": "2026-05-06T15:48:58Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZMV12C1RCE9YSG6G2S9HM", "timestamp": "2026-05-06T15:49:00Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KQYZMX9XDP3VGABXX4RPWN6F", "timestamp": "2026-05-06T15:49:02Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KQYZN0E5AGMZYA168X3B49SW", "timestamp": "2026-05-06T15:49:06Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZNBE5NZQFEWXANM8JJYES", "timestamp": "2026-05-06T15:49:17Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZNMBJXXTCSMBZNG08X1KZ", "timestamp": "2026-05-06T15:49:26Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZNQ6P3KA9T1B9FNX0PCFG", "timestamp": "2026-05-06T15:49:29Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZNY2EEZZ1AC3XBRHTSXV0", "timestamp": "2026-05-06T15:49:36Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZP073WW0GMWAYN4E21W02", "timestamp": "2026-05-06T15:49:38Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZP3QFNV7ZF1T6SVZ5NRMR", "timestamp": "2026-05-06T15:49:42Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZP9AEDMP41883PF6MJP67", "timestamp": "2026-05-06T15:49:47Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZPD879G7X99D7MVNDF70E", "timestamp": "2026-05-06T15:49:52Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZPG5HMEWDDS04J789KSD4", "timestamp": "2026-05-06T15:49:54Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZPJZ34MP6H4WXREN9HBXQ", "timestamp": "2026-05-06T15:49:57Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZPNT51QZADQZ3P11G3WNJ", "timestamp": "2026-05-06T15:50:00Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZPR5PTKBGQK3S6NBBKCWJ", "timestamp": "2026-05-06T15:50:03Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZPTEHZ1ZRFW8MXHCY6BP7", "timestamp": "2026-05-06T15:50:05Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZPWTSG03KSXN9NGNTWQ5T", "timestamp": "2026-05-06T15:50:07Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZQ00BGNTE59ECVX987BAW", "timestamp": "2026-05-06T15:50:11Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZQ3FQS4JNC7X7SDZXTETP", "timestamp": "2026-05-06T15:50:14Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQYZQBHSVB8KB818MQPSJGN3", "timestamp": "2026-05-06T15:50:23Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KQZ73ADDRNW58X7MAC0360GQ", "timestamp": "2026-05-06T17:59:15Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://www.dati.gov.it/opendata", "query": null, "error": null}
+{"id": "01KQZ73GJ66AD9TE9R776GBZRS", "timestamp": "2026-05-06T17:59:21Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=sicilia", "error": null}
+{"id": "01KQZ73PDD9HMD15138ENVZN1Z", "timestamp": "2026-05-06T17:59:27Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.regione.sicilia.it", "query": "monreale", "error": null}
+{"id": "01KQZ73TT3E11R11EHEDRYVWJE", "timestamp": "2026-05-06T17:59:31Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.regione.sicilia.it", "query": "PSR agricoltura", "error": null}
+{"id": "01KQZ73XS5M12CNXBWR28X1GG9", "timestamp": "2026-05-06T17:59:34Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.regione.sicilia.it", "query": "*:*", "error": null}
+{"id": "01KQZ75PHPX2537VGPZ5BSH4TY", "timestamp": "2026-05-06T18:00:33Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Germany query=aachen", "error": null}
+{"id": "01KQZ75ZG55WG31RDJG07SYFDJ", "timestamp": "2026-05-06T18:00:42Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Germany min_datasets=100", "error": null}
+{"id": "01KQZ767QVC0XVGRD3A0Y3V8NZ", "timestamp": "2026-05-06T18:00:50Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://ckan.open.nrw.de", "query": "aachen", "error": null}
+{"id": "01KQZ77CM5NE77ASRETY7D8ZN0", "timestamp": "2026-05-06T18:01:28Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://ckan.govdata.de", "query": "aachen", "error": null}
+{"id": "01KQZ77J5CZ10XJKA4WF10PXHG", "timestamp": "2026-05-06T18:01:34Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://ckan.open.nrw.de", "query": "aachen", "error": null}
+{"id": "01KQZ77PNPC3CQZ55AZE1V2DS8", "timestamp": "2026-05-06T18:01:38Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://ckan.open.nrw.de", "query": "*:*", "error": null}
+{"id": "01KQZ87KVNN1N4BW0V3M8RC29N", "timestamp": "2026-05-06T18:19:04Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://ckan.open.nrw.de", "query": "denkmal", "error": null}
+{"id": "01KQZ87SCWZ9VTHSGTPTRD86S4", "timestamp": "2026-05-06T18:19:10Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://ckan.open.nrw.de", "query": "leerstand OR baul\u00fccke OR sanierung OR altbau", "error": null}
+{"id": "01KQZ8ETNQ7VWMF3JY98VD8YT4", "timestamp": "2026-05-06T18:23:00Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://ckan.open.nrw.de", "query": "baudenkmal OR baudenkm\u00e4ler OR denkmalliste", "error": null}
