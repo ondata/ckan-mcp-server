@@ -3929,3 +3929,22 @@
 {"id": "01KR1MXMSCZ8SDVDH30R970ASK", "timestamp": "2026-05-07T16:39:18Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=trasporti infrastrutture strade language=it has_datastore=False min_datasets=50", "error": null}
 {"id": "01KR1MXTDJD5DHGY4928PD7BR9", "timestamp": "2026-05-07T16:39:23Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "traffico autostrada TGM flusso veicoli", "error": null}
 {"id": "01KR1NBDFRW2XVR6R4QAY26BJ6", "timestamp": "2026-05-07T16:46:49Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.mit.gov.it", "query": "traffico giornaliero medio ANAS TGM", "error": null}
+{"id": "01KR2J05K6M0DG2DWXB2W4BQHA", "timestamp": "2026-05-08T01:07:29Z", "outcome": "ok", "tool": "ckan_analyze_datasets", "server": "https://dati.comune.messina.it", "query": "incidenti", "error": null}
+{"id": "01KR2JDKSGA2BGXY42FJTN2CJ9", "timestamp": "2026-05-08T01:14:50Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.wprdc.org", "query": null, "error": null}
+{"id": "01KR2JDY8D1AGKEQTT2SFWC3TS", "timestamp": "2026-05-08T01:15:00Z", "outcome": "ok", "tool": "ckan_analyze_datasets", "server": "https://data.wprdc.org", "query": "property assessment", "error": null}
+{"id": "01KR2JNEWKD7MD30P0AMQDT5JC", "timestamp": "2026-05-08T01:19:07Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org", "query": "hvd", "error": null}
+{"id": "01KR2JYHZXRCR3P38212TXQPS5", "timestamp": "2026-05-08T01:24:05Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.wprdc.org", "query": null, "error": null}
+{"id": "01KR2JYSYP31H8PZM9G8MJ0DB4", "timestamp": "2026-05-08T01:24:13Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org", "query": null, "error": null}
+{"id": "01KR2JZ5BVSZXKDA79YC8E6BQ1", "timestamp": "2026-05-08T01:24:25Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org", "query": "\"High Value\"", "error": null}
+{"id": "01KR2K4JFNSZDRY4N5YFQWERG2", "timestamp": "2026-05-08T01:27:22Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://data.wprdc.org", "query": null, "error": null}
+{"id": "01KR2K4R45A74KKC0HBSJZGY1J", "timestamp": "2026-05-08T01:27:28Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org", "query": null, "error": null}
+{"id": "01KR2K50JYXCYMBYBWMC6BHS35", "timestamp": "2026-05-08T01:27:36Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org", "query": "HVD", "error": null}
+{"id": "01KR2K5ANVATJE44JAB7JCZHR0", "timestamp": "2026-05-08T01:27:47Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org", "query": null, "error": null}
+{"id": "01KR2K5VNG1W9S1HC3XBGPFETE", "timestamp": "2026-05-08T01:28:04Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org", "query": "title:high~ value~", "error": null}
+{"id": "01KR2KB6WJ2Z1XNDH3Q8442BZW", "timestamp": "2026-05-08T01:30:59Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.wprdc.org", "query": "pbp_arrest_data_2024_2025", "error": null}
+{"id": "01KR2KEAD3PYKQR5S242MQAKN1", "timestamp": "2026-05-08T01:32:41Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://data.wprdc.org", "query": "b62e8c3f-f40e-4b3f-9c60-82509bc397fb", "error": null}
+{"id": "01KR2KKN6R4VG42QKZ3EV967WB", "timestamp": "2026-05-08T01:35:36Z", "outcome": "ok", "tool": "ckan_datastore_search", "server": "https://data.wprdc.org", "query": "e419c20c-8df4-4729-830c-e49427a656e0", "error": null}
+{"id": "01KR2KW43QV4MSJAY3PYKE40PR", "timestamp": "2026-05-08T01:40:14Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://catalog.data.gov", "query": null, "error": null}
+{"id": "01KR2KX61ZAH7VT73XQ8REFG15", "timestamp": "2026-05-08T01:40:48Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://catalog.data.gov", "query": "\"high-value\" OR \"high value\"", "error": null}
+{"id": "01KR2KY2G1HJT55614BJZ3KX92", "timestamp": "2026-05-08T01:41:17Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://catalog.data.gov", "query": null, "error": null}
+{"id": "01KR2SKYMZSF515EAGG0GJY6VM", "timestamp": "2026-05-08T03:20:37Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://catalog.data.gov", "query": null, "error": null}
