@@ -3948,3 +3948,4 @@
 {"id": "01KR2KX61ZAH7VT73XQ8REFG15", "timestamp": "2026-05-08T01:40:48Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://catalog.data.gov", "query": "\"high-value\" OR \"high value\"", "error": null}
 {"id": "01KR2KY2G1HJT55614BJZ3KX92", "timestamp": "2026-05-08T01:41:17Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://catalog.data.gov", "query": null, "error": null}
 {"id": "01KR2SKYMZSF515EAGG0GJY6VM", "timestamp": "2026-05-08T03:20:37Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://catalog.data.gov", "query": null, "error": null}
+{"id": "01KR3654D7CHA20AXZNMKAP7GY", "timestamp": "2026-05-08T06:59:43Z", "outcome": "ok", "tool": "ckan_organization_show", "server": "https://www.dati.gov.it", "query": "regione-calabria", "error": null}
