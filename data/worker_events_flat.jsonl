@@ -3949,3 +3949,8 @@
 {"id": "01KR2KY2G1HJT55614BJZ3KX92", "timestamp": "2026-05-08T01:41:17Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://catalog.data.gov", "query": null, "error": null}
 {"id": "01KR2SKYMZSF515EAGG0GJY6VM", "timestamp": "2026-05-08T03:20:37Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://catalog.data.gov", "query": null, "error": null}
 {"id": "01KR3654D7CHA20AXZNMKAP7GY", "timestamp": "2026-05-08T06:59:43Z", "outcome": "ok", "tool": "ckan_organization_show", "server": "https://www.dati.gov.it", "query": "regione-calabria", "error": null}
+{"id": "01KR6TJADSM2QVN04X7KNEQ0BW", "timestamp": "2026-05-09T16:54:10Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://mcp-statcan.onrender.com", "query": null, "error": null}
+{"id": "01KR6TK27QFE1TRTB989X9P1YF", "timestamp": "2026-05-09T16:54:34Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://ckan-mcp-server.andy-pr.workers.dev", "query": null, "error": null}
+{"id": "01KR6V6RP39WCW19E38RZ19DCT", "timestamp": "2026-05-09T17:05:20Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://open.canada.ca/data/en", "query": null, "error": null}
+{"id": "01KR6V7QR0WEKBY9TX4B6QV8SG", "timestamp": "2026-05-09T17:05:52Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://open.canada.ca/data/en", "query": "employment statistics canada", "error": null}
+{"id": "01KR6VCW6VGT7R07JCW579RXQX", "timestamp": "2026-05-09T17:08:40Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://open.canada.ca/data/en", "query": "d94340d6-e1e0-4378-8958-753601d7f3f7", "error": null}
