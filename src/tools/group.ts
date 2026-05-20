@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
-import { makeCkanRequest } from "../utils/http.js";
+import { makeCkanRequest, formatCkanError } from "../utils/http.js";
 import { truncateText, truncateJson, formatDate, addDemoFooter } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -235,10 +235,7 @@ Typical workflow: ckan_group_list → ckan_group_show (inspect one) → ckan_pac
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text",
-            text: `Error listing groups: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text", text: formatCkanError(error, "ckan_group_list") }],
           isError: true
         };
       }
@@ -299,10 +296,7 @@ Typical workflow: ckan_group_show → ckan_package_show (inspect a dataset) → 
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text",
-            text: `Error fetching group: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text", text: formatCkanError(error, "ckan_group_show") }],
           isError: true
         };
       }
@@ -398,10 +392,7 @@ Typical workflow: ckan_group_search → ckan_group_show (get details) → ckan_p
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text",
-            text: `Error searching groups: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text", text: formatCkanError(error, "ckan_group_search") }],
           isError: true
         };
       }

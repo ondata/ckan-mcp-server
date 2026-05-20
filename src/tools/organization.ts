@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanOrganization } from "../types.js";
-import { makeCkanRequest } from "../utils/http.js";
+import { makeCkanRequest, formatCkanError, CkanApiError } from "../utils/http.js";
 import { truncateText, truncateJson, formatDate, addDemoFooter } from "../utils/formatting.js";
 import { getOrganizationViewUrl } from "../utils/url-generator.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -179,8 +179,7 @@ Typical workflow: ckan_organization_list → ckan_organization_show (inspect one
             }
           );
         } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          if (message.includes('CKAN API error (500)')) {
+          if (error instanceof CkanApiError && error.status === 500) {
             const searchResult = await makeCkanRequest<any>(
               params.server_url,
               'package_search',
@@ -270,10 +269,7 @@ Typical workflow: ckan_organization_list → ckan_organization_show (inspect one
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text",
-            text: `Error listing organizations: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text", text: formatCkanError(error, "ckan_organization_list") }],
           isError: true
         };
       }
@@ -340,10 +336,7 @@ Typical workflow: ckan_organization_show → ckan_package_show (inspect a datase
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text",
-            text: `Error fetching organization: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text", text: formatCkanError(error, "ckan_organization_show") }],
           isError: true
         };
       }
@@ -452,10 +445,7 @@ Typical workflow: ckan_organization_search → ckan_organization_show (get detai
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text",
-            text: `Error searching organizations: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text", text: formatCkanError(error, "ckan_organization_search") }],
           isError: true
         };
       }

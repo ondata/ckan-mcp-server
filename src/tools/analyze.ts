@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanPackage, CkanField } from "../types.js";
-import { makeCkanRequest } from "../utils/http.js";
+import { makeCkanRequest, formatCkanError } from "../utils/http.js";
 import { truncateText, addDemoFooter } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -195,10 +195,7 @@ Typical workflow: ckan_analyze_datasets → ckan_datastore_search (with known fi
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text" as const,
-            text: `Error analyzing datasets: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text" as const, text: formatCkanError(error, "ckan_analyze_datasets") }],
           isError: true
         };
       }
@@ -289,10 +286,7 @@ Typical workflow: ckan_catalog_stats (understand the portal) → ckan_package_se
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text" as const,
-            text: `Error retrieving catalog stats: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text" as const, text: formatCkanError(error, "ckan_catalog_stats") }],
           isError: true
         };
       }

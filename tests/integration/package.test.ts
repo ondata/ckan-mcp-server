@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import axios from 'axios';
 import { makeCkanRequest } from '../../src/utils/http';
-import { scoreDatasetRelevance, resolvePageParams } from '../../src/tools/package';
+import { scoreDatasetRelevance, resolvePageParams, resolveDownloadUrl } from '../../src/tools/package';
+import { extractSourcePortal } from '../../src/utils/url-generator';
 import packageSearchFixture from '../fixtures/responses/package-search-success.json';
 import packageShowFixture from '../fixtures/responses/package-show-success.json';
 import notFoundError from '../fixtures/errors/not-found.json';
@@ -682,6 +683,51 @@ describe('ckan_list_resources', () => {
     await expect(
       makeCkanRequest('http://demo.ckan.org', 'package_show', { id: 'nonexistent' })
     ).rejects.toThrow();
+  });
+});
+
+describe('source portal DataStore fallback utilities', () => {
+  const UUID = '550e8400-e29b-41d4-a716-446655440000';
+
+  it('extractSourcePortal detects a harvested resource URL from a different portal', () => {
+    const resourceUrl = `https://dati.comune.milano.it/dataset/abc/resource/${UUID}/download/data.csv`;
+    const result = extractSourcePortal(resourceUrl, 'https://dati.gov.it/opendata');
+    expect(result).not.toBeNull();
+    expect(result?.portalUrl).toBe('https://dati.comune.milano.it');
+    expect(result?.resourceId).toBe(UUID);
+  });
+
+  it('extractSourcePortal returns null for same-domain URLs', () => {
+    const resourceUrl = `https://dati.gov.it/opendata/dataset/abc/resource/${UUID}/download/data.csv`;
+    expect(extractSourcePortal(resourceUrl, 'https://dati.gov.it/opendata')).toBeNull();
+  });
+
+  it('checkSourceDatastore returns true when source portal datastore_search succeeds', async () => {
+    vi.mocked(axios.get).mockResolvedValue({
+      data: { success: true, result: { fields: [], records: [], total: 0 } }
+    });
+    const active = await makeCkanRequest(
+      'https://dati.comune.milano.it',
+      'datastore_search',
+      { resource_id: UUID, limit: 0 }
+    ).then(() => true).catch(() => false);
+    expect(active).toBe(true);
+  });
+
+  it('checkSourceDatastore returns false when source portal datastore_search fails', async () => {
+    vi.mocked(axios.isAxiosError).mockReturnValue(true);
+    vi.mocked(axios.get).mockRejectedValue({ response: { status: 404, data: {} } });
+    const active = await makeCkanRequest(
+      'https://dati.comune.milano.it',
+      'datastore_search',
+      { resource_id: UUID, limit: 0 }
+    ).then(() => true).catch(() => false);
+    expect(active).toBe(false);
+  });
+
+  it('resolveDownloadUrl prefers download_url over url', () => {
+    const resource = { download_url: 'https://a.com/file.csv', url: 'https://b.com/page', access_url: '' } as any;
+    expect(resolveDownloadUrl(resource)).toBe('https://a.com/file.csv');
   });
 });
 
