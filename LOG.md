@@ -1,5 +1,19 @@
 # LOG
 
+## 2026-05-20
+
+### v0.4.104
+
+- Source portal DataStore fallback + LLM error hints (see 2026-05-18 entries below)
+
+## 2026-05-18
+
+- Source portal DataStore fallback: `ckan_list_resources` now probes the source portal when a resource has `datastore_active=false` and its download URL belongs to a different CKAN instance (harvested dataset pattern). Adds `source_datastore_active` and `source_portal_url` fields to output. New `check_source_portal` parameter (default `true`) to skip extra HTTP calls. New `extractSourcePortal()` utility in `url-generator.ts`. Scoped to CKAN-to-CKAN harvesting (detects `/resource/{uuid}/` URL pattern). 12 new tests → 399 total.
+- LLM error hints: add `CkanApiError` class to `makeCkanRequest` (carries `status` + `action`); add `formatCkanError()` with hint table mapping HTTP status/action → actionable suggestion for the LLM (404 datastore → `ckan_package_show`, 404 package → `ckan_package_search`, 400 SQL → check columns, 503 → retry, etc.)
+- Replace raw `error.message` interpolation in all tool catch blocks (datastore, package, organization, group, analyze, portal-discovery, quality) with `formatCkanError()`
+- Replace fragile string-match in `organization.ts` (`includes('CKAN API error (500)')`) with `error instanceof CkanApiError && error.status === 500`
+- Tests: 9 new unit tests for `CkanApiError` and `formatCkanError` → 387 total (381 pass, 6 skipped)
+
 ## 2026-04-22
 
 - Security: add optional domain allowlist (`CKAN_ALLOWED_DOMAINS` env var) in `validateServerUrl()`; blocks requests to unlisted public domains — CERT-AgID MCP recommendation

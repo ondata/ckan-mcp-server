@@ -4,9 +4,9 @@
 
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanTag, CkanResource, CkanPackage } from "../types.js";
-import { makeCkanRequest } from "../utils/http.js";
+import { makeCkanRequest, formatCkanError } from "../utils/http.js";
 import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter } from "../utils/formatting.js";
-import { getDatasetViewUrl } from "../utils/url-generator.js";
+import { getDatasetViewUrl, extractSourcePortal } from "../utils/url-generator.js";
 import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from "../utils/search.js";
 import { getPortalHvdConfig, getPortalApiPath, requiresMultilingualNormalization, isPortalSearchExplicitlyConfigured } from "../utils/portal-config.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -864,10 +864,7 @@ ${hvdNote}`;
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text",
-            text: `Error searching packages: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text", text: formatCkanError(error, "ckan_package_search") }],
           isError: true
         };
       }
@@ -1050,10 +1047,7 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text",
-            text: `Error ranking datasets: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text", text: formatCkanError(error, "ckan_find_relevant_datasets") }],
           isError: true
         };
       }
@@ -1142,15 +1136,21 @@ Typical workflow: ckan_package_show → pick a resource with datastore_active=tr
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text",
-            text: `Error fetching package: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text", text: formatCkanError(error, "ckan_package_show") }],
           isError: true
         };
       }
     }
   );
+
+  async function checkSourceDatastore(portalUrl: string, resourceId: string): Promise<boolean> {
+    try {
+      await makeCkanRequest(portalUrl, 'datastore_search', { resource_id: resourceId, limit: 0 }, { cache: false });
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   /**
    * List resources in a dataset with a compact summary
@@ -1177,7 +1177,12 @@ Examples:
   - { server_url: "https://dati.gov.it/opendata", id: "dataset-name" }
   - { server_url: "...", id: "dataset-name", format_filter: "CSV" }
 
-Typical workflow: ckan_package_search → ckan_list_resources (assess available files) → ckan_datastore_search (for resources with DataStore=true)`,
+Typical workflow: ckan_package_search → ckan_list_resources (assess available files) → ckan_datastore_search (for resources with DataStore=true)
+
+When a resource has DataStore=false but its download URL belongs to a different (source) portal,
+the tool automatically probes the source portal for DataStore availability and reports
+source_datastore_active and source_portal_url so you can query the data there instead.
+Set check_source_portal=false to skip these extra HTTP calls.`,
       inputSchema: z.object({
         server_url: z.string()
           .url()
@@ -1188,6 +1193,9 @@ Typical workflow: ckan_package_search → ckan_list_resources (assess available 
         format_filter: z.string()
           .optional()
           .describe("Filter resources by format, case-insensitive (e.g., 'CSV', 'json', 'XLSX')"),
+        check_source_portal: z.boolean()
+          .optional()
+          .describe("When true (default), probes the source portal for DataStore availability when a resource URL points to a different CKAN instance"),
         response_format: ResponseFormatSchema
       }).strict(),
       annotations: {
@@ -1207,8 +1215,18 @@ Typical workflow: ckan_package_search → ckan_list_resources (assess available 
 
         const resources = Array.isArray(result.resources) ? result.resources : [];
         const formatFilter = params.format_filter?.toUpperCase();
+        const doSourceCheck = params.check_source_portal !== false;
 
-        const summary = resources
+        const summary: {
+          name: string;
+          id: string;
+          format: string;
+          size: string | null;
+          datastore_active: boolean;
+          url: string | null;
+          source_datastore_active?: boolean;
+          source_portal_url?: string | null;
+        }[] = resources
           .filter((r: CkanResource) => !formatFilter || (r.format || "").toUpperCase() === formatFilter)
           .map((r: CkanResource) => {
             const effectiveUrl = resolveDownloadUrl(r);
@@ -1221,6 +1239,19 @@ Typical workflow: ckan_package_search → ckan_list_resources (assess available 
               url: effectiveUrl
             };
           });
+
+        if (doSourceCheck) {
+          await Promise.all(
+            summary.map(async (item, idx) => {
+              if (item.datastore_active) return;
+              const extracted = extractSourcePortal(item.url, params.server_url);
+              if (!extracted) return;
+              const active = await checkSourceDatastore(extracted.portalUrl, extracted.resourceId);
+              summary[idx].source_datastore_active = active;
+              summary[idx].source_portal_url = active ? extracted.portalUrl : null;
+            })
+          );
+        }
 
         if (params.response_format === ResponseFormat.JSON) {
           const payload = {
@@ -1268,6 +1299,14 @@ Typical workflow: ckan_package_search → ckan_list_resources (assess available 
               markdown += `- **${r.name}** (${r.format}): \`${r.id}\`\n`;
             }
           }
+
+          const sourceResources = summary.filter((r) => r.source_datastore_active && r.source_portal_url);
+          if (sourceResources.length > 0) {
+            markdown += `\n**Available on source portal** (use \`ckan_datastore_search\` with the source portal URL):\n`;
+            for (const r of sourceResources) {
+              markdown += `- **${r.name}** (${r.format}): \`${r.id}\` on ${r.source_portal_url}\n`;
+            }
+          }
         }
 
         return {
@@ -1275,10 +1314,7 @@ Typical workflow: ckan_package_search → ckan_list_resources (assess available 
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text",
-            text: `Error listing resources: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text", text: formatCkanError(error, "ckan_list_resources") }],
           isError: true
         };
       }

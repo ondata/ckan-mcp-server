@@ -5,7 +5,7 @@
 import { z } from "zod";
 import axios from "axios";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
-import { makeCkanRequest } from "../utils/http.js";
+import { makeCkanRequest, formatCkanError } from "../utils/http.js";
 import { addDemoFooter } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -890,12 +890,8 @@ export function registerQualityTools(server: McpServer): void {
           }]
         };
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
         return {
-          content: [{
-            type: "text" as const,
-            text: `Error retrieving quality metrics: ${errorMessage}`
-          }]
+          content: [{ type: "text" as const, text: `Error retrieving quality metrics: ${formatCkanError(error, "ckan_get_mqa_quality")}` }]
         };
       }
     }
@@ -948,12 +944,8 @@ export function registerQualityTools(server: McpServer): void {
           }]
         };
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
         return {
-          content: [{
-            type: "text" as const,
-            text: `Error retrieving quality details: ${errorMessage}`
-          }]
+          content: [{ type: "text" as const, text: `Error retrieving quality details: ${formatCkanError(error, "ckan_get_mqa_quality_details")}` }]
         };
       }
     }

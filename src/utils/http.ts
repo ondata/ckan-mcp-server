@@ -20,6 +20,49 @@ export interface MakeCkanRequestOptions {
   rateLimit?: boolean;
 }
 
+export class CkanApiError extends Error {
+  readonly status: number | undefined;
+  readonly action: string;
+  constructor(message: string, status: number | undefined, action: string) {
+    super(message);
+    this.name = 'CkanApiError';
+    this.status = status;
+    this.action = action;
+  }
+}
+
+export function formatCkanError(error: unknown, _toolName: string): string {
+  if (!(error instanceof CkanApiError)) {
+    return error instanceof Error ? error.message : String(error);
+  }
+  const { status, action, message } = error;
+  let hint = '';
+  if (status === 404) {
+    if (action.startsWith('datastore_search')) {
+      hint = '→ Get a valid resource_id first: call `ckan_package_show` on a dataset, then pick a resource where `datastore_active` is true.';
+    } else if (action === 'package_show') {
+      hint = '→ Use `ckan_package_search` to find a valid dataset name or ID.';
+    } else if (action === 'organization_show') {
+      hint = '→ Use `ckan_organization_list` or `ckan_organization_search` to discover valid organization names.';
+    }
+  } else if (status === 400) {
+    if (action === 'datastore_search_sql') {
+      hint = '→ Invalid SQL syntax or unknown column — check column names with `ckan_datastore_search` before writing SQL.';
+    } else if (action.startsWith('datastore_search')) {
+      hint = '→ Bad request — likely an invalid field name or filter syntax; check column names with a `SELECT *` query first.';
+    }
+  } else if (status === 409 || status === 422) {
+    hint = '→ Portal rejected the request — parameters may conflict; simplify filters and retry.';
+  } else if (status === 503 || status === 502 || status === 504) {
+    hint = '→ Portal temporarily unavailable — retry in a few seconds.';
+  } else if (status === 500) {
+    hint = '→ Portal internal error — try a different portal or retry later.';
+  } else if (status === undefined) {
+    hint = '→ The portal may not support this action, or the endpoint is unavailable.';
+  }
+  return hint ? `${message}\n${hint}` : message;
+}
+
 let _lastCacheHit: boolean | null = null;
 
 /** Returns whether the last makeCkanRequest call was served from cache. */
@@ -387,7 +430,7 @@ export async function makeCkanRequest<T>(
       }
 
       if (!response.ok) {
-        throw new Error(`CKAN API error (${response.status}): ${response.statusText}`);
+        throw new CkanApiError(`CKAN API error (${response.status}): ${response.statusText}`, response.status, action);
       }
 
       const buffer = await response.arrayBuffer();
@@ -413,18 +456,21 @@ export async function makeCkanRequest<T>(
       auditLog(serverUrl, action, params, false);
       return result;
     } else {
-      throw new Error(
-        `CKAN API returned success=false: ${JSON.stringify(decodedData)}`
+      throw new CkanApiError(
+        `CKAN API returned success=false: ${JSON.stringify(decodedData)}`,
+        undefined,
+        action
       );
     }
   } catch (error) {
+    if (error instanceof CkanApiError) throw error;
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response) {
         const status = axiosError.response.status;
         const data = axiosError.response.data as any;
         const errorMsg = data?.error?.message || data?.error || 'Unknown error';
-        throw new Error(`CKAN API error (${status}): ${errorMsg}`);
+        throw new CkanApiError(`CKAN API error (${status}): ${errorMsg}`, status, action);
       } else if (axiosError.code === 'ECONNABORTED') {
         throw new Error(`Request timeout connecting to ${serverUrl}`);
       } else if (axiosError.code === 'ENOTFOUND') {

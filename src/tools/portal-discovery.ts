@@ -5,6 +5,7 @@
 import { z } from "zod";
 import axios from "axios";
 import { addDemoFooter } from "../utils/formatting.js";
+import { formatCkanError } from "../utils/http.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const DATASHADES_URL = "https://datashades.info/api/portal/list";
@@ -156,10 +157,7 @@ Typical workflow: ckan_find_portals (discover portal URL) → ckan_status_show (
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text",
-            text: `Could not fetch portal list from datashades.info:\n${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text", text: `Could not fetch portal list from datashades.info:\n${formatCkanError(error, "ckan_find_portals")}` }],
           isError: true
         };
       }

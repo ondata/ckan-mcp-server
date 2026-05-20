@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanField } from "../types.js";
-import { makeCkanRequest } from "../utils/http.js";
+import { makeCkanRequest, formatCkanError } from "../utils/http.js";
 import { truncateText, truncateJson, addDemoFooter } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -209,10 +209,7 @@ Typical workflow: ckan_package_search → ckan_package_show (find resource_id wi
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text",
-            text: `Error querying DataStore: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text", text: formatCkanError(error, "ckan_datastore_search") }],
           isError: true
         };
       }
@@ -279,10 +276,7 @@ Security note: SQL queries are forwarded directly to the CKAN DataStore API. The
         };
       } catch (error) {
         return {
-          content: [{
-            type: "text",
-            text: `Error querying DataStore SQL: ${error instanceof Error ? error.message : String(error)}`
-          }],
+          content: [{ type: "text", text: formatCkanError(error, "ckan_datastore_search_sql") }],
           isError: true
         };
       }
