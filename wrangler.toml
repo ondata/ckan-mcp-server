@@ -8,3 +8,7 @@ enabled = true
 
 [build]
 command = "npm run build:worker"
+
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "ckan_tool_calls"

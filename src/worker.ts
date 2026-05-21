@@ -8,8 +8,16 @@ import { createServer, registerAll } from "./server.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { getLastCacheHit } from "./utils/http.js";
 
+interface AnalyticsEngineDataset {
+  writeDataPoint(event: { blobs?: string[]; doubles?: number[]; indexes?: string[] }): void;
+}
+
+interface Env {
+  ANALYTICS?: AnalyticsEngineDataset;
+}
+
 export default {
-  async fetch(request: Request): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
 
     // Root endpoint - README
@@ -289,12 +297,41 @@ export default {
           }
         } catch { /* ignore parse errors (e.g. non-JSON requests) */ }
 
+        const t0 = Date.now();
         const response = await transport.handleRequest(request);
+        const durationMs = Date.now() - t0;
 
         if (logEntry) {
           const cacheHit = getLastCacheHit();
           if (cacheHit !== null) logEntry['cache_hit'] = cacheHit;
+          logEntry['duration_ms'] = durationMs;
+
+          let callStatus = 'ok';
+          try {
+            const rj = await response.clone().json() as Record<string, unknown>;
+            const result = rj?.result as Record<string, unknown> | undefined;
+            if (result?.isError || rj?.error) callStatus = 'error';
+          } catch { /* ignore */ }
+          logEntry['status'] = callStatus;
+
           console.log(JSON.stringify(logEntry));
+
+          if (env.ANALYTICS) {
+            env.ANALYTICS.writeDataPoint({
+              blobs: [
+                String(logEntry['tool']    ?? ''),
+                String(logEntry['server']  ?? ''),
+                String(logEntry['q'] ?? logEntry['query'] ?? logEntry['id'] ?? ''),
+                callStatus,
+                String(logEntry['country'] ?? ''),
+              ],
+              doubles: [
+                durationMs,
+                cacheHit ? 1 : 0,
+              ],
+              indexes: [String(logEntry['tool'] ?? '')],
+            });
+          }
         }
 
         // Add CORS headers and service notices
