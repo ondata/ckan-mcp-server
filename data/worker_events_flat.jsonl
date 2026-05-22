@@ -4408,3 +4408,10 @@
 {"id": "01KS4WB6Q09H25A9GQTA1FHQ9V", "timestamp": "2026-05-21T09:02:27Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://www.dati.gov.it/opendata", "query": null, "error": null}
 {"id": "01KS4WCVK9E70SEJ7XX37E0709", "timestamp": "2026-05-21T09:03:21Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy", "error": null}
 {"id": "01KS5D5945HWXD3YR8HD3WGS8G", "timestamp": "2026-05-21T13:56:19Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://dati.gov.it", "query": null, "error": null}
+{"id": "01KS82877X990AGD6ANG6XC148", "timestamp": "2026-05-22T14:43:24Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=Sardegna language=it", "error": null}
+{"id": "01KS828JZF4NKT4HWMQVFP8TG1", "timestamp": "2026-05-22T14:43:36Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy language=it", "error": null}
+{"id": "01KS828SRHPKYSJ4M1BQZ8XKBS", "timestamp": "2026-05-22T14:43:43Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.sardegnageoportale.it", "query": "usi civici Neonelli shapefile", "error": null}
+{"id": "01KS828YT1R7XK1E0YJ2JSQWXY", "timestamp": "2026-05-22T14:43:48Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it", "query": "usi civici Neonelli shapefile SHP", "error": null}
+{"id": "01KS8293HZERMW9NA4XK6FEGVQ", "timestamp": "2026-05-22T14:43:53Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it", "query": "usi civici Sardegna shapefile", "error": null}
+{"id": "01KS8298NB11N8MXD2VKVHYXPZ", "timestamp": "2026-05-22T14:43:58Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it", "query": "usi civici demani civici", "error": null}
+{"id": "01KS829ECTGT8V48BQK62F5X5F", "timestamp": "2026-05-22T14:44:04Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://opendata.regione.sardegna.it", "query": "usi civici Neonelli SHP", "error": null}
