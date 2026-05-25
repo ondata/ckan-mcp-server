@@ -47,6 +47,19 @@ type RelevanceWeights = {
   notes: number;
   tags: number;
   organization: number;
+  /**
+   * Weight for dct:rightsHolder (CKAN field `holder_name`) — the actual owner of the dataset.
+   * On federated catalogs (e.g. dati.gov.it), `organization` is the harvesting catalog, NOT the
+   * data owner. A query like "datasets from Comune di Lecce" must match `holder_name`, otherwise
+   * datasets owned by Lecce but harvested via Regione Puglia score 0 on the owner field.
+   */
+  holder: number;
+  /**
+   * Weight for dct:publisher (CKAN field `publisher_name`) — the agent who published the dataset.
+   * Often equal to holder, but sometimes a technical role (e.g. "Redazione OD"). Kept separate
+   * from `holder` so it can be weighted lower to avoid noise.
+   */
+  publisher: number;
 };
 
 type RelevanceBreakdown = {
@@ -54,6 +67,8 @@ type RelevanceBreakdown = {
   notes: number;
   tags: number;
   organization: number;
+  holder: number;
+  publisher: number;
   total: number;
 };
 
@@ -61,7 +76,9 @@ const DEFAULT_RELEVANCE_WEIGHTS: RelevanceWeights = {
   title: 4,
   notes: 2,
   tags: 3,
-  organization: 1
+  organization: 1,
+  holder: 4,
+  publisher: 2
 };
 
 const QUERY_STOPWORDS = new Set([
@@ -126,6 +143,40 @@ export const scoreTextField = (text: string | undefined, terms: string[], weight
   return textMatchesTerms(text, terms) ? weight : 0;
 };
 
+/**
+ * Read a DCAT-AP_IT field (e.g. `holder_name`, `publisher_name`) from a CKAN dataset.
+ *
+ * On Italian DCAT-AP_IT portals (notably dati.gov.it via ckanext-dcatapit), `package_search`
+ * results expose DCAT fields in TWO places that often disagree:
+ *
+ *   1. Inside `extras[]` as `{ key, value }` pairs → this is the authoritative DCAT-AP_IT
+ *      source: `dct:rightsHolder` ends up under `extras[].key === "holder_name"`,
+ *      `dct:publisher` under `extras[].key === "publisher_name"`. These are the values the
+ *      data publisher set, mapped from the upstream RDF.
+ *
+ *   2. As root-level fields (`dataset.holder_name`, `dataset.publisher_name`) → on aggregator
+ *      catalogs, ckanext-dcatapit "promotes" the organization metadata into these root fields
+ *      during harvesting. For datasets harvested via a regional/GAL/Unione catalog, the root
+ *      value reflects the HARVESTER, not the data owner. Example on dati.gov.it: dataset
+ *      `defibrillatori-esterni` has `extras.holder_name = "Comune di Mesagne"` (correct) but
+ *      root `holder_name = "GAL Terra dei Messapi"` (wrong owner — that's the harvester).
+ *
+ * This helper prefers `extras[]` (DCAT-AP_IT truth) and falls back to the root field only
+ * when extras don't carry the key. The fallback is important for non-DCAT-AP_IT CKAN portals
+ * (e.g. data.gov, open.canada.ca) where root-level holder/publisher are correct.
+ */
+const readDcatExtra = (dataset: CkanPackage, key: "holder_name" | "publisher_name"): string => {
+  const extras = Array.isArray(dataset.extras) ? dataset.extras : [];
+  for (const e of extras) {
+    if (e && typeof e === "object" && (e as { key?: unknown }).key === key) {
+      const value = (e as { value?: unknown }).value;
+      if (typeof value === "string" && value.length > 0) return value;
+    }
+  }
+  const rootValue = dataset[key];
+  return typeof rootValue === "string" ? rootValue : "";
+};
+
 export const scoreDatasetRelevance = (
   query: string,
   dataset: CkanPackage,
@@ -135,12 +186,16 @@ export const scoreDatasetRelevance = (
   const titleText = dataset.title || dataset.name || "";
   const notesText = dataset.notes || "";
   const orgText = dataset.organization?.title || dataset.organization?.name || dataset.owner_org || "";
+  const holderText = readDcatExtra(dataset, "holder_name");
+  const publisherText = readDcatExtra(dataset, "publisher_name");
 
   const breakdown = {
     title: scoreTextField(titleText, terms, weights.title),
     notes: scoreTextField(notesText, terms, weights.notes),
     tags: 0,
     organization: scoreTextField(orgText, terms, weights.organization),
+    holder: scoreTextField(holderText, terms, weights.holder),
+    publisher: scoreTextField(publisherText, terms, weights.publisher),
     total: 0
   };
 
@@ -152,7 +207,13 @@ export const scoreDatasetRelevance = (
     breakdown.tags = tagMatch ? weights.tags : 0;
   }
 
-  breakdown.total = breakdown.title + breakdown.notes + breakdown.tags + breakdown.organization;
+  breakdown.total =
+    breakdown.title +
+    breakdown.notes +
+    breakdown.tags +
+    breakdown.organization +
+    breakdown.holder +
+    breakdown.publisher;
 
   return { total: breakdown.total, breakdown, terms };
 };
@@ -891,7 +952,13 @@ Args:
   - query (string): Natural language or keyword query (e.g., "mobilità urbana", "air quality")
   - limit (number): Number of datasets to return (default: 10)
   - weights (object): Field weights for scoring — higher weight = more influence on rank
-    Default: title=4, tags=3, notes=2, organization=1
+    Default: title=4, tags=3, notes=2, organization=1, holder=4, publisher=2
+    Note on holder vs organization: on federated catalogs (e.g. dati.gov.it), \`organization\`
+    is the harvesting catalog (e.g. Regione Puglia), while \`holder\` (DCAT-AP_IT dct:rightsHolder)
+    is the actual data owner (e.g. Comune di Lecce). Queries like "datasets from a specific Comune"
+    match \`holder\` correctly; matching only \`organization\` misses datasets harvested via
+    aggregators. \`publisher\` (dct:publisher) is scored separately at lower weight as it can
+    contain technical roles ("Redazione OD") rather than the institutional owner.
   - query_parser ('default' | 'text'): Override search parser behavior
   - response_format ('markdown' | 'json'): Output format
 
@@ -901,6 +968,7 @@ Returns:
 Examples:
   - { server_url: "https://dati.gov.it/opendata", query: "mobilità" }
   - { server_url: "...", query: "trasporti", limit: 5, weights: { title: 5, notes: 2 } }
+  - { server_url: "...", query: "defibrillatori Comune di Lecce", weights: { holder: 5 } }
 
 Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top results) → ckan_datastore_search (query data)`,
       inputSchema: z.object({
@@ -909,7 +977,7 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
           .describe("Base URL of the CKAN server (e.g., https://dati.gov.it/opendata)"),
         query: z.string()
           .min(2)
-          .describe("Natural language or keyword query to match against dataset title, notes, tags, and organization"),
+          .describe("Natural language or keyword query to match against dataset title, notes, tags, organization, holder and publisher"),
         limit: z.coerce.number()
           .int()
           .min(1)
@@ -921,7 +989,9 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
           title: z.coerce.number().min(0).optional().describe("Weight for title match (default 4)"),
           notes: z.coerce.number().min(0).optional().describe("Weight for description match (default 2)"),
           tags: z.coerce.number().min(0).optional().describe("Weight for tag match (default 3)"),
-          organization: z.coerce.number().min(0).optional().describe("Weight for organization match (default 1)")
+          organization: z.coerce.number().min(0).optional().describe("Weight for organization (CKAN catalog / harvester) match (default 1)"),
+          holder: z.coerce.number().min(0).optional().describe("Weight for holder_name match — DCAT-AP_IT dct:rightsHolder, the actual data owner (default 4)"),
+          publisher: z.coerce.number().min(0).optional().describe("Weight for publisher_name match — DCAT-AP_IT dct:publisher (default 2)")
         }).optional().describe("Per-field scoring weights; unspecified fields use defaults"),
         query_parser: z.enum(["default", "text"])
           .optional()
@@ -1016,7 +1086,9 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
         markdown += `- **Title**: ${weights.title}\n`;
         markdown += `- **Notes**: ${weights.notes}\n`;
         markdown += `- **Tags**: ${weights.tags}\n`;
-        markdown += `- **Organization**: ${weights.organization}\n\n`;
+        markdown += `- **Organization**: ${weights.organization}\n`;
+        markdown += `- **Holder**: ${weights.holder}\n`;
+        markdown += `- **Publisher**: ${weights.publisher}\n\n`;
 
         if (top.length === 0) {
           markdown += 'No datasets matched the query terms.\n';
@@ -1038,6 +1110,8 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
             markdown += `- Notes: ${dataset.breakdown.notes}\n`;
             markdown += `- Tags: ${dataset.breakdown.tags}\n`;
             markdown += `- Organization: ${dataset.breakdown.organization}\n`;
+            markdown += `- Holder: ${dataset.breakdown.holder}\n`;
+            markdown += `- Publisher: ${dataset.breakdown.publisher}\n`;
             markdown += `- Total: ${dataset.breakdown.total}\n\n`;
           });
         }

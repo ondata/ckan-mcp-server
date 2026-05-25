@@ -1,5 +1,18 @@
 # LOG
 
+## 2026-05-25
+
+- Fix (scoring): `ckan_find_relevant_datasets` now scores `holder_name` (DCAT-AP_IT `dct:rightsHolder`) and `publisher_name` (`dct:publisher`) as distinct weighted fields, separate from `organization`
+- Rationale: on federated catalogs (e.g. `dati.gov.it`, but the pattern applies to any portal harvesting from sub-publishers), `organization` is the harvesting catalog (e.g. `regione-puglia`), NOT the data owner. Queries like "datasets from Comune di Lecce" previously scored 0 on the owner field when the dataset was harvested via Regione Puglia or a local action group, missing the actual `rightsHolder`
+- The fields are read from `extras[]` (the authoritative DCAT-AP_IT location on Italian portals) with fallback to root-level. On dati.gov.it, `package_search` exposes `holder_name` and `publisher_name` both in `extras[]` (correct DCAT values) and at root (often overwritten by the harvester with the organization name); reading only the root would be wrong. The root-level fallback preserves correct behavior on non-DCAT-AP_IT portals (data.gov, open.canada.ca)
+- Bug surfaced on real-world Puglia datasets: `defibrillatori-esterni` (extras.holder=Comune di Mesagne, root.holder=GAL Terra dei Messapi, organization=GAL Terra dei Messapi) and `defibrillatori-dae-progetto-comune-cardioprotetto` (extras.holder=Comune di Lecce, organization=Regione Puglia)
+- Defaults: `holder=4` (peer with `title` — actual institutional owner per DCAT-AP_IT), `publisher=2` (lower because sometimes a technical role like "Redazione OD" rather than the institution)
+- API: `weights` object accepts two new optional fields (`holder`, `publisher`); backward-compatible — clients not setting them get the improved scoring by default
+- Types: added `holder_name?: string` and `publisher_name?: string` to `CkanPackage` interface (previously accessed via index signature)
+- Added internal helper `readDcatExtra(dataset, key)` that encapsulates the extras-first, root-fallback lookup
+- Score breakdown markdown and JSON outputs include `holder` and `publisher` per dataset
+- Validated against live `package_search` responses on dati.gov.it: defibrillatori-esterni (Mesagne) 6 → 12, comune-cardioprotetto (Lecce) 10 → 13
+
 ## 2026-05-20
 
 ### v0.4.104

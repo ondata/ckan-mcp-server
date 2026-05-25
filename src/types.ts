@@ -52,6 +52,10 @@ export interface CkanPackage {
   organization?: { name: string; title?: string };
   tags?: CkanTag[];
   resources?: CkanResource[];
+  /** DCAT-AP_IT dct:rightsHolder — actual owner of the dataset (may differ from organization/catalog). */
+  holder_name?: string;
+  /** DCAT-AP_IT dct:publisher — agent responsible for publishing the dataset (may differ from organization/catalog). */
+  publisher_name?: string;
   [key: string]: unknown;
 }
 
