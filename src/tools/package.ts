@@ -165,7 +165,7 @@ export const scoreTextField = (text: string | undefined, terms: string[], weight
  * when extras don't carry the key. The fallback is important for non-DCAT-AP_IT CKAN portals
  * (e.g. data.gov, open.canada.ca) where root-level holder/publisher are correct.
  */
-const readDcatExtra = (dataset: CkanPackage, key: "holder_name" | "publisher_name"): string => {
+export const readDcatExtra = (dataset: CkanPackage, key: "holder_name" | "publisher_name"): string => {
   const extras = Array.isArray(dataset.extras) ? dataset.extras : [];
   for (const e of extras) {
     if (e && typeof e === "object" && (e as { key?: unknown }).key === key) {

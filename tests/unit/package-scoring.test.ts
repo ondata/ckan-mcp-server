@@ -4,7 +4,8 @@ import {
   escapeRegExp,
   textMatchesTerms,
   scoreTextField,
-  scoreDatasetRelevance
+  scoreDatasetRelevance,
+  readDcatExtra
 } from '../../src/tools/package';
 
 describe('extractQueryTerms', () => {
@@ -263,7 +264,9 @@ describe('scoreDatasetRelevance', () => {
         result.breakdown.title +
         result.breakdown.notes +
         result.breakdown.tags +
-        result.breakdown.organization
+        result.breakdown.organization +
+        result.breakdown.holder +
+        result.breakdown.publisher
       );
     });
 
@@ -287,7 +290,7 @@ describe('scoreDatasetRelevance', () => {
         tags: [],
         organization: null
       };
-      const weights = { title: 10, notes: 5, tags: 3, organization: 1 };
+      const weights = { title: 10, notes: 5, tags: 3, organization: 1, holder: 4, publisher: 2 };
       const result = scoreDatasetRelevance('health', dataset, weights);
 
       expect(result.breakdown.title).toBe(10);
@@ -379,6 +382,8 @@ describe('scoreDatasetRelevance', () => {
       expect(result.breakdown).toHaveProperty('notes');
       expect(result.breakdown).toHaveProperty('tags');
       expect(result.breakdown).toHaveProperty('organization');
+      expect(result.breakdown).toHaveProperty('holder');
+      expect(result.breakdown).toHaveProperty('publisher');
     });
 
     it('includes extracted terms in result', () => {
@@ -389,5 +394,187 @@ describe('scoreDatasetRelevance', () => {
       expect(result.terms).toContain('data');
       expect(result.terms).toContain('portal');
     });
+  });
+});
+
+describe('readDcatExtra', () => {
+  it('returns extras value when key is present', () => {
+    const dataset = {
+      extras: [
+        { key: 'holder_name', value: 'Comune di Lecce' }
+      ]
+    };
+    expect(readDcatExtra(dataset, 'holder_name')).toBe('Comune di Lecce');
+  });
+
+  it('prefers extras over root field when both are present', () => {
+    const dataset = {
+      holder_name: 'Regione Puglia',
+      extras: [
+        { key: 'holder_name', value: 'Comune di Lecce' }
+      ]
+    };
+    expect(readDcatExtra(dataset, 'holder_name')).toBe('Comune di Lecce');
+  });
+
+  it('falls back to root field when key not in extras', () => {
+    const dataset = {
+      holder_name: 'Health Canada',
+      extras: [
+        { key: 'other_field', value: 'something' }
+      ]
+    };
+    expect(readDcatExtra(dataset, 'holder_name')).toBe('Health Canada');
+  });
+
+  it('falls back to root field when extras is empty', () => {
+    const dataset = {
+      holder_name: 'data.gov',
+      extras: []
+    };
+    expect(readDcatExtra(dataset, 'holder_name')).toBe('data.gov');
+  });
+
+  it('falls back to root field when extras is absent', () => {
+    const dataset = {
+      publisher_name: 'Open Government'
+    };
+    expect(readDcatExtra(dataset, 'publisher_name')).toBe('Open Government');
+  });
+
+  it('returns empty string when neither extras nor root have the key', () => {
+    const dataset = {
+      extras: [{ key: 'other', value: 'x' }]
+    };
+    expect(readDcatExtra(dataset, 'holder_name')).toBe('');
+  });
+
+  it('returns empty string for completely empty dataset', () => {
+    const dataset = {};
+    expect(readDcatExtra(dataset, 'holder_name')).toBe('');
+  });
+
+  it('skips extras entry with empty string value', () => {
+    const dataset = {
+      holder_name: 'Root Value',
+      extras: [
+        { key: 'holder_name', value: '' }
+      ]
+    };
+    expect(readDcatExtra(dataset, 'holder_name')).toBe('Root Value');
+  });
+
+  it('skips extras entry with non-string value', () => {
+    const dataset = {
+      holder_name: 'Root Value',
+      extras: [
+        { key: 'holder_name', value: 42 }
+      ]
+    };
+    expect(readDcatExtra(dataset, 'holder_name')).toBe('Root Value');
+  });
+
+  it('handles publisher_name key', () => {
+    const dataset = {
+      publisher_name: 'Root Publisher',
+      extras: [
+        { key: 'publisher_name', value: 'Extras Publisher' }
+      ]
+    };
+    expect(readDcatExtra(dataset, 'publisher_name')).toBe('Extras Publisher');
+  });
+});
+
+describe('scoreDatasetRelevance — holder and publisher', () => {
+  it('scores holder from extras (DCAT-AP_IT pattern)', () => {
+    const dataset = {
+      title: 'Defibrillatori DAE',
+      organization: { name: 'regione-puglia', title: 'Regione Puglia' },
+      extras: [{ key: 'holder_name', value: 'Comune di Lecce' }]
+    };
+    const result = scoreDatasetRelevance('Comune di Lecce', dataset);
+
+    expect(result.breakdown.holder).toBeGreaterThan(0);
+    expect(result.breakdown.organization).toBe(0);
+  });
+
+  it('extras holder wins over root holder when they differ (federated portal fix)', () => {
+    const dataset = {
+      title: 'Dataset',
+      holder_name: 'Regione Puglia',
+      extras: [{ key: 'holder_name', value: 'Comune di Mesagne' }]
+    };
+    const withFix = scoreDatasetRelevance('Mesagne', dataset);
+    expect(withFix.breakdown.holder).toBeGreaterThan(0);
+
+    const datasetRootOnly = {
+      title: 'Dataset',
+      holder_name: 'Comune di Mesagne'
+    };
+    const withRoot = scoreDatasetRelevance('Mesagne', datasetRootOnly);
+    expect(withRoot.breakdown.holder).toBeGreaterThan(0);
+  });
+
+  it('scores publisher from extras', () => {
+    const dataset = {
+      title: 'Dataset',
+      extras: [{ key: 'publisher_name', value: 'Regione Siciliana' }]
+    };
+    const result = scoreDatasetRelevance('Siciliana', dataset);
+
+    expect(result.breakdown.publisher).toBeGreaterThan(0);
+  });
+
+  it('holder and publisher contribute to total', () => {
+    const dataset = {
+      title: 'Dataset',
+      extras: [
+        { key: 'holder_name', value: 'Comune di Lecce' },
+        { key: 'publisher_name', value: 'Comune di Lecce' }
+      ]
+    };
+    const result = scoreDatasetRelevance('Lecce', dataset);
+
+    expect(result.breakdown.holder).toBeGreaterThan(0);
+    expect(result.breakdown.publisher).toBeGreaterThan(0);
+    expect(result.total).toBe(
+      result.breakdown.title +
+      result.breakdown.notes +
+      result.breakdown.tags +
+      result.breakdown.organization +
+      result.breakdown.holder +
+      result.breakdown.publisher
+    );
+  });
+
+  it('non-DCAT portal: holder and publisher score 0 when fields absent', () => {
+    const dataset = {
+      title: 'Health Dataset',
+      organization: { name: 'health-canada', title: 'Health Canada' }
+    };
+    const result = scoreDatasetRelevance('health', dataset);
+
+    expect(result.breakdown.holder).toBe(0);
+    expect(result.breakdown.publisher).toBe(0);
+  });
+
+  it('uses default weight 4 for holder', () => {
+    const dataset = {
+      title: 'Data',
+      extras: [{ key: 'holder_name', value: 'Comune di Lecce' }]
+    };
+    const result = scoreDatasetRelevance('Lecce', dataset);
+
+    expect(result.breakdown.holder).toBe(4);
+  });
+
+  it('uses default weight 2 for publisher', () => {
+    const dataset = {
+      title: 'Data',
+      extras: [{ key: 'publisher_name', value: 'Comune di Lecce' }]
+    };
+    const result = scoreDatasetRelevance('Lecce', dataset);
+
+    expect(result.breakdown.publisher).toBe(2);
   });
 });
