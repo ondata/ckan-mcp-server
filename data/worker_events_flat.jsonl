@@ -4433,3 +4433,5 @@
 {"id": "01KSDN8WVN8JYMNWW683PZWTW8", "timestamp": "2026-05-24T18:52:01Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
 {"id": "01KSDN955QNEX9C0Y4FFCYYQT5", "timestamp": "2026-05-24T18:52:10Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
 {"id": "01KSEYD8ZWM5QR6HMSC4X0WC9S", "timestamp": "2026-05-25T06:50:56Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "defibrillatori Comune di Lecce", "error": null}
+{"id": "01KSF2F8HR00TG4P6TRJKMGRN8", "timestamp": "2026-05-25T08:01:56Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "musei arte romana catalogo opere", "error": null}
+{"id": "01KSF2G2G0DZNXNV5MMHZDH96K", "timestamp": "2026-05-25T08:02:22Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.beniculturali.it", "query": "arte romana pittura catalogo dipinti", "error": null}
