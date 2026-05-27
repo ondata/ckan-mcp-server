@@ -4518,3 +4518,4 @@
 {"id": "01KSM3DHABEFXXZ99TV0R4QV46", "timestamp": "2026-05-27T06:54:40Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://datosabiertos.navarra.es/", "query": "spasitnabiodiv_pol_parquesnat-xml", "error": null}
 {"id": "01KSM3DQTG7QDGVECRD78CA28R", "timestamp": "2026-05-27T06:54:47Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://datosabiertos.navarra.es/", "query": "spasitnabiodiv_pol_zonashumedas-xml", "error": null}
 {"id": "01KSM3DSZGQX6BZVGVTEZRSEH5", "timestamp": "2026-05-27T06:54:49Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://datosabiertos.navarra.es/", "query": "spasitnabiodiv_pol_paisajespro-xml", "error": null}
+{"id": "01KSM7FFE4C4MG2606XDKYD0KS", "timestamp": "2026-05-27T08:05:38Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "musei roma arte opere catalogo", "error": null}
