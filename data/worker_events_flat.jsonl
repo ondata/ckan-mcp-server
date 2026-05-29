@@ -4564,3 +4564,6 @@
 {"id": "01KSQM66EZDP7XSZ5WR3DFS12N", "timestamp": "2026-05-28T15:45:29Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Banca d'Italia", "error": null}
 {"id": "01KSQM6F654W078MD90CP83MPH", "timestamp": "2026-05-28T15:45:37Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": null, "error": null}
 {"id": "01KSQM8F2AH0FQD7D2BWFVFRCY", "timestamp": "2026-05-28T15:46:43Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://dati.gov.it/opendata", "query": "prestiti-alle-famiglie-consumatrici-per-acquisto-abitazione-erogazioni1", "error": null}
+{"id": "01KSR5QN5VS9CBX6VCRMGW6FBF", "timestamp": "2026-05-28T20:52:06Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.datos.gov.co", "query": "registros sanitarios dispositivos medicos INVIMA", "error": null}
+{"id": "01KSR5SZ51850DC7E25MDDQM2T", "timestamp": "2026-05-28T20:53:22Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Colombia", "error": null}
+{"id": "01KSRYX9S7MXQ5MES364JVC42R", "timestamp": "2026-05-29T04:12:06Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "dichiarazioni fiscali MEF IRPEF redditi contribuenti", "error": null}
