@@ -64,6 +64,14 @@ describe('validateServerUrl', () => {
     expect(() => validateServerUrl('http://[fe80::1]')).toThrow('private/internal');
   });
 
+  it('blocks ip6-localhost (SSRF bypass via /etc/hosts alias)', () => {
+    expect(() => validateServerUrl('http://ip6-localhost:8080/api')).toThrow('not allowed');
+  });
+
+  it('blocks ip6-loopback (SSRF bypass via /etc/hosts alias)', () => {
+    expect(() => validateServerUrl('http://ip6-loopback/api')).toThrow('not allowed');
+  });
+
   it('throws on invalid URL', () => {
     expect(() => validateServerUrl('not-a-url')).toThrow('Invalid URL');
   });

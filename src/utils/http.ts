@@ -256,7 +256,12 @@ export function validateServerUrl(serverUrl: string): void {
 
   const hostname = parsed.hostname.toLowerCase();
 
-  if (hostname === 'localhost') {
+  const BLOCKED_HOSTNAMES = new Set([
+    'localhost',
+    'ip6-localhost',
+    'ip6-loopback',
+  ]);
+  if (BLOCKED_HOSTNAMES.has(hostname)) {
     throw new Error(`Access to "${hostname}" is not allowed.`);
   }
 
