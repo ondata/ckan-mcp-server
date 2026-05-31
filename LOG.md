@@ -1,5 +1,12 @@
 # LOG
 
+## 2026-05-31
+
+### v0.4.106
+
+- Security fix (GHSA-g84h-j7jj-x32p): block `ip6-localhost` and `ip6-loopback` SSRF bypass — hostname aliases present in `/etc/hosts` on Linux that resolve to `::1` but bypassed the existing SSRF filter (GHSA-3xm7-qw7j-qc8v); replaced single `localhost` check with a blocked-hostname `Set`; 2 new unit tests added
+- Reported by: hibrian827
+
 ## 2026-05-25
 
 ### v0.4.105
