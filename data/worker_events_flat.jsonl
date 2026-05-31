@@ -4648,3 +4648,6 @@
 {"id": "01KSWAHR850MGXY28ETYKPMZ31", "timestamp": "2026-05-30T11:33:14Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Canada", "error": null}
 {"id": "01KSWAJ04PA0CTC9AWC6N6GFKQ", "timestamp": "2026-05-30T11:33:22Z", "outcome": "ok", "tool": "ckan_analyze_datasets", "server": "https://data.ontario.ca/", "query": "artificial intelligence", "error": null}
 {"id": "01KSWAMTVD71GF332BM2MENTJF", "timestamp": "2026-05-30T11:34:55Z", "outcome": "ok", "tool": "ckan_datastore_search", "server": "https://data.ontario.ca/", "query": "70c67d83-ded3-45e5-adcc-8335db98e6b1", "error": null}
+{"id": "01KSYEQ0NR0B56D1YC9144JZVD", "timestamp": "2026-05-31T07:24:29Z", "outcome": "ok", "tool": "ckan_status_show", "server": "http://ip6-localhost:9999", "query": null, "error": null}
+{"id": "01KSYH1JCQRHQJMS2AQDXY0C4J", "timestamp": "2026-05-31T08:05:12Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "musei roma arte", "error": null}
+{"id": "01KSYH26DTZ70HXQNBHV042GPH", "timestamp": "2026-05-31T08:05:33Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "catalogo opere d'arte", "error": null}
