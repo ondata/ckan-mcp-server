@@ -4662,3 +4662,5 @@
 {"id": "01KT20BP94KACKCDCAT1G6P9NH", "timestamp": "2026-06-01T16:30:36Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://catalogo.datosabiertos.miteco.gob.es/", "query": "habiybioto", "error": null}
 {"id": "01KT20R1SD0K894FCMF36J6SYT", "timestamp": "2026-06-01T16:37:21Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://datos.chduero.es/", "query": null, "error": null}
 {"id": "01KT20R51TNV1DNZ3MZ1GNSJ88", "timestamp": "2026-06-01T16:37:24Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://datos.chduero.es/", "query": "*:*", "error": null}
+{"id": "01KT3NS9G7SGFAEKP21AABREQZ", "timestamp": "2026-06-02T08:04:16Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "musei roma arte opere catalogo", "error": null}
+{"id": "01KT3NSNTQR009YNKDXTSZTH1N", "timestamp": "2026-06-02T08:04:29Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.beniculturali.it", "query": "arte romana catalogo opere musei", "error": null}
