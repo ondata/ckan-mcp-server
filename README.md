@@ -900,6 +900,14 @@ See the full [Privacy Policy](https://github.com/ondata/ckan-mcp-server/blob/mai
 
 ---
 
+## Related tools
+
+- **[opensituas](https://github.com/ondata/opensituas)** — Codes and history of every Italian territorial unit, from the CLI. The join key for any ISTAT dataset.
+- **[opensdmx](https://github.com/ondata/opensdmx)** — Official statistics from Eurostat, ISTAT, OECD, and other SDMX providers — no hallucinations, only published figures.
+- **[ISTAT MCP Server](https://github.com/ondata/istat_mcp_server)** — Italian statistical data directly in your AI assistant, via the MCP protocol.
+
+---
+
 ## 🔗 Useful Links
 
 - [CKAN](https://ckan.org/) — the open-source platform behind most public open data portals
