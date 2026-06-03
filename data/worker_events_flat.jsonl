@@ -4680,3 +4680,6 @@
 {"id": "01KT54V018M08NR5E5T1KR65ZA", "timestamp": "2026-06-02T21:46:35Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://datosabiertos.navarra.es/", "query": "spasitnabiodiv_pol_rena-xml", "error": null}
 {"id": "01KT54VE7DA36W63QSDMRZ4W34", "timestamp": "2026-06-02T21:46:49Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://datosabiertos.navarra.es/", "query": "spasitnabiodiv_pol_rena-xml", "error": null}
 {"id": "01KT54VH908B8AGXRSNZKZ648Q", "timestamp": "2026-06-02T21:46:53Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://datosabiertos.navarra.es/", "query": "spasitnabiodiv_pol_rena-xml", "error": null}
+{"id": "01KT68B6ENVCMSF4EKQ7H8KFTM", "timestamp": "2026-06-03T08:07:06Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "musei roma arte antica catalogo opere", "error": null}
+{"id": "01KT68BQ55WF4ECMSZV5Z63NH6", "timestamp": "2026-06-03T08:07:23Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.beniculturali.it", "query": "arte romana scultura catalogo", "error": null}
+{"id": "01KT68CGSEC3TPS8XT663ZKHY8", "timestamp": "2026-06-03T08:07:49Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "catalogo beni culturali monumenti", "error": null}
