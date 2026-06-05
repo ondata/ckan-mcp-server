@@ -4726,3 +4726,4 @@
 {"id": "01KTB17F3G00QZB7TJXK4MPWCQ", "timestamp": "2026-06-05T04:38:56Z", "outcome": "ok", "tool": "ckan_analyze_datasets", "server": "https://data.go.th", "query": "covid", "error": null}
 {"id": "01KTB17NA46ZEEK79PB58GB73V", "timestamp": "2026-06-05T04:39:02Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://data.go.th", "query": "covid-19 \u0e42\u0e04\u0e27\u0e34\u0e14", "error": null}
 {"id": "01KTB19KMRNDZYVW4VABT7DG80", "timestamp": "2026-06-05T04:40:06Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "http://localhost", "query": "covid-19 \u0e42\u0e04\u0e27\u0e34\u0e14", "error": null}
+{"id": "01KTC99GSGZDDH19YMNMMWVHB0", "timestamp": "2026-06-05T16:19:06Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "pozzi trivellazioni acqua sotterranea Veneto", "error": null}
