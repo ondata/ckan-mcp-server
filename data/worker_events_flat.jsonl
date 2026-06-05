@@ -4713,3 +4713,16 @@
 {"id": "01KT9F0S8H9WF78GRAX3TJ6HR0", "timestamp": "2026-06-04T14:01:28Z", "outcome": "ok", "tool": "ckan_datastore_search", "server": "https://open.canada.ca/data/en", "query": "fac950c0-00d5-4ec1-a4d3-9cbebf98a305", "error": null}
 {"id": "01KT9Q3GH5R9B06KRFWWPCRBND", "timestamp": "2026-06-04T16:22:46Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy min_datasets=100", "error": null}
 {"id": "01KT9Q3VST9RS483QSXKCA0GQV", "timestamp": "2026-06-04T16:22:58Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.toscana.it/", "query": "uso del suolo WFS", "error": null}
+{"id": "01KTA5ER3FF8H8WA9GEHDN1P5Z", "timestamp": "2026-06-04T20:33:34Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://catalog.data.gov", "query": "earthquake USGS", "error": null}
+{"id": "01KTA5EY76CHYV24YMG00ZATWD", "timestamp": "2026-06-04T20:33:41Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://catalog.data.gov", "query": null, "error": null}
+{"id": "01KTA5FA8V03F6EBFJBBDQ88A7", "timestamp": "2026-06-04T20:33:53Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.gov.au", "query": null, "error": null}
+{"id": "01KTA5FCE4K18H23RG3YR1YZQR", "timestamp": "2026-06-04T20:33:55Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "query=United States data.gov", "error": null}
+{"id": "01KTA5FKS75070NPQJ1BGMWJQV", "timestamp": "2026-06-04T20:34:03Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://demo.ckan.org", "query": null, "error": null}
+{"id": "01KTA5FNSR0V9YP0ENQEEWKE69", "timestamp": "2026-06-04T20:34:05Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://open.canada.ca/data", "query": null, "error": null}
+{"id": "01KTA5G0J03VH07ASBNMCB7VS4", "timestamp": "2026-06-04T20:34:16Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "ambiente clima", "error": null}
+{"id": "01KTA5GABQXEF4B38FF4F6BY1A", "timestamp": "2026-06-04T20:34:26Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://catalog.data.gov", "query": null, "error": null}
+{"id": "01KTA5GVH9ZN9N915VT026Z9WJ", "timestamp": "2026-06-04T20:34:43Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://open.canada.ca/data", "query": "climate change emissions", "error": null}
+{"id": "01KTB12BBCYD47K20CZEPEA8QT", "timestamp": "2026-06-05T04:36:08Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.go.th/", "query": null, "error": null}
+{"id": "01KTB17F3G00QZB7TJXK4MPWCQ", "timestamp": "2026-06-05T04:38:56Z", "outcome": "ok", "tool": "ckan_analyze_datasets", "server": "https://data.go.th", "query": "covid", "error": null}
+{"id": "01KTB17NA46ZEEK79PB58GB73V", "timestamp": "2026-06-05T04:39:02Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://data.go.th", "query": "covid-19 \u0e42\u0e04\u0e27\u0e34\u0e14", "error": null}
+{"id": "01KTB19KMRNDZYVW4VABT7DG80", "timestamp": "2026-06-05T04:40:06Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "http://localhost", "query": "covid-19 \u0e42\u0e04\u0e27\u0e34\u0e14", "error": null}
