@@ -4731,3 +4731,7 @@
 {"id": "01KTDZBR78S5T3N92A26PBEH26", "timestamp": "2026-06-06T08:04:02Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "beni culturali patrimonio artistico", "error": null}
 {"id": "01KTF10YQP90RSQ6AD6NTHRN6X", "timestamp": "2026-06-06T17:52:20Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://open.canada.ca/data", "query": "artificial intelligence", "error": null}
 {"id": "01KTF10YMKGT8YZ02P5SNDVEN0", "timestamp": "2026-06-06T17:52:20Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://open.canada.ca/data", "query": "machine learning", "error": null}
+{"id": "01KTGHQAFPMDV0J3R470XPKEXV", "timestamp": "2026-06-07T08:03:25Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "arte romana musei catalogo opere", "error": null}
+{"id": "01KTGHQW6M7E8037J6TBPRKBGF", "timestamp": "2026-06-07T08:03:43Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.beniculturali.it", "query": "arte romana opere catalogo", "error": null}
+{"id": "01KTGRAXG3C5RTJRPVCFNMEZQ3", "timestamp": "2026-06-07T09:58:58Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "dissesto idrogeologico frane", "error": null}
+{"id": "01KTGRB1NQ6Y0H8WEMRZRBY83E", "timestamp": "2026-06-07T09:59:03Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.toscana.it/", "query": "uso del suolo", "error": null}
