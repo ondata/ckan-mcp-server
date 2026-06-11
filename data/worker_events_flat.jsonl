@@ -4860,3 +4860,7 @@
 {"id": "01KTTP9WY1VJH1DWD4JCEXD4A4", "timestamp": "2026-06-11T06:35:52Z", "outcome": "ok", "tool": "ckan_datastore_search", "server": "https://data.ca.gov", "query": "436642c0-cd04-4a4c-b45e-564b66437476", "error": null}
 {"id": "01KTTPABZRCJE8HA00WHFC5AAK", "timestamp": "2026-06-11T06:36:08Z", "outcome": "ok", "tool": "ckan_datastore_search", "server": "https://data.ca.gov", "query": "436642c0-cd04-4a4c-b45e-564b66437476", "error": null}
 {"id": "01KTTPAPK5YMJECFKW46HYGTDN", "timestamp": "2026-06-11T06:36:18Z", "outcome": "ok", "tool": "ckan_datastore_search", "server": "https://data.ca.gov", "query": "436642c0-cd04-4a4c-b45e-564b66437476", "error": null}
+{"id": "01KTTV9W5WF9RG8YPAN137D1FT", "timestamp": "2026-06-11T08:03:14Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "musei arte romana catalogo opere", "error": null}
+{"id": "01KTTV9YH6AA6MHXH0DBQX803K", "timestamp": "2026-06-11T08:03:17Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.beniculturali.it", "query": "arte romana scultura pittura catalogo", "error": null}
+{"id": "01KTTVA3FXACC30AM4ZKNNW54C", "timestamp": "2026-06-11T08:03:22Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "beni culturali musei", "error": null}
+{"id": "01KTTVA634J5GRX6D8J01DFB5W", "timestamp": "2026-06-11T08:03:24Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.beniculturali.it/lodview", "query": "arte romana", "error": null}
