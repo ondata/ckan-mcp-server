@@ -16,6 +16,8 @@ CKAN is the open-source platform behind most public open data portals worldwide 
 
 **Who is this for?** Everyone. Journalists looking for data to verify a story. Researchers exploring public datasets. Public servants checking what data their administration publishes. Developers building data pipelines. No CKAN knowledge required.
 
+> **Adopted by AgID** — This project has been [reused by AgID](https://github.com/agID/ckan-mcp-server), Italy's Agency for Digital Italy, as part of its effort to make public open data more accessible, immediate, and easier to consult through AI.
+
 **Two ways to use it — pick the one that suits you:**
 
 | | Option A: Install locally | Option B: No install |
