@@ -4925,3 +4925,4 @@
 {"id": "01KV0QCV3YXG1M5E0VDF47QZCK", "timestamp": "2026-06-13T14:50:24Z", "outcome": "ok", "tool": "ckan_group_show", "server": "https://www.dati.gov.it/opendata/api", "query": "ambiente", "error": null}
 {"id": "01KV0QCZBPBAW7C3EXPJ6SJYJ8", "timestamp": "2026-06-13T14:50:28Z", "outcome": "ok", "tool": "ckan_group_show", "server": "https://www.dati.gov.it/opendata/api", "query": "ambiente", "error": null}
 {"id": "01KV11FV6B26T9EFNSY05GZDN6", "timestamp": "2026-06-13T17:46:48Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://open.canada.ca/data", "query": "ec690886-687d-4d59-9b1b-51311435d344", "error": null}
+{"id": "01KV1607BCZ85YJGCWP3B8PJ1D", "timestamp": "2026-06-13T19:05:39Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://data.ontario.ca", "query": "elections results Ontario provincial riding candidates votes", "error": null}
