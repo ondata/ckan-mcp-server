@@ -4926,3 +4926,19 @@
 {"id": "01KV0QCZBPBAW7C3EXPJ6SJYJ8", "timestamp": "2026-06-13T14:50:28Z", "outcome": "ok", "tool": "ckan_group_show", "server": "https://www.dati.gov.it/opendata/api", "query": "ambiente", "error": null}
 {"id": "01KV11FV6B26T9EFNSY05GZDN6", "timestamp": "2026-06-13T17:46:48Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://open.canada.ca/data", "query": "ec690886-687d-4d59-9b1b-51311435d344", "error": null}
 {"id": "01KV1607BCZ85YJGCWP3B8PJ1D", "timestamp": "2026-06-13T19:05:39Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://data.ontario.ca", "query": "elections results Ontario provincial riding candidates votes", "error": null}
+{"id": "01KV2JGTYGSKWQ16FGRDJ62HF9", "timestamp": "2026-06-14T08:03:41Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "musei arte romana catalogo opere", "error": null}
+{"id": "01KV2JH0Q051TZ6VRT0XPAMYMG", "timestamp": "2026-06-14T08:03:47Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "patrimonio culturale monumenti Roma", "error": null}
+{"id": "01KV2JK9ZTJVQD1TJ5E7X3N03J", "timestamp": "2026-06-14T08:05:02Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.beniculturali.it", "query": "arte romana opere musei catalogo", "error": null}
+{"id": "01KV2JKJYVJMVVASZHTH7YRE0R", "timestamp": "2026-06-14T08:05:11Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "beni culturali opere arte inventario", "error": null}
+{"id": "01KV2KSSBMTE6HKPEGMGA1SQXJ", "timestamp": "2026-06-14T08:26:02Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV2KT0WD9TY9JHTY8JD9M8T0", "timestamp": "2026-06-14T08:26:10Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KV2KT0FT3TP1PMEQ1VZBZGDP", "timestamp": "2026-06-14T08:26:10Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KV2KWQJ0JVRAVRXN56Y4ZPWJ", "timestamp": "2026-06-14T08:27:39Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
+{"id": "01KV2KX8VTJD5TJMYKM0M8JPAZ", "timestamp": "2026-06-14T08:27:57Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV2KXCTSD70S88S0NM44NA67", "timestamp": "2026-06-14T08:28:01Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
+{"id": "01KV2KXHTFSNKREG3WWAMMGJHX", "timestamp": "2026-06-14T08:28:06Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV2KXMNMA62BP2EF881S60FJ", "timestamp": "2026-06-14T08:28:09Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV2KY12WY8CA5DDJ2Q01QSBY", "timestamp": "2026-06-14T08:28:21Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KV2KY6GBRHDP9VKR646YSRXZ", "timestamp": "2026-06-14T08:28:27Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KV2TDF9XPRWCB3A6T402PDKX", "timestamp": "2026-06-14T10:21:39Z", "outcome": "canceled", "tool": null, "server": null, "query": null, "error": "Cannot cache response to non-GET request."}
+{"id": "01KV3N1GVZ6T4X3170PSDX4MGS", "timestamp": "2026-06-14T18:06:59Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "impianti sportivi Lombardia", "error": null}
