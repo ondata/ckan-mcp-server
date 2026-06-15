@@ -4942,3 +4942,41 @@
 {"id": "01KV2KY6GBRHDP9VKR646YSRXZ", "timestamp": "2026-06-14T08:28:27Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
 {"id": "01KV2TDF9XPRWCB3A6T402PDKX", "timestamp": "2026-06-14T10:21:39Z", "outcome": "canceled", "tool": null, "server": null, "query": null, "error": "Cannot cache response to non-GET request."}
 {"id": "01KV3N1GVZ6T4X3170PSDX4MGS", "timestamp": "2026-06-14T18:06:59Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "impianti sportivi Lombardia", "error": null}
+{"id": "01KV54XX2HVVEPQF6CVA5DAQ5P", "timestamp": "2026-06-15T08:03:52Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "musei roma arte opere catalogo", "error": null}
+{"id": "01KV54YFAKNWJG1K1H1KDMQGPC", "timestamp": "2026-06-15T08:04:11Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "patrimonio culturale monumenti archeologia", "error": null}
+{"id": "01KV56J8P0Q383Q7586CYG2Q3H", "timestamp": "2026-06-15T08:32:28Z", "outcome": "canceled", "tool": null, "server": null, "query": null, "error": "Cannot cache response to non-GET request."}
+{"id": "01KV578E52FQV1RVZ1EK9BYKN3", "timestamp": "2026-06-15T08:44:34Z", "outcome": "ok", "tool": null, "server": null, "query": null, "error": "Cannot cache response to non-GET request."}
+{"id": "01KV5884A7AGEGMM5PZXP04A58", "timestamp": "2026-06-15T09:01:53Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV589AM2V625P2CW381EA576", "timestamp": "2026-06-15T09:02:32Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV589F2GKZH1Q5BTR13E558C", "timestamp": "2026-06-15T09:02:37Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV589SY6J8AYKDND8APNGPKS", "timestamp": "2026-06-15T09:02:48Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58A2W8XW446MR5KQQSBECY", "timestamp": "2026-06-15T09:02:57Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58AC2AQD51DPAYAZNQ20F6", "timestamp": "2026-06-15T09:03:06Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58ADQ9GNRQ29W73M1JN51M", "timestamp": "2026-06-15T09:03:08Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58BP878RJM3B8FDR51KT84", "timestamp": "2026-06-15T09:03:50Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KV58BZZJ8DB0Y0M086C5X5NK", "timestamp": "2026-06-15T09:03:59Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58C5D74W4D072M734ST2B6", "timestamp": "2026-06-15T09:04:05Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58C7F3C8D1R6TN8D5VCGBP", "timestamp": "2026-06-15T09:04:07Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58C94N05WB8BEQX7Z7BNRW", "timestamp": "2026-06-15T09:04:09Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58CDN5TAAYF5NRF1K7E19M", "timestamp": "2026-06-15T09:04:13Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58CG4W1ZFT83DB5BA9Z73N", "timestamp": "2026-06-15T09:04:16Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58HG5ZBE7NZJDK4GPSFYRJ", "timestamp": "2026-06-15T09:07:00Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
+{"id": "01KV58HPMDBXY8ENF9S5CE3Y0G", "timestamp": "2026-06-15T09:07:07Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58HRP0SFM3X0J5Q6T4JN3R", "timestamp": "2026-06-15T09:07:09Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58HTAXYA8NVPDGZ86DBNH1", "timestamp": "2026-06-15T09:07:10Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58HXJ6T5YZ9GDDD9HW89VT", "timestamp": "2026-06-15T09:07:14Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58HZ79C2WVG545TSD8H4JM", "timestamp": "2026-06-15T09:07:15Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58J0VPG5VSRAGNQ076YNBQ", "timestamp": "2026-06-15T09:07:17Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58J2JPQBJHZ0N5KQNWDH22", "timestamp": "2026-06-15T09:07:19Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58J4F1XGW7PBVVTD672R6D", "timestamp": "2026-06-15T09:07:21Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58J65GW7CYPQZ7H8F3VQY8", "timestamp": "2026-06-15T09:07:22Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58J7W0W8G20FS09M8EQEKX", "timestamp": "2026-06-15T09:07:24Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58J9KJBF0DS1DFKMFG2CQ0", "timestamp": "2026-06-15T09:07:26Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58JBE1XCSHEXW1XCWDSX59", "timestamp": "2026-06-15T09:07:28Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV58JF3QWZEKQC7Q0K053P79", "timestamp": "2026-06-15T09:07:32Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
+{"id": "01KV591HWHH40793Q80E0P9QC9", "timestamp": "2026-06-15T09:15:46Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV5927CYVQD3WJEXDA5KGAXV", "timestamp": "2026-06-15T09:16:08Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV5929A25ESBNE6A25GQVWWQ", "timestamp": "2026-06-15T09:16:10Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV592BVV1APFR1PJTDA9YYB2", "timestamp": "2026-06-15T09:16:13Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KV592EV6D2R1T2J9TNBZTPKC", "timestamp": "2026-06-15T09:16:16Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
+{"id": "01KV592KFFH9S4PSFMSMBSMHK5", "timestamp": "2026-06-15T09:16:20Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
