@@ -4980,3 +4980,8 @@
 {"id": "01KV592BVV1APFR1PJTDA9YYB2", "timestamp": "2026-06-15T09:16:13Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
 {"id": "01KV592EV6D2R1T2J9TNBZTPKC", "timestamp": "2026-06-15T09:16:16Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
 {"id": "01KV592KFFH9S4PSFMSMBSMHK5", "timestamp": "2026-06-15T09:16:20Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KV7JD3A7XTJTSFVN4EM5MHRA", "timestamp": "2026-06-16T06:37:50Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.go.th", "query": null, "error": null}
+{"id": "01KV7JDH0E81GRQFVFTHZPEW0B", "timestamp": "2026-06-16T06:38:04Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.go.th", "query": "latitude longitude geolocation", "error": null}
+{"id": "01KV7NY2QWFVN8CNCMVG8J3433", "timestamp": "2026-06-16T07:39:32Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://catalog.data.gov", "query": null, "error": null}
+{"id": "01KV7NYZGQQ74DSPPJX7DA764M", "timestamp": "2026-06-16T07:40:02Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.go.th", "query": null, "error": null}
+{"id": "01KV7NZ2BFGNTZJEQM0ZB8KBBP", "timestamp": "2026-06-16T07:40:05Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.go.th/api/3/action", "query": null, "error": null}
