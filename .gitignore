@@ -60,6 +60,10 @@ testo.md
 # Docs proposals
 docs/proposte_agid.md
 docs/esempi.md
+docs/future-ideas.md
+
+# Local scratch
+.codex
 
 .gemini/
 gha-creds-*.json
