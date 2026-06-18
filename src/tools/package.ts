@@ -296,7 +296,23 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
     markdown += `- **Issued**: (missing in CKAN; downstream RDF may default to metadata_created, which is a record timestamp)\n`;
   }
   if (result.modified) markdown += `- **Modified (Content)**: ${formatDate(result.modified)}\n`;
-  markdown += `- **Metadata Modified (Record)**: ${formatDate(result.metadata_modified)}\n\n`;
+  markdown += `- **Metadata Modified (Record)**: ${formatDate(result.metadata_modified)}\n`;
+
+  // DCAT-AP fields returned natively by package_show but not otherwise surfaced.
+  // holder/publisher via readDcatExtra (extras override root on aggregators); the rest read root.
+  const holderName = readDcatExtra(result, "holder_name");
+  if (holderName) markdown += `- **Rights Holder (dct:rightsHolder)**: ${holderName}\n`;
+  const publisherName = readDcatExtra(result, "publisher_name");
+  if (publisherName) markdown += `- **Publisher (dct:publisher)**: ${publisherName}\n`;
+  const dcatField = (key: string): string =>
+    typeof result[key] === "string" ? (result[key] as string) : "";
+  const frequency = dcatField("frequency");
+  if (frequency) markdown += `- **Update Frequency (dct:accrualPeriodicity)**: ${frequency}\n`;
+  const language = dcatField("language");
+  if (language) markdown += `- **Language (dct:language)**: ${language}\n`;
+  const accessRights = dcatField("access_rights");
+  if (accessRights) markdown += `- **Access Rights (dct:accessRights)**: ${accessRights}\n`;
+  markdown += `\n`;
 
   if (result.organization) {
     markdown += `## Organization\n\n`;

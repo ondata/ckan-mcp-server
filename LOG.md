@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-06-18
+
+### v0.4.107
+
+- `ckan_package_show`: surface DCAT-AP fields already returned by package_show but previously hidden in markdown output — Rights Holder (`holder_name` via readDcatExtra), Publisher (`publisher_name`), Update Frequency (`frequency`), Language (`language`), Access Rights (`access_rights`). Each printed only when present; no new tools or API calls. `conforms_to` deliberately excluded (renders as raw JSON). Verified on dati.gov.it (DCAT-AP-IT) and open.canada.ca (no regression).
+
 ## 2026-05-31
 
 ### v0.4.106
