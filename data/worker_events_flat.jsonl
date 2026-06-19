@@ -4994,3 +4994,4 @@
 {"id": "01KVAR4E19PHJRJ4Z5XD8CE3F3", "timestamp": "2026-06-17T12:15:41Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://dati.arpae.it", "query": null, "error": null}
 {"id": "01KVCWQE0KE4T36JRY7RQD04ZN", "timestamp": "2026-06-18T08:14:27Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.humdata.org", "query": null, "error": null}
 {"id": "01KVDCMRN0Q0SVAVX47J9G5YYE", "timestamp": "2026-06-18T12:52:37Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KVFAH2YPQ3PR078RHX2HWA88", "timestamp": "2026-06-19T06:54:08Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://dati.gov.it/opendata", "query": "permessi-di-costruire-rilasciati", "error": null}
