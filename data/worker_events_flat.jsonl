@@ -4995,3 +4995,12 @@
 {"id": "01KVCWQE0KE4T36JRY7RQD04ZN", "timestamp": "2026-06-18T08:14:27Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.humdata.org", "query": null, "error": null}
 {"id": "01KVDCMRN0Q0SVAVX47J9G5YYE", "timestamp": "2026-06-18T12:52:37Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
 {"id": "01KVFAH2YPQ3PR078RHX2HWA88", "timestamp": "2026-06-19T06:54:08Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://dati.gov.it/opendata", "query": "permessi-di-costruire-rilasciati", "error": null}
+{"id": "01KVFEPP5A0E9ZFDYWH7S827VA", "timestamp": "2026-06-19T08:07:06Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "musei roma arte opere catalogo", "error": null}
+{"id": "01KVFEPW076AJY18JWJ0JBZFRR", "timestamp": "2026-06-19T08:07:12Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "arte romana patrimonio culturale", "error": null}
+{"id": "01KVFEQEASF7H7B45H7DGW177N", "timestamp": "2026-06-19T08:07:30Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "beni culturali musei", "error": null}
+{"id": "01KVFPK237Z1W839JPCRXMXJR5", "timestamp": "2026-06-19T10:24:55Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://dati.gov.it/opendata", "query": "ocds-appalti-ordinari-anno-2025", "error": null}
+{"id": "01KVFPM9Q512VVEMD4WWCP26SV", "timestamp": "2026-06-19T10:25:36Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Venezia appalti", "error": null}
+{"id": "01KVFQANME4N73FMMK9REHWRBX", "timestamp": "2026-06-19T10:37:49Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Comune di Venezia appalti lavori pubblici trasparenza", "error": null}
+{"id": "01KVGGSB0BWV12N9G6ZXFBMTZ8", "timestamp": "2026-06-19T18:02:44Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://portaledati.mimit.gov.it/", "query": null, "error": null}
+{"id": "01KVGJ8Q7R105HM1YCB0MH766H", "timestamp": "2026-06-19T18:28:37Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://bdap-opendata.rgs.mef.gov.it", "query": null, "error": null}
+{"id": "01KVGJCPCS2H3R980NXBT54MFR", "timestamp": "2026-06-19T18:30:47Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://bdap-opendata.rgs.mef.gov.it", "query": null, "error": null}
