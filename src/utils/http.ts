@@ -239,8 +239,45 @@ async function decodePossiblyCompressed(
 }
 
 /**
+ * Returns true if an IP address (IPv4 or IPv6 string) is in a private/internal/special range.
+ * Shared by the synchronous literal guard (`validateServerUrl`) and the DNS-resolution
+ * guard (`createSsrfSafeLookup` / `assertHostnameResolvesSafe`), so a hostname that
+ * *resolves* to an internal address is blocked, not just an internal IP literal.
+ */
+export function isBlockedIp(ip: string): boolean {
+  const v = ip.toLowerCase().trim();
+
+  // IPv6 (any address containing a colon)
+  if (v.includes(':')) {
+    if (v === '::1' || v === '::') return true;     // loopback / unspecified
+    if (v.startsWith('fc') || v.startsWith('fd')) return true; // fc00::/7 unique local
+    if (v.startsWith('fe80')) return true;          // fe80::/10 link-local
+    if (v.startsWith('::ffff:')) return true;       // IPv4-mapped IPv6
+    return false;
+  }
+
+  // IPv4 dotted-decimal
+  const m = v.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (!m) return false;
+  const o1 = Number(m[1]);
+  const o2 = Number(m[2]);
+  return (
+    o1 === 0 ||                              // 0.0.0.0/8
+    o1 === 10 ||                             // 10.0.0.0/8 private
+    o1 === 127 ||                            // 127.0.0.0/8 loopback
+    (o1 === 100 && o2 >= 64 && o2 <= 127) || // 100.64.0.0/10 shared
+    (o1 === 169 && o2 === 254) ||            // 169.254.0.0/16 link-local / cloud metadata
+    (o1 === 172 && o2 >= 16 && o2 <= 31) ||  // 172.16.0.0/12 private
+    (o1 === 192 && o2 === 168) ||            // 192.168.0.0/16 private
+    o1 === 255                               // broadcast
+  );
+}
+
+/**
  * Validate that a server URL is safe to request (SSRF prevention).
- * Blocks non-HTTP/S protocols and private/internal IP ranges.
+ * Blocks non-HTTP/S protocols and private/internal IP *literals*.
+ * Hostnames that resolve to internal IPs are blocked later, at connection time,
+ * by the DNS-resolution guards (see `createSsrfSafeLookup` / `assertHostnameResolvesSafe`).
  */
 export function validateServerUrl(serverUrl: string): void {
   let parsed: URL;
@@ -265,38 +302,14 @@ export function validateServerUrl(serverUrl: string): void {
     throw new Error(`Access to "${hostname}" is not allowed.`);
   }
 
-  // Block IPv4 private/special ranges
-  const ipv4 = hostname.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
-  if (ipv4) {
-    const [o1, o2] = ipv4.slice(1).map(Number);
-    const blocked =
-      o1 === 0 ||                              // 0.0.0.0/8
-      o1 === 10 ||                             // 10.0.0.0/8 private
-      o1 === 127 ||                            // 127.0.0.0/8 loopback
-      (o1 === 100 && o2 >= 64 && o2 <= 127) || // 100.64.0.0/10 shared
-      (o1 === 169 && o2 === 254) ||            // 169.254.0.0/16 link-local / AWS metadata
-      (o1 === 172 && o2 >= 16 && o2 <= 31) ||  // 172.16.0.0/12 private
-      (o1 === 192 && o2 === 168) ||            // 192.168.0.0/16 private
-      o1 === 255;                              // broadcast
-    if (blocked) {
-      throw new Error(`Access to private/internal IP addresses is not allowed.`);
-    }
+  // Block IPv4 private/special literals
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname) && isBlockedIp(hostname)) {
+    throw new Error(`Access to private/internal IP addresses is not allowed.`);
   }
 
-  // Block IPv6 private/loopback
-  if (hostname.startsWith('[')) {
-    const ipv6 = hostname.slice(1, -1);
-    const lower = ipv6.toLowerCase();
-    const blockedIpv6 =
-      lower === '::1' ||           // loopback
-      lower === '::' ||            // unspecified
-      lower.startsWith('fc') ||    // fc00::/7 unique local
-      lower.startsWith('fd') ||    // fd00::/8 unique local
-      lower.startsWith('fe80') ||  // fe80::/10 link-local
-      lower.startsWith('::ffff:'); // IPv4-mapped
-    if (blockedIpv6) {
-      throw new Error(`Access to private/internal IPv6 addresses is not allowed.`);
-    }
+  // Block IPv6 private/loopback literals (URL hostname keeps the brackets)
+  if (hostname.startsWith('[') && isBlockedIp(hostname.slice(1, -1))) {
+    throw new Error(`Access to private/internal IPv6 addresses is not allowed.`);
   }
 
   // Optional domain allowlist: CKAN_ALLOWED_DOMAINS=domain1.com,domain2.org
@@ -304,6 +317,141 @@ export function validateServerUrl(serverUrl: string): void {
   const allowedDomains = rawAllowed.split(',').map(s => s.trim()).filter(Boolean);
   if (allowedDomains.length > 0 && !allowedDomains.includes(hostname)) {
     throw new Error(`Domain "${hostname}" is not in the allowed list (CKAN_ALLOWED_DOMAINS).`);
+  }
+}
+
+/**
+ * Refuse to run the network-exposed HTTP transport without a domain allowlist.
+ * `CKAN_ALLOWED_DOMAINS` (default-deny) is mandatory for HTTP; set
+ * `CKAN_HTTP_ALLOW_ALL=true` to explicitly opt out (logs a warning).
+ * stdio is unaffected — it stays open so any portal can be queried locally.
+ */
+export function assertHttpAllowlistConfigured(): void {
+  const raw = typeof process !== 'undefined' ? (process.env.CKAN_ALLOWED_DOMAINS ?? '') : '';
+  const domains = raw.split(',').map(s => s.trim()).filter(Boolean);
+  if (domains.length > 0) return;
+
+  if (typeof process !== 'undefined' && process.env.CKAN_HTTP_ALLOW_ALL === 'true') {
+    console.error(
+      '[SECURITY WARNING] HTTP transport is running WITHOUT a domain allowlist ' +
+      '(CKAN_HTTP_ALLOW_ALL=true). Any client can drive requests to arbitrary hosts. ' +
+      'Set CKAN_ALLOWED_DOMAINS to restrict which CKAN hosts can be queried.'
+    );
+    return;
+  }
+
+  throw new Error(
+    'Refusing to start HTTP transport without a domain allowlist.\n' +
+    'Set CKAN_ALLOWED_DOMAINS="portal1.org,portal2.gov" to restrict which hosts can be queried,\n' +
+    'or set CKAN_HTTP_ALLOW_ALL=true to explicitly run without restriction (NOT recommended when network-exposed).'
+  );
+}
+
+type ResolvedAddress = { address: string; family?: number };
+type DnsLookupModule = {
+  lookup: (
+    hostname: string,
+    options: { all: true; family?: number },
+    callback: (err: NodeJS.ErrnoException | null, addresses: ResolvedAddress[]) => void
+  ) => void;
+};
+
+/**
+ * Build a Node `lookup` function (for http/https Agents) that resolves the hostname,
+ * rejects if ANY resolved address is private/internal, and pins the connection to the
+ * validated address — closing the DNS-name SSRF bypass and DNS-rebinding (the IP the
+ * socket connects to is exactly the one we validated, no second resolution).
+ * Exported with an injectable dns module so it can be unit-tested without real DNS.
+ */
+export function createSsrfSafeLookup(dnsModule: DnsLookupModule) {
+  return function ssrfSafeLookup(hostname: string, options: any, callback: any): void {
+    if (typeof options === 'function') {
+      callback = options;
+      options = {};
+    }
+    const family = options && typeof options === 'object' ? options.family : undefined;
+    dnsModule.lookup(hostname, { all: true, family: family || 0 }, (err, addresses) => {
+      if (err) {
+        callback(err);
+        return;
+      }
+      const list = Array.isArray(addresses) ? addresses : [addresses as ResolvedAddress];
+      for (const a of list) {
+        if (isBlockedIp(a.address)) {
+          callback(new Error(
+            `Access to private/internal IP addresses is not allowed ` +
+            `("${hostname}" resolves to ${a.address}).`
+          ));
+          return;
+        }
+      }
+      if (options && options.all) {
+        callback(null, list);
+        return;
+      }
+      callback(null, list[0].address, list[0].family);
+    });
+  };
+}
+
+let _safeAgents: Promise<{ httpAgent: unknown; httpsAgent: unknown } | null> | null = null;
+
+/** Lazily build SSRF-safe http/https Agents (Node only). Returns null off Node/on failure. */
+function getSafeAgents(): Promise<{ httpAgent: unknown; httpsAgent: unknown } | null> {
+  if (!_safeAgents) {
+    _safeAgents = (async () => {
+      try {
+        // String-concatenated specifiers keep esbuild from bundling node builtins
+        // into the Cloudflare Workers build (mirrors loadZlib above).
+        const dnsMod = (await import("node:" + "dns")) as unknown as DnsLookupModule;
+        const httpMod = (await import("node:" + "http")) as any;
+        const httpsMod = (await import("node:" + "https")) as any;
+        const lookup = createSsrfSafeLookup(dnsMod);
+        return {
+          httpAgent: new httpMod.Agent({ lookup }),
+          httpsAgent: new httpsMod.Agent({ lookup }),
+        };
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return _safeAgents;
+}
+
+type DnsResolver = (hostname: string) => Promise<ResolvedAddress[]>;
+let _dnsResolver: DnsResolver | null = null;
+
+/** Test seam: override the DNS resolver used by `assertHostnameResolvesSafe`. */
+export function __setDnsResolverForTests(fn: DnsResolver | null): void {
+  _dnsResolver = fn;
+}
+
+/**
+ * Resolve a hostname and throw if it maps to a private/internal IP.
+ * Used by the fetch-based paths (e.g. sparql_query) that cannot attach a custom
+ * lookup agent. No-op when DNS is unavailable (Cloudflare Workers — CF sandbox
+ * already blocks internal addresses) or when resolution fails (request fails naturally).
+ */
+export async function assertHostnameResolvesSafe(hostname: string): Promise<void> {
+  let addresses: ResolvedAddress[];
+  try {
+    if (_dnsResolver) {
+      addresses = await _dnsResolver(hostname);
+    } else {
+      const dnsMod = (await import("node:" + "dns")) as any;
+      addresses = await dnsMod.promises.lookup(hostname, { all: true });
+    }
+  } catch {
+    return; // DNS unavailable (Workers) or resolution failed → let the request proceed/fail naturally
+  }
+  for (const a of addresses) {
+    if (isBlockedIp(a.address)) {
+      throw new Error(
+        `Access to private/internal IP addresses is not allowed ` +
+        `("${hostname}" resolves to ${a.address}).`
+      );
+    }
   }
 }
 
@@ -384,10 +532,15 @@ export async function makeCkanRequest<T>(
     let decodedData: unknown;
 
     if (isNode) {
+      const safeAgents = await getSafeAgents();
       const response = await axios.get(url, {
         params,
         timeout: 30000,
         responseType: "arraybuffer",
+        maxRedirects: 5,
+        ...(safeAgents
+          ? { httpAgent: safeAgents.httpAgent, httpsAgent: safeAgents.httpsAgent }
+          : {}),
         headers: {
           Accept: 'application/json, text/plain, */*',
           'Accept-Language': 'en-US,en;q=0.9,it;q=0.8',

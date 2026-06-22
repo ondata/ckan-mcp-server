@@ -19,7 +19,7 @@ import { registerAllPrompts } from "./prompts/index.js";
 export function createServer(): McpServer {
   return new McpServer({
     name: "ckan-mcp-server",
-    version: "0.4.107"
+    version: "0.4.108"
   });
 }
 

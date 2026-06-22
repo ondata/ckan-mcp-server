@@ -6,7 +6,7 @@ import { z } from "zod";
 import { ResponseFormatSchema, ResponseFormat, CHARACTER_LIMIT } from "../types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getSparqlConfig } from "../utils/portal-config.js";
-import { validateServerUrl } from "../utils/http.js";
+import { validateServerUrl, assertHostnameResolvesSafe } from "../utils/http.js";
 
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 1000;
@@ -50,6 +50,8 @@ export async function querySparqlEndpoint(endpointUrl: string, query: string): P
   if (url.protocol !== "https:") {
     throw new Error("Only HTTPS endpoints are allowed");
   }
+  // SSRF: block hostnames that resolve to private/internal addresses (DNS-name bypass)
+  await assertHostnameResolvesSafe(url.hostname);
 
   const sparqlConfig = getSparqlConfig(endpointUrl);
   const method = sparqlConfig?.method ?? "POST";

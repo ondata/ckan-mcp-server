@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest';
 import { brotliCompressSync, deflateSync, gzipSync } from 'node:zlib';
 import axios from 'axios';
-import { makeCkanRequest, validateServerUrl, CkanApiError, formatCkanError } from '../../src/utils/http';
+import { makeCkanRequest, validateServerUrl, CkanApiError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured } from '../../src/utils/http';
 import { __resetCacheForTests } from '../../src/utils/cache';
 import successResponse from '../fixtures/responses/status-success.json';
 
@@ -74,6 +74,89 @@ describe('validateServerUrl', () => {
 
   it('throws on invalid URL', () => {
     expect(() => validateServerUrl('not-a-url')).toThrow('Invalid URL');
+  });
+});
+
+describe('isBlockedIp', () => {
+  it('blocks IPv4 loopback / private / special ranges', () => {
+    for (const ip of ['127.0.0.1', '127.0.0.2', '10.0.0.1', '172.16.0.1', '172.31.255.255',
+                       '192.168.1.1', '169.254.169.254', '100.64.0.1', '0.0.0.0', '255.255.255.255']) {
+      expect(isBlockedIp(ip), ip).toBe(true);
+    }
+  });
+
+  it('allows public IPv4', () => {
+    for (const ip of ['8.8.8.8', '1.1.1.1', '93.184.216.34', '172.15.0.1', '172.32.0.1', '100.63.0.1']) {
+      expect(isBlockedIp(ip), ip).toBe(false);
+    }
+  });
+
+  it('blocks IPv6 loopback / unique-local / link-local / mapped', () => {
+    for (const ip of ['::1', '::', 'fc00::1', 'fd12::1', 'fe80::1', '::ffff:127.0.0.1']) {
+      expect(isBlockedIp(ip), ip).toBe(true);
+    }
+  });
+
+  it('allows public IPv6', () => {
+    expect(isBlockedIp('2606:4700:4700::1111')).toBe(false);
+  });
+});
+
+describe('createSsrfSafeLookup', () => {
+  const fakeDns = (addresses: { address: string; family?: number }[]) => ({
+    lookup: (_h: string, _o: any, cb: any) => cb(null, addresses)
+  });
+
+  it('passes through when all resolved addresses are public', async () => {
+    const lookup = createSsrfSafeLookup(fakeDns([{ address: '93.184.216.34', family: 4 }]));
+    const result = await new Promise<any>((resolve, reject) =>
+      lookup('example.com', {}, (err: any, addr: any, fam: any) => err ? reject(err) : resolve({ addr, fam })));
+    expect(result.addr).toBe('93.184.216.34');
+  });
+
+  it('rejects when the hostname resolves to an internal IP (DNS-name bypass)', async () => {
+    const lookup = createSsrfSafeLookup(fakeDns([{ address: '127.0.0.1', family: 4 }]));
+    await expect(new Promise((resolve, reject) =>
+      lookup('evil.lvh.me', {}, (err: any, addr: any) => err ? reject(err) : resolve(addr))))
+      .rejects.toThrow('private/internal');
+  });
+
+  it('rejects when ANY resolved address is internal (rebinding multi-record)', async () => {
+    const lookup = createSsrfSafeLookup(fakeDns([{ address: '93.184.216.34', family: 4 }, { address: '169.254.169.254', family: 4 }]));
+    await expect(new Promise((resolve, reject) =>
+      lookup('mixed.example', {}, (err: any, addr: any) => err ? reject(err) : resolve(addr))))
+      .rejects.toThrow('private/internal');
+  });
+});
+
+describe('assertHttpAllowlistConfigured', () => {
+  const origAllowed = process.env.CKAN_ALLOWED_DOMAINS;
+  const origAllowAll = process.env.CKAN_HTTP_ALLOW_ALL;
+
+  afterEach(() => {
+    if (origAllowed === undefined) delete process.env.CKAN_ALLOWED_DOMAINS; else process.env.CKAN_ALLOWED_DOMAINS = origAllowed;
+    if (origAllowAll === undefined) delete process.env.CKAN_HTTP_ALLOW_ALL; else process.env.CKAN_HTTP_ALLOW_ALL = origAllowAll;
+  });
+
+  it('throws when no allowlist and no opt-out', () => {
+    delete process.env.CKAN_ALLOWED_DOMAINS;
+    delete process.env.CKAN_HTTP_ALLOW_ALL;
+    expect(() => assertHttpAllowlistConfigured()).toThrow('Refusing to start HTTP transport');
+  });
+
+  it('passes when allowlist is set', () => {
+    process.env.CKAN_ALLOWED_DOMAINS = 'www.dati.gov.it';
+    delete process.env.CKAN_HTTP_ALLOW_ALL;
+    expect(() => assertHttpAllowlistConfigured()).not.toThrow();
+  });
+
+  it('passes (with warning) when explicit opt-out is set', () => {
+    delete process.env.CKAN_ALLOWED_DOMAINS;
+    process.env.CKAN_HTTP_ALLOW_ALL = 'true';
+    const warn = vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(() => assertHttpAllowlistConfigured()).not.toThrow();
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 });
 

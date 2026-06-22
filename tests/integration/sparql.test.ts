@@ -1,10 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
 import { formatSparqlMarkdown, formatSparqlJson, querySparqlEndpoint, validateSelectQuery, injectLimit } from '../../src/tools/sparql';
+import { __setDnsResolverForTests } from '../../src/utils/http';
 
 describe('sparql_query', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
     vi.clearAllMocks();
+    // Default: resolve every hostname to a public IP so tests stay offline.
+    __setDnsResolverForTests(async () => [{ address: '93.184.216.34', family: 4 }]);
+  });
+
+  afterAll(() => {
+    __setDnsResolverForTests(null);
   });
 
   const mockFetch = (payload: unknown, ok = true, status = 200) => {
@@ -64,6 +71,13 @@ describe('sparql_query', () => {
     it('rejects private IP endpoints (SSRF prevention)', async () => {
       await expect(
         querySparqlEndpoint('https://169.254.169.254/sparql', 'SELECT * WHERE { }')
+      ).rejects.toThrow('private/internal');
+    });
+
+    it('rejects hostnames that RESOLVE to an internal IP (DNS-name bypass)', async () => {
+      __setDnsResolverForTests(async () => [{ address: '127.0.0.1', family: 4 }]);
+      await expect(
+        querySparqlEndpoint('https://internal.lvh.me/sparql', 'SELECT * WHERE { }')
       ).rejects.toThrow('private/internal');
     });
 

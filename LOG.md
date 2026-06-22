@@ -1,5 +1,14 @@
 # LOG
 
+## 2026-06-22
+
+### v0.4.108
+
+- Security fix (GHSA-798p-78g2-v556): close DNS-name SSRF bypass — `validateServerUrl` only checked the hostname string, so a name resolving to an internal IP (e.g. `lvh.me` → `127.0.0.1`, `*.nip.io` → cloud IMDS) bypassed the guard. Added DNS resolution + validation of every resolved IP, with connection pinning via a custom `lookup` agent (closes DNS-rebinding and redirect-to-internal) on the Node/axios path; pre-resolution check on the fetch-based `sparql_query` (HTTPS-only). Extracted `isBlockedIp` shared by literal and resolved-IP guards. `maxRedirects: 5` on CKAN requests.
+- Hardening: the network-exposed HTTP transport now refuses to start without `CKAN_ALLOWED_DOMAINS` (default-deny), unless explicitly opted out with `CKAN_HTTP_ALLOW_ALL=true` (logs a warning). stdio stays open. Cloudflare Worker unaffected (CF sandbox already blocks internal addresses).
+- 11 new tests (isBlockedIp, SSRF-safe lookup, allowlist gate, DNS-bypass on sparql). Verified end-to-end against a real HTTP deployment.
+- Reported by: EchoSkorJjj
+
 ## 2026-06-18
 
 ### v0.4.107
