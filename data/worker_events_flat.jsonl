@@ -5052,3 +5052,4 @@
 {"id": "01KVMP3N27R5G9HEBB4DCH2WA4", "timestamp": "2026-06-21T08:52:43Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "comuni italiani popolazione dimensione classe LAU unit\u00e0 amministrative locali", "error": null}
 {"id": "01KVMP3Z5XER64ZB7GK95W3QG0", "timestamp": "2026-06-21T08:52:53Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "comuni popolazione", "error": null}
 {"id": "01KVMP4TZ7NVK9Y0QCSRG0CZC6", "timestamp": "2026-06-21T08:53:22Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "ISTAT comuni popolazione classi ampiezza demografica", "error": null}
+{"id": "01KVQ57J4XB9VNKH8GSSB5BSKM", "timestamp": "2026-06-22T07:55:28Z", "outcome": "ok", "tool": "sparql_query", "server": "https://api.brightdata.com", "query": "SELECT ?s WHERE { ?s ?p ?o } LIMIT 0", "error": null}
