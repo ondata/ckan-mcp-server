@@ -54,7 +54,8 @@ npm run test:coverage
 npm start
 
 # Start server in HTTP mode (for remote access)
-TRANSPORT=http PORT=3000 npm start
+# HTTP requires a domain allowlist (or CKAN_HTTP_ALLOW_ALL=true to opt out)
+CKAN_ALLOWED_DOMAINS="www.dati.gov.it" TRANSPORT=http PORT=3000 npm start
 
 # Watch mode for development
 npm run watch
@@ -152,7 +153,7 @@ When making changes:
 1. Build locally: `npm run build`
 2. Run automated tests: `npm test`
 3. Run real HTTP server tests to verify end-to-end behavior:
-   - Start: `TRANSPORT=http PORT=3001 node dist/index.js & disown`
+   - Start: `CKAN_ALLOWED_DOMAINS="www.dati.gov.it,dati.comune.messina.it" TRANSPORT=http PORT=3001 node dist/index.js & disown`
    - Call each affected tool via curl against a real CKAN portal
    - Stop: `kill $(lsof -ti:3001)`
 
@@ -362,7 +363,7 @@ For manual testing, use HTTP transport with curl:
 ```bash
 # Terminal 1 — start server
 npm run build
-TRANSPORT=http PORT=3001 node dist/index.js
+CKAN_ALLOWED_DOMAINS="www.dati.gov.it" TRANSPORT=http PORT=3001 node dist/index.js
 ```
 
 ```bash
@@ -424,7 +425,8 @@ To test with Claude Desktop, add MCP configuration to config file.
 - **Caching**: Read-through cache in `makeCkanRequest`. Action-based TTL (metadata 300s, datastore 60s, status 3600s). Backend: Cloudflare Cache API on Workers, in-memory LRU on Node. Disable with `CKAN_CACHE_ENABLED=false`. Env vars: `CKAN_CACHE_TTL_DEFAULT`, `CKAN_CACHE_MAX_ENTRIES`, `CKAN_CACHE_MAX_ENTRY_BYTES`.
 - **No authentication**: Uses only public CKAN endpoints
 - **No WebSocket**: MCP over HTTP uses JSON responses (not SSE streaming in Workers)
-- **Domain allowlist**: Optional SSRF hardening via `CKAN_ALLOWED_DOMAINS=domain1.com,domain2.org`. If set, requests to unlisted domains are blocked. Default: no restriction (all public domains allowed). Enforced in `validateServerUrl()`.
+- **SSRF protection** (v0.4.108+): requests are validated against private/internal IP ranges, including hostnames that *resolve* to internal addresses (DNS-based SSRF) — `validateServerUrl()` (string/literal guard) + `isBlockedIp()` + a connection-pinning `lookup` agent on the Node/axios path and `assertHostnameResolvesSafe()` on the fetch/SPARQL path.
+- **Domain allowlist**: `CKAN_ALLOWED_DOMAINS=domain1.com,domain2.org` (comma-separated, default-deny when set). **Mandatory for the HTTP transport**: `TRANSPORT=http` refuses to start without it, unless `CKAN_HTTP_ALLOW_ALL=true` is set (logs a warning). `stdio` is unaffected (no allowlist required). Enforced in `validateServerUrl()` + `assertHttpAllowlistConfigured()`.
 - **Audit logging**: Every `makeCkanRequest` call writes a JSON line to stderr (Node modes only; Workers use `console.log`). Fields: `ts`, `server`, `action`, `cache_hit`, plus relevant query params (`q`, `fq`, `sql` truncated to 200 chars, `id`, `rows`, `limit`).
 
 ### Adding New Tools

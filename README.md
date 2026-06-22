@@ -828,11 +828,29 @@ npx @modelcontextprotocol/inspector node dist/index.js
 
 Opens at `http://localhost:5173`.
 
+### Security: HTTP transport requires a domain allowlist
+
+The HTTP transport (`TRANSPORT=http`) is network-exposed and **unauthenticated**: any
+client that reaches `POST /mcp` can drive requests through it. To prevent SSRF abuse
+(e.g. a caller pointing `server_url` at internal hosts or cloud metadata), the HTTP
+transport **refuses to start** unless you set a domain allowlist:
+
+| Variable | Effect |
+|---|---|
+| `CKAN_ALLOWED_DOMAINS` | Comma-separated allowlist of hostnames the server may query (default-deny). **Required** to start the HTTP transport. Example: `CKAN_ALLOWED_DOMAINS="www.dati.gov.it,dati.comune.messina.it"` |
+| `CKAN_HTTP_ALLOW_ALL=true` | Explicit opt-out: start the HTTP transport **without** an allowlist (logs a security warning). Not recommended when network-exposed. |
+
+The default `stdio` transport is unaffected — it stays open so you can query any portal
+locally. Regardless of allowlist, all requests are also validated against private/internal
+IP ranges, including hostnames that *resolve* to internal addresses (DNS-based SSRF, fixed
+in v0.4.108). The official Cloudflare Worker is sandboxed by the platform and does not
+require this setting.
+
 ### Manual HTTP Testing
 
 ```bash
-# Start server
-TRANSPORT=http PORT=3001 node dist/index.js
+# Start server (HTTP needs an allowlist — see "Security" above)
+CKAN_ALLOWED_DOMAINS="www.dati.gov.it" TRANSPORT=http PORT=3001 node dist/index.js
 
 # List available tools
 curl -s -X POST http://localhost:3001/mcp \
