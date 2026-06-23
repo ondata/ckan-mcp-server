@@ -5081,3 +5081,61 @@
 {"id": "01KVR6AS4P1SW4CF5NK487J3MF", "timestamp": "2026-06-22T17:33:57Z", "outcome": "ok", "tool": "ckan_package_search", "server": "http://lvh.me/", "query": "x", "error": null}
 {"id": "01KVR6C4CKJJ1TH67D56C4HJ3F", "timestamp": "2026-06-22T17:34:41Z", "outcome": "ok", "tool": "sparql_query", "server": "http://lvh.me/", "query": "SELECT * WHERE {?s ?p ?o}", "error": null}
 {"id": "01KVR6C48Z4BY23B4WSHHMRGJG", "timestamp": "2026-06-22T17:34:41Z", "outcome": "ok", "tool": "sparql_query", "server": "https://ckan-mcp-server.andy-pr.workers.dev/", "query": "SELECT * WHERE {?s ?p ?o}", "error": null}
+{"id": "01KVSWXYV1AKW99E7YHN5TYWYJ", "timestamp": "2026-06-23T09:28:08Z", "outcome": "ok", "tool": "sparql_query", "server": "https://publications.europa.eu/webapi/rdf/sparql", "query": "PREFIX cdm: <http://publications.europa.eu/ontology/cdm#>\nPREFIX dc: <http://purl.org/dc/elements/1.1/>\nPREFIX dct: <http://purl.org/dc/terms/>\n\nSELECT ?title ?date ?work ?celex\nWHERE {\n  ?work a cdm:regulation ;\n        cdm:work_has_resource-type ?type ;\n        dc:title ?title ;\n        cdm:work_date_document ?date .\n  OPTIONAL { ?work cdm:resource_legal_id_celex ?celex }\n  FILTER( ?date >= \"2026-06-01\"^^xsd:date )\n  FILTER( ?type IN (\n    <http://publications.europa.eu/resource/authority/resource-type/REG>,\n    <http://publications.europa.eu/resource/authority/resource-type/DIR>,\n    <http://publications.europa.eu/resource/authority/resource-type/DEC>\n  ))\n}\nORDER BY DESC(?date)\nLIMIT 15", "error": null}
+{"id": "01KVSWY3KXNWHAQBFJD9TEZFP5", "timestamp": "2026-06-23T09:28:13Z", "outcome": "ok", "tool": "sparql_query", "server": "https://publications.europa.eu/webapi/rdf/sparql", "query": "PREFIX cdm: <http://publications.europa.eu/ontology/cdm#>\nSELECT ?work ?title \nWHERE {\n  ?work a cdm:regulation .\n  ?work cdm:work_date_document ?date .\n  ?work dc:title ?title .\n  FILTER( ?date >= \"2026-05-01\"^^xsd:date )\n}\nORDER BY DESC(?date)\nLIMIT 5", "error": null}
+{"id": "01KVT1EB5W4A7J5T8T3CXET9YG", "timestamp": "2026-06-23T10:47:00Z", "outcome": "ok", "tool": "sdmx_providers", "server": null, "query": null, "error": null}
+{"id": "01KVT1F7FJDSHJ3Z6M05VWH1T5", "timestamp": "2026-06-23T10:47:29Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1FCZTV8R2Q1XGAVK0VBJ4", "timestamp": "2026-06-23T10:47:34Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1FF1DG8ZZSQQ188199ZED", "timestamp": "2026-06-23T10:47:36Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1FXFJS6JZE9M6037TTH75", "timestamp": "2026-06-23T10:47:51Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1G0A0832QSNF0MC5VR82W", "timestamp": "2026-06-23T10:47:54Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1G3PD6DEKDCH4M1XJ9S3B", "timestamp": "2026-06-23T10:47:57Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1G5YFTD3EY98GQA97W0DE", "timestamp": "2026-06-23T10:48:00Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1GWDDKRBGHNKPQS965WD1", "timestamp": "2026-06-23T10:48:23Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KVT1GWDDKRBGHNKPQS965WD0", "timestamp": "2026-06-23T10:48:23Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KVT1GXCKM2Z3F5TKHHZD21Q2", "timestamp": "2026-06-23T10:48:24Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KVT1H9KRQFKRVW51XT4HHGQ1", "timestamp": "2026-06-23T10:48:36Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
+{"id": "01KVT1JGG94TVE32Y8CYNTBD1J", "timestamp": "2026-06-23T10:49:16Z", "outcome": "ok", "tool": "sdmx_siblings", "server": null, "query": null, "error": null}
+{"id": "01KVT1JSMXDXZZM63TDZTH3CN4", "timestamp": "2026-06-23T10:49:25Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1JZHBJJ1DFNXA3JV5JE6J", "timestamp": "2026-06-23T10:49:31Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KVT1KQFSTD5XG9EWDMSBGF2H", "timestamp": "2026-06-23T10:49:56Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KVT1MF33D8T8YCG0TQYW758H", "timestamp": "2026-06-23T10:50:20Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
+{"id": "01KVT1MTFDNGMGCRH59XJRFGXF", "timestamp": "2026-06-23T10:50:32Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KVT1MZRCY0YST8V56QWW0E2A", "timestamp": "2026-06-23T10:50:37Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KVT1N8EP45C5F984DMA82YQJ", "timestamp": "2026-06-23T10:50:46Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KVT1NMQXTGAWNPVFWTGP1PP3", "timestamp": "2026-06-23T10:50:59Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KVT1NVWYRW79H2R36QWVES21", "timestamp": "2026-06-23T10:51:06Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KVT1P6DESJ20Y691EYMNVYED", "timestamp": "2026-06-23T10:51:17Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KVT1PQWTJ510ZHG5KZRB6JKK", "timestamp": "2026-06-23T10:51:35Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KVT1R5D4KR6QW7K5JWGJ3STR", "timestamp": "2026-06-23T10:52:21Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KVT1SREM133YW2XWJGDWGJS7", "timestamp": "2026-06-23T10:53:14Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KVT1SY6B11V5YPNA3B6XB176", "timestamp": "2026-06-23T10:53:19Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1T1BJYHFJWWPWXAG0VFW3", "timestamp": "2026-06-23T10:53:23Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KVT1TDCADG2SHYP4J4C17S1S", "timestamp": "2026-06-23T10:53:35Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1TH2PKTS6WVT1H8YX9JP9", "timestamp": "2026-06-23T10:53:39Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1VHNKWMCJDNWHEPVVMJYR", "timestamp": "2026-06-23T10:54:12Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KVT1WPT0QGPM2F4FKSVCX2TC", "timestamp": "2026-06-23T10:54:50Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KVT1WXCT737HHV20DGNP54D6", "timestamp": "2026-06-23T10:54:57Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1X3AY17D1MA0B7P38WYBA", "timestamp": "2026-06-23T10:55:03Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1X8H791J49T09KJ604W7J", "timestamp": "2026-06-23T10:55:08Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1XCPYF6JMCNC2KAFF4DP0", "timestamp": "2026-06-23T10:55:13Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVT1XWMR0SQFXAKY8HDNS609", "timestamp": "2026-06-23T10:55:29Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KVT1Y98S5XT8GEHHKQ5WJPY3", "timestamp": "2026-06-23T10:55:41Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KVT1YC0625RTA928YH8DJVK5", "timestamp": "2026-06-23T10:55:45Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KVT1YHP7AT29MA0103JD0SPY", "timestamp": "2026-06-23T10:55:50Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KVT1YR09T62DZEG6H31AAP9Q", "timestamp": "2026-06-23T10:55:57Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KVT1ZD1RT2XPF0MD7DNMB598", "timestamp": "2026-06-23T10:56:19Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KVT206B79EBXMSVCDPGJFCZC", "timestamp": "2026-06-23T10:56:44Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KVT21J96E6ZXZHX19CC7FTYR", "timestamp": "2026-06-23T10:57:29Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KVT21J96E6ZXZHX19CC7FTYQ", "timestamp": "2026-06-23T10:57:29Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KVT21YWTMDFD33RV3F9YDWAN", "timestamp": "2026-06-23T10:57:42Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KVT21YWTMDFD33RV3F9YDWAM", "timestamp": "2026-06-23T10:57:42Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KVT238Y0APG0QTK9TB36MC6Z", "timestamp": "2026-06-23T10:58:25Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KVT245KT4T7YJF7QJPKW60HS", "timestamp": "2026-06-23T10:58:55Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
+{"id": "01KVT25EE992V99NPX6ZJJDHE7", "timestamp": "2026-06-23T10:59:37Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KVT25T1895VQNVDC37J6GEP2", "timestamp": "2026-06-23T10:59:48Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KVT25T1895VQNVDC37J6GEP1", "timestamp": "2026-06-23T10:59:48Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KVT25VFBCWSHYH2HJNX3FKWV", "timestamp": "2026-06-23T10:59:50Z", "outcome": "exceededCpu", "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01KVT26714JV9MPQ94KZ79ACCJ", "timestamp": "2026-06-23T11:00:02Z", "outcome": "ok", "tool": "sdmx_tree", "server": null, "query": null, "error": null}
+{"id": "01KVT27362HDFE3KMNS1ST9G0Y", "timestamp": "2026-06-23T11:00:31Z", "outcome": "ok", "tool": "sdmx_tree", "server": null, "query": null, "error": null}
+{"id": "01KVT27CY1VK4T1PR4BD06TG46", "timestamp": "2026-06-23T11:00:41Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
