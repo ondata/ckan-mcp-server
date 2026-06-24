@@ -5139,3 +5139,7 @@
 {"id": "01KVT26714JV9MPQ94KZ79ACCJ", "timestamp": "2026-06-23T11:00:02Z", "outcome": "ok", "tool": "sdmx_tree", "server": null, "query": null, "error": null}
 {"id": "01KVT27362HDFE3KMNS1ST9G0Y", "timestamp": "2026-06-23T11:00:31Z", "outcome": "ok", "tool": "sdmx_tree", "server": null, "query": null, "error": null}
 {"id": "01KVT27CY1VK4T1PR4BD06TG46", "timestamp": "2026-06-23T11:00:41Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KVWQVQ3536GQMGJ1ZMZS12F5", "timestamp": "2026-06-24T11:57:15Z", "outcome": "ok", "tool": "ckan_datastore_search_sql", "server": "https://open.canada.ca", "query": "SELECT COUNT(*) AS n, MIN(start_date) AS min_start, MAX(start_date) AS max_start, SUM(CAST(total AS numeric)) AS total FROM \"8282db2a-878f-475c-af10-ad56aa8fa72c\" WHERE owner_org='tbs-sct';", "error": null}
+{"id": "01KVWQWXHCRXCSJG6K1E7P38GV", "timestamp": "2026-06-24T11:57:55Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://www.dati.gov.it/opendata", "query": null, "error": null}
+{"id": "01KVWQXN95SSY156FW8895KZB8", "timestamp": "2026-06-24T11:58:19Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "eolico", "error": null}
+{"id": "01KVWQZ2K6VVBERPGESETND4EB", "timestamp": "2026-06-24T11:59:05Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://www.dati.gov.it/opendata", "query": "impianti-di-produzione-di-energia-da-fonti-rinnovabili-puntuale", "error": null}
