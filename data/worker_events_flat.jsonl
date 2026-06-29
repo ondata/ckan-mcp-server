@@ -5234,3 +5234,5 @@
 {"id": "01KW6TA97M344VMGTF7AXWA78W", "timestamp": "2026-06-28T09:52:34Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://data.nsw.gov.au/data/", "query": "suburb demographics population income household", "error": null}
 {"id": "01KW6TAEZG5R30VW599XCGHX85", "timestamp": "2026-06-28T09:52:40Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://housing-data-exchange.ahdap.org/", "query": null, "error": null}
 {"id": "01KW6TAM2ZQ17NCPA96DZF2GWN", "timestamp": "2026-06-28T09:52:45Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://housing-data-exchange.ahdap.org/", "query": "property price housing affordability rental dwelling", "error": null}
+{"id": "01KW7T40WP3TTYFEQWY0YNWEEY", "timestamp": "2026-06-28T19:08:23Z", "outcome": "ok", "tool": "ckan_tag_list", "server": "https://www.dati.gov.it/opendata", "query": null, "error": null}
+{"id": "01KW7T8FZACTGKBQH4B2EBE4W8", "timestamp": "2026-06-28T19:10:50Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "Ponderano parcheggi sosta", "error": null}
