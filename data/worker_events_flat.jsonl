@@ -5244,3 +5244,9 @@
 {"id": "01KWADQHT3KHR7479ZNPPM9HM5", "timestamp": "2026-06-29T19:29:35Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "Verbania ambiente lago Maggiore valutazione", "error": null}
 {"id": "01KWADR3JJJ54TWFS9236DSZAW", "timestamp": "2026-06-29T19:29:53Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "lago maggiore acque", "error": null}
 {"id": "01KWADR9G7BVAHQZAERJQN3Y2G", "timestamp": "2026-06-29T19:29:59Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "lago maggiore acque", "error": null}
+{"id": "01KWC2R7DY5CRGBJJVM6RK5YHX", "timestamp": "2026-06-30T10:56:12Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KWC2S39B2TA8ZQAZKFR3PVTM", "timestamp": "2026-06-30T10:56:40Z", "outcome": "ok", "tool": "sdmx_get_data", "server": null, "query": null, "error": null}
+{"id": "01KWC8NW9Q8CRSBH86XG7J670C", "timestamp": "2026-06-30T12:39:46Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "alluvioni", "error": null}
+{"id": "01KWCAR7PEP7R20S6X466EGP95", "timestamp": "2026-06-30T13:16:01Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy", "error": null}
+{"id": "01KWCD6FJV3REB7C7HE9WEC54P", "timestamp": "2026-06-30T13:58:45Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "suolo OR impermeabilizzazione OR copertura OR land", "error": null}
+{"id": "01KWCQ9CBYB51A7N3JS16AWTW5", "timestamp": "2026-06-30T16:55:05Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "pericolosit\u00e0 idraulica alluvione fasce fluviali aree allagabili PGRA", "error": null}
