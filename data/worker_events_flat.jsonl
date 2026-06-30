@@ -5241,3 +5241,6 @@
 {"id": "01KW9B3YM77JEHX8JZHRHRJZWN", "timestamp": "2026-06-29T09:24:41Z", "outcome": "ok", "tool": "ckan_datastore_search", "server": "https://dati.regione.umbria.it/", "query": "b5784219-a065-4178-8910-dad0e68bc21b", "error": null}
 {"id": "01KW9B68K9F4ZN1AECPXPHNPFC", "timestamp": "2026-06-29T09:25:57Z", "outcome": "ok", "tool": "ckan_datastore_search", "server": "https://dati.regione.umbria.it/", "query": "07ed33cd-e962-4262-8851-b5122d955786", "error": null}
 {"id": "01KW9NVWYFK75HHS35QM8J6T51", "timestamp": "2026-06-29T12:32:32Z", "outcome": "ok", "tool": "ckan_catalog_stats", "server": "https://dati.gov.it/opendata", "query": null, "error": null}
+{"id": "01KWADQHT3KHR7479ZNPPM9HM5", "timestamp": "2026-06-29T19:29:35Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "Verbania ambiente lago Maggiore valutazione", "error": null}
+{"id": "01KWADR3JJJ54TWFS9236DSZAW", "timestamp": "2026-06-29T19:29:53Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "lago maggiore acque", "error": null}
+{"id": "01KWADR9G7BVAHQZAERJQN3Y2G", "timestamp": "2026-06-29T19:29:59Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "lago maggiore acque", "error": null}
