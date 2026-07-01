@@ -5250,3 +5250,4 @@
 {"id": "01KWCAR7PEP7R20S6X466EGP95", "timestamp": "2026-06-30T13:16:01Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy", "error": null}
 {"id": "01KWCD6FJV3REB7C7HE9WEC54P", "timestamp": "2026-06-30T13:58:45Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "suolo OR impermeabilizzazione OR copertura OR land", "error": null}
 {"id": "01KWCQ9CBYB51A7N3JS16AWTW5", "timestamp": "2026-06-30T16:55:05Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "pericolosit\u00e0 idraulica alluvione fasce fluviali aree allagabili PGRA", "error": null}
+{"id": "01KWF7EV57WKHS439R5HM2K9QE", "timestamp": "2026-07-01T16:16:10Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=anticorruzione", "error": null}
