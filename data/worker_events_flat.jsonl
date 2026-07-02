@@ -5251,3 +5251,8 @@
 {"id": "01KWCD6FJV3REB7C7HE9WEC54P", "timestamp": "2026-06-30T13:58:45Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "suolo OR impermeabilizzazione OR copertura OR land", "error": null}
 {"id": "01KWCQ9CBYB51A7N3JS16AWTW5", "timestamp": "2026-06-30T16:55:05Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "pericolosit\u00e0 idraulica alluvione fasce fluviali aree allagabili PGRA", "error": null}
 {"id": "01KWF7EV57WKHS439R5HM2K9QE", "timestamp": "2026-07-01T16:16:10Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=anticorruzione", "error": null}
+{"id": "01KWGD0SKV7H1HNTYSB5P0SYZE", "timestamp": "2026-07-02T03:12:36Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://data.nsw.gov.au", "query": "327f9982-e610-4ffe-a51c-4047e97c7e7d", "error": null}
+{"id": "01KWGD10A6GR0TG7561V57V9MX", "timestamp": "2026-07-02T03:12:43Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.nsw.gov.au", "query": "Bulk land value information", "error": null}
+{"id": "01KWGD17W5CC77X2HN7VZ98K5X", "timestamp": "2026-07-02T03:12:51Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.nsw.gov.au", "query": "bulk land value", "error": null}
+{"id": "01KWGD1M2PC7XT8MT62ADC5N66", "timestamp": "2026-07-02T03:13:03Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Australia query=NSW", "error": null}
+{"id": "01KWGD1T55YWVQ9APFG8K0RJTP", "timestamp": "2026-07-02T03:13:09Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://data.nsw.gov.au/data/", "query": "327f9982-e610-4ffe-a51c-4047e97c7e7d", "error": null}
