@@ -5279,3 +5279,5 @@
 {"id": "01KWMXGEK2R0H6PC1QT0CBA4NX", "timestamp": "2026-07-03T21:17:44Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.gov.ro", "query": "bacalaureat 2014", "error": null}
 {"id": "01KWMXNVS7ZDZEA670NHVFRW2A", "timestamp": "2026-07-03T21:20:41Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.gov.ro", "query": "bacalaureat", "error": null}
 {"id": "01KWMXP852HH2WYBKCR86WZJPY", "timestamp": "2026-07-03T21:20:54Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "istruzione", "error": null}
+{"id": "01KWP5WQRCVG12REAC85Q2RKMR", "timestamp": "2026-07-04T09:03:30Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=France query=culture", "error": null}
+{"id": "01KWPX5055R8TN38D72MDNTXG2", "timestamp": "2026-07-04T15:49:57Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=ambiente environmental has_datastore=True", "error": null}
