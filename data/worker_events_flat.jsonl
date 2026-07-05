@@ -5293,3 +5293,5 @@
 {"id": "01KWQ715APZQ8C6KZW847JQ9FG", "timestamp": "2026-07-04T18:42:38Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
 {"id": "01KWQ71Y59TS1MQBGEK1X46YRZ", "timestamp": "2026-07-04T18:43:03Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
 {"id": "01KWQ723SCF3PHG04Q3E1KA6HW", "timestamp": "2026-07-04T18:43:09Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KWRPPJAZC1XJ7HKGFDJTNDK4", "timestamp": "2026-07-05T08:35:42Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "Verbania ambiente aria acque", "error": null}
+{"id": "01KWRPQ1JPJYTKFKHFTAAKEAT0", "timestamp": "2026-07-05T08:35:58Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://www.dati.gov.it/opendata", "query": "qualit\u00e0 aria Piemonte Verbano", "error": null}
