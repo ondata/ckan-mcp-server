@@ -5281,3 +5281,15 @@
 {"id": "01KWMXP852HH2WYBKCR86WZJPY", "timestamp": "2026-07-03T21:20:54Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "istruzione", "error": null}
 {"id": "01KWP5WQRCVG12REAC85Q2RKMR", "timestamp": "2026-07-04T09:03:30Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=France query=culture", "error": null}
 {"id": "01KWPX5055R8TN38D72MDNTXG2", "timestamp": "2026-07-04T15:49:57Z", "outcome": "ok", "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=ambiente environmental has_datastore=True", "error": null}
+{"id": "01KWQ6WNS0JQ10GMQJK85ZCBTM", "timestamp": "2026-07-04T18:40:11Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KWQ6XY4PR7SNNRK952HBZN9H", "timestamp": "2026-07-04T18:40:52Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KWQ6YY0VPBM9W518QQZNPZEP", "timestamp": "2026-07-04T18:41:25Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KWQ6ZT1VDRHMFTPZ5R0Z1EK5", "timestamp": "2026-07-04T18:41:53Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KWQ7065MCDDSEY4QY2E2HSJB", "timestamp": "2026-07-04T18:42:06Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KWQ708H74N7YGNXKWPT6S86K", "timestamp": "2026-07-04T18:42:08Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KWQ70BSP9S8K3TCJTCKS5A7D", "timestamp": "2026-07-04T18:42:11Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KWQ70JM5S1JCAMNVVC65KTH8", "timestamp": "2026-07-04T18:42:18Z", "outcome": "ok", "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KWQ711DD9F712EMMNEYT5D4W", "timestamp": "2026-07-04T18:42:34Z", "outcome": "ok", "tool": "sdmx_info", "server": null, "query": null, "error": null}
+{"id": "01KWQ715APZQ8C6KZW847JQ9FG", "timestamp": "2026-07-04T18:42:38Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
+{"id": "01KWQ71Y59TS1MQBGEK1X46YRZ", "timestamp": "2026-07-04T18:43:03Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
+{"id": "01KWQ723SCF3PHG04Q3E1KA6HW", "timestamp": "2026-07-04T18:43:09Z", "outcome": "ok", "tool": "sdmx_values", "server": null, "query": null, "error": null}
