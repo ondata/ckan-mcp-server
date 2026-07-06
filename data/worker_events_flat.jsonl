@@ -5353,3 +5353,4 @@
 {"id": "01KWTKRVE8HA7GDJ4W5QJ6M8EB", "timestamp": "2026-07-06T02:23:00Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://data.gov.uk", "query": null, "error": null}
 {"id": "01KWTKRWXDTCGC53MXCR2JFFYM", "timestamp": "2026-07-06T02:23:02Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://www.data.gv.at/katalog", "query": "Apotheke OR Apotheken", "error": null}
 {"id": "01KWTKRZ99S5YBSZ2AN1XYYV78", "timestamp": "2026-07-06T02:23:04Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://dados.fortaleza.ce.gov.br/", "query": "informacoes-cadastrais-hospitais", "error": null}
+{"id": "01KWVHP261ZZZE9KKXEY15S7JY", "timestamp": "2026-07-06T11:05:46Z", "outcome": "ok", "tool": "sdmx_constraints", "server": null, "query": null, "error": null}
