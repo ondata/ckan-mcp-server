@@ -5381,3 +5381,4 @@
 {"id": "01KWXNBP1TH1MA1S5G0NC8MYHR", "timestamp": "2026-07-07T06:48:29Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://dati.toscana.it", "query": "938f6b30-7ffa-454a-98fa-2745affa0839", "error": null}
 {"id": "01KWXNBVMXQWTRA969K9B9MYD8", "timestamp": "2026-07-07T06:48:35Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://dati.toscana.it", "query": "eventi-a-firenze", "error": null}
 {"id": "01KWXNC312CF3M4VJTFPMD318B", "timestamp": "2026-07-07T06:48:42Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://dati.toscana.it", "query": "4b49d9a5-6b91-451d-b7c3-73ea6cd3e83b", "error": null}
+{"id": "01KWZXHXQSY0TJ0QNTWFX5XHVK", "timestamp": "2026-07-08T03:50:11Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.puglia.it/ckan", "query": "PFAS", "error": null}
