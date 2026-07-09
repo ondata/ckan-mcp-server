@@ -5,7 +5,7 @@
 import { z } from "zod";
 import axios from "axios";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
-import { makeCkanRequest, formatCkanError } from "../utils/http.js";
+import { makeCkanRequest, formatCkanError, safeFetch } from "../utils/http.js";
 import { addDemoFooter } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -431,11 +431,11 @@ async function fetchMqaQuality(serverUrl: string, datasetId: string): Promise<Mq
 
       let metricsPayload: unknown;
       try {
-        const metricsResponse = await fetch(metricsUrl, {
+        const metricsResponse = await safeFetch(metricsUrl, {
           headers: {
             'User-Agent': 'CKAN-MCP-Server/1.0'
           }
-        });
+        }, { httpsOnly: true });
         if (!metricsResponse.ok) {
           throw new Error(`MQA metrics error: ${metricsResponse.status} ${metricsResponse.statusText}`);
         }

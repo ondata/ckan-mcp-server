@@ -19,6 +19,7 @@ describe('sparql_query', () => {
       ok,
       status,
       statusText: ok ? 'OK' : 'Bad Request',
+      headers: { get: () => null },
       json: async () => payload
     });
   };
@@ -79,6 +80,40 @@ describe('sparql_query', () => {
       await expect(
         querySparqlEndpoint('https://internal.lvh.me/sparql', 'SELECT * WHERE { }')
       ).rejects.toThrow('private/internal');
+    });
+
+    it('does NOT follow a redirect to an internal host (redirect SSRF)', async () => {
+      // Public endpoint resolves fine, but 302-redirects to cloud metadata.
+      __setDnsResolverForTests(async (hostname: string) =>
+        hostname === '169.254.169.254'
+          ? [{ address: '169.254.169.254', family: 4 }]
+          : [{ address: '93.184.216.34', family: 4 }]
+      );
+      (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: false,
+        status: 302,
+        statusText: 'Found',
+        headers: { get: (h: string) => (h.toLowerCase() === 'location' ? 'https://169.254.169.254/latest/meta-data/' : null) },
+        json: async () => ({})
+      });
+
+      await expect(
+        querySparqlEndpoint('https://attacker.example/sparql', 'SELECT * WHERE { }')
+      ).rejects.toThrow('private/internal');
+    });
+
+    it('rejects a redirect to a non-HTTPS URL', async () => {
+      (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: false,
+        status: 301,
+        statusText: 'Moved',
+        headers: { get: (h: string) => (h.toLowerCase() === 'location' ? 'http://data.europa.eu/sparql' : null) },
+        json: async () => ({})
+      });
+
+      await expect(
+        querySparqlEndpoint('https://data.europa.eu/sparql', 'SELECT * WHERE { }')
+      ).rejects.toThrow('non-HTTPS');
     });
 
     it('throws on HTTP error response', async () => {

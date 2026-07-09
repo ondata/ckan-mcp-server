@@ -6,7 +6,7 @@ import { z } from "zod";
 import { ResponseFormatSchema, ResponseFormat, CHARACTER_LIMIT } from "../types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getSparqlConfig } from "../utils/portal-config.js";
-import { validateServerUrl, assertHostnameResolvesSafe } from "../utils/http.js";
+import { validateServerUrl, assertHostnameResolvesSafe, safeFetch } from "../utils/http.js";
 
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 1000;
@@ -69,27 +69,27 @@ export async function querySparqlEndpoint(endpointUrl: string, query: string): P
     if (method === "GET") {
       const getUrl = new URL(endpointUrl);
       getUrl.searchParams.set("query", query);
-      response = await fetch(getUrl.toString(), {
+      response = await safeFetch(getUrl.toString(), {
         method: "GET",
         signal: controller.signal,
         headers: commonHeaders
-      });
+      }, { httpsOnly: true });
     } else {
-      response = await fetch(endpointUrl, {
+      response = await safeFetch(endpointUrl, {
         method: "POST",
         signal: controller.signal,
         headers: { ...commonHeaders, "Content-Type": "application/sparql-query; charset=utf-8" },
         body: query
-      });
+      }, { httpsOnly: true });
       // Fallback to GET if POST is rejected
       if (response.status === 403 || response.status === 405) {
         const getUrl = new URL(endpointUrl);
         getUrl.searchParams.set("query", query);
-        response = await fetch(getUrl.toString(), {
+        response = await safeFetch(getUrl.toString(), {
           method: "GET",
           signal: controller.signal,
           headers: commonHeaders
-        });
+        }, { httpsOnly: true });
       }
     }
   } finally {

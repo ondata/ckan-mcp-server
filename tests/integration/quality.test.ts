@@ -31,6 +31,7 @@ describe('ckan_get_mqa_quality integration', () => {
       ok: true,
       status: 200,
       statusText: 'OK',
+      headers: { get: () => null },
       json: async () => payload,
       text: async () => JSON.stringify(payload)
     });

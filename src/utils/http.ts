@@ -302,7 +302,9 @@ export function validateServerUrl(serverUrl: string): void {
     throw new Error(`Access to "${hostname}" is not allowed.`);
   }
 
-  // Block IPv4 private/special literals
+  // Block IPv4 private/special literals. WHATWG URL already normalizes integer/hex/
+  // octal/short IPv4 forms (e.g. 0x7f000001 → 127.0.0.1) to dotted-decimal here, so a
+  // single dotted-quad check covers all those encodings (GHSA-8hxx).
   if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname) && isBlockedIp(hostname)) {
     throw new Error(`Access to private/internal IP addresses is not allowed.`);
   }
@@ -434,17 +436,30 @@ export function __setDnsResolverForTests(fn: DnsResolver | null): void {
  * already blocks internal addresses) or when resolution fails (request fails naturally).
  */
 export async function assertHostnameResolvesSafe(hostname: string): Promise<void> {
+  let lookup: DnsResolver;
+  if (_dnsResolver) {
+    lookup = _dnsResolver;
+  } else {
+    let dnsMod: any;
+    try {
+      dnsMod = await import("node:" + "dns");
+    } catch {
+      // DNS module unavailable (Cloudflare Workers): the CF sandbox already blocks
+      // internal egress, so this guard is a no-op there.
+      return;
+    }
+    lookup = (h: string) => dnsMod.promises.lookup(h, { all: true });
+  }
+
   let addresses: ResolvedAddress[];
   try {
-    if (_dnsResolver) {
-      addresses = await _dnsResolver(hostname);
-    } else {
-      const dnsMod = (await import("node:" + "dns")) as any;
-      addresses = await dnsMod.promises.lookup(hostname, { all: true });
-    }
+    addresses = await lookup(hostname);
   } catch {
-    return; // DNS unavailable (Workers) or resolution failed → let the request proceed/fail naturally
+    // Fail closed: if we cannot resolve the name, do NOT let the request proceed to a
+    // socket that would resolve it independently (TOCTOU / SSRF bypass).
+    throw new Error(`Cannot resolve "${hostname}" for SSRF validation (failing closed).`);
   }
+
   for (const a of addresses) {
     if (isBlockedIp(a.address)) {
       throw new Error(
@@ -452,6 +467,43 @@ export async function assertHostnameResolvesSafe(hostname: string): Promise<void
         `("${hostname}" resolves to ${a.address}).`
       );
     }
+  }
+}
+
+/**
+ * Fetch that does NOT blindly follow redirects: each hop's target is re-validated
+ * with `validateServerUrl` + `assertHostnameResolvesSafe` before it is followed,
+ * closing redirect-based SSRF (e.g. a public endpoint 302-ing to 169.254.169.254).
+ * The caller is expected to have validated the initial URL already.
+ * On Workers, `assertHostnameResolvesSafe` is a no-op (the CF sandbox blocks internal egress).
+ */
+export async function safeFetch(
+  url: string,
+  init: RequestInit = {},
+  opts: { maxHops?: number; httpsOnly?: boolean } = {}
+): Promise<Response> {
+  const maxHops = opts.maxHops ?? 3;
+  let current = url;
+  for (let hop = 0; ; hop++) {
+    const response = await fetch(current, { ...init, redirect: "manual" });
+    const status = response.status;
+    const location = response.headers.get("location");
+    const isRedirect =
+      (status === 301 || status === 302 || status === 303 ||
+       status === 307 || status === 308) && !!location;
+    if (!isRedirect) {
+      return response;
+    }
+    if (hop >= maxHops) {
+      throw new Error(`Too many redirects (>${maxHops})`);
+    }
+    const next = new URL(location as string, current).toString();
+    if (opts.httpsOnly && new URL(next).protocol !== "https:") {
+      throw new Error("Redirect to a non-HTTPS URL is not allowed");
+    }
+    validateServerUrl(next);
+    await assertHostnameResolvesSafe(new URL(next).hostname);
+    current = next;
   }
 }
 

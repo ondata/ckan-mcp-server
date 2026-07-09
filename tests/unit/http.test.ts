@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest';
 import { brotliCompressSync, deflateSync, gzipSync } from 'node:zlib';
 import axios from 'axios';
-import { makeCkanRequest, validateServerUrl, CkanApiError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured } from '../../src/utils/http';
+import { makeCkanRequest, validateServerUrl, CkanApiError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, __setDnsResolverForTests } from '../../src/utils/http';
 import { __resetCacheForTests } from '../../src/utils/cache';
 import successResponse from '../fixtures/responses/status-success.json';
 
@@ -75,6 +75,19 @@ describe('validateServerUrl', () => {
   it('throws on invalid URL', () => {
     expect(() => validateServerUrl('not-a-url')).toThrow('Invalid URL');
   });
+
+  it('blocks internal IPs in non-dotted encodings (URL normalizes them) — GHSA-8hxx', () => {
+    // WHATWG URL normalizes integer/hex/octal/short IPv4 to dotted-decimal.
+    for (const u of [
+      'http://2130706433/',       // 127.0.0.1 as integer
+      'http://0x7f000001/',       // 127.0.0.1 as hex
+      'http://0177.0.0.1/',       // 127.x octal first octet
+      'http://127.1/',            // short form
+      'http://2852039166/',       // 169.254.169.254 as integer
+    ]) {
+      expect(() => validateServerUrl(u), u).toThrow('private/internal');
+    }
+  });
 });
 
 describe('isBlockedIp', () => {
@@ -99,6 +112,25 @@ describe('isBlockedIp', () => {
 
   it('allows public IPv6', () => {
     expect(isBlockedIp('2606:4700:4700::1111')).toBe(false);
+  });
+});
+
+describe('assertHostnameResolvesSafe', () => {
+  afterEach(() => __setDnsResolverForTests(null));
+
+  it('passes for a hostname resolving to a public IP', async () => {
+    __setDnsResolverForTests(async () => [{ address: '93.184.216.34', family: 4 }]);
+    await expect(assertHostnameResolvesSafe('example.com')).resolves.toBeUndefined();
+  });
+
+  it('throws when a hostname resolves to an internal IP', async () => {
+    __setDnsResolverForTests(async () => [{ address: '169.254.169.254', family: 4 }]);
+    await expect(assertHostnameResolvesSafe('metadata.evil')).rejects.toThrow('private/internal');
+  });
+
+  it('fails CLOSED when DNS resolution errors (does not proceed)', async () => {
+    __setDnsResolverForTests(async () => { throw new Error('ENOTFOUND'); });
+    await expect(assertHostnameResolvesSafe('unresolvable.example')).rejects.toThrow('failing closed');
   });
 });
 

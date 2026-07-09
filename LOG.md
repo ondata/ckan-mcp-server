@@ -2,6 +2,17 @@
 
 ## 2026-07-09
 
+### v0.4.110
+
+Security — Giro 1: cluster SSRF su path `fetch` (GHSA-vmrr, GHSA-38f8; GHSA-8hxx chiarito):
+
+- **`safeFetch()` centralizzato** in `utils/http.ts`: `redirect:"manual"` + ri-validazione di ogni hop (`validateServerUrl` + `assertHostnameResolvesSafe`), bounded hops, opzione `httpsOnly`. Chiude il redirect-SSRF (es. endpoint pubblico che fa 302 verso `169.254.169.254`) senza rompere i redirect canonici legittimi. Usato da `sparql_query` (3 fetch) e dal fetch MQA metrics in `quality.ts`.
+- **`assertHostnameResolvesSafe` ora fail-closed**: distingue "modulo DNS assente (Workers) → no-op" da "risoluzione fallita → throw". Prima un errore DNS lasciava proseguire (fail-open / TOCTOU).
+- **GHSA-8hxx**: verificato che WHATWG `URL` normalizza già gli encoding IPv4 (int/hex/ottale/short) a dotted-decimal prima di `validateServerUrl` → il check esistente li copre già. Nessun codice aggiunto (la PoC dell'advisory testava la regex sulle stringhe grezze, non sull'hostname parsato). Aggiunto solo un commento e test di regressione. Residuo `::7f00:1` (IPv4-compatible IPv6) non instradabile, come ammesso dall'advisory stesso.
+- MQA fetch: host costante (`data.europa.eu`), quindi hardening per coerenza, non vettore reale.
+- 6 nuovi test (redirect→interno bloccato, redirect→non-HTTPS rifiutato, fail-closed su DNS error, IPv4-encoding bloccati). 438 passati. E2e: Wikidata via `safeFetch` ok, IP interno bloccato. Worker build ok.
+- Ulteriore hardening di sicurezza in lavorazione nei prossimi rilasci.
+
 ### v0.4.109
 
 Security hardening — 3 advisories, "veleno + porta" (rischio ambientale prima dei coltelli):
