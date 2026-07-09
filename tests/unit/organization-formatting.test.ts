@@ -31,6 +31,12 @@ describe("formatOrganizationShowMarkdown", () => {
     expect(md).toContain("example organization");
   });
 
+  it("wraps description as untrusted content (GHSA-c499)", () => {
+    const md = formatOrganizationShowMarkdown(result, SERVER);
+    expect(md).toContain("untrusted content from the data portal");
+    expect(md).toContain("```text");
+  });
+
   it("renders ## Users section", () => {
     const md = formatOrganizationShowMarkdown(result, SERVER);
     expect(md).toContain("## Users");

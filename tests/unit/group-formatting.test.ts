@@ -32,6 +32,12 @@ describe("formatGroupShowMarkdown", () => {
     expect(md).toContain("Environmental datasets");
   });
 
+  it("wraps description as untrusted content (GHSA-c499)", () => {
+    const md = formatGroupShowMarkdown(result, SERVER);
+    expect(md).toContain("untrusted content from the data portal");
+    expect(md).toContain("```text");
+  });
+
   it("renders ## Datasets list with count clarity", () => {
     const md = formatGroupShowMarkdown(result, SERVER);
     expect(md).toContain("showing 2 of 2 returned");

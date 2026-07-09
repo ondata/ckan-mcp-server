@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
-import { truncateText, truncateJson, formatDate, addDemoFooter } from "../utils/formatting.js";
+import { truncateText, truncateJson, formatDate, addDemoFooter, wrapUntrusted } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type GroupFacetItem = {
@@ -32,7 +32,7 @@ export function formatGroupShowMarkdown(result: { id: string; name: string; titl
   markdown += `- **State**: ${result.state}\n\n`;
 
   if (result.description) {
-    markdown += `## Description\n\n${result.description}\n\n`;
+    markdown += `## Description\n\n${wrapUntrusted(result.description)}\n\n`;
   }
 
   if (result.packages && result.packages.length > 0) {
@@ -220,7 +220,7 @@ Typical workflow: ckan_group_list → ckan_group_show (inspect one) → ckan_pac
               markdown += `## ${group.title || group.name}\n\n`;
               markdown += `- **ID**: \`${group.id}\`\n`;
               markdown += `- **Name**: \`${group.name}\`\n`;
-              if (group.description) markdown += `- **Description**: ${group.description.substring(0, 200)}\n`;
+              if (group.description) markdown += `- **Description**: ${group.description.substring(0, 200).replace(/[\r\n]+/g, ' ')}\n`;
               markdown += `- **Datasets**: ${group.package_count || 0}\n`;
               markdown += `- **Created**: ${formatDate(group.created)}\n`;
               markdown += `- **Link**: ${getGroupViewUrl(params.server_url, group)}\n\n`;

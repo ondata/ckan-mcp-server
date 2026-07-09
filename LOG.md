@@ -2,6 +2,15 @@
 
 ## 2026-07-09
 
+### v0.4.112
+
+Security — Giro 3: hardening (chiude l'ultimo gruppo di advisory in triage).
+
+- **Error reflection**: `makeCkanRequest` non incorpora più il body upstream (`JSON.stringify(decodedData)`) nell'errore verso il caller — ora messaggio generico action-scoped, dettaglio solo su stderr (troncato). `worker.ts` catch-all: rimosso `error.message` dal campo `data` JSON-RPC (log solo server-side). Chiude il canale di lettura semi-cieco della SSRF.
+- **postMessage UI** (`resources/datastore-table-ui.ts`): l'origin dell'host viene pinnato dalla risposta all'handshake `ui/initialize`; i messaggi con dati vengono accettati solo da quell'origin e gli outbound usano il target origin esplicito (mai `'*'`).
+- **Prompt-injection su org/group**: esteso il contenimento c499 ai renderer di `organization.ts` e `group.ts` — `description` in blocco untrusted (`wrapUntrusted`), newline collassati nelle liste.
+- 3 nuovi test (no-leak errore, fence description org/group); 443 passati. E2e: errore generico su 404 (nessun body interno), richieste normali ok. Worker build ok.
+
 ### v0.4.111
 
 Security — Giro 2: tre bug distinti economici.

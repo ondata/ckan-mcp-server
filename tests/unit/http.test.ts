@@ -296,6 +296,24 @@ describe('makeCkanRequest', () => {
     ).rejects.toThrow('CKAN API returned success=false');
   });
 
+  it('does NOT reflect the upstream body in the success=false error (GHSA-6f9w)', async () => {
+    vi.mocked(axios.get).mockResolvedValue({
+      data: {
+        success: false,
+        error: { message: 'SECRET_INTERNAL_DETAIL_10.0.0.5' }
+      }
+    });
+
+    let caught: unknown;
+    try {
+      await makeCkanRequest('http://demo.ckan.org', 'ckan_status_show');
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toBeInstanceOf(Error);
+    expect((caught as Error).message).not.toContain('SECRET_INTERNAL_DETAIL');
+  });
+
   it('decodes gzip-compressed buffer payload', async () => {
     const payload = gzipSync(Buffer.from(JSON.stringify(successResponse), 'utf-8'));
 

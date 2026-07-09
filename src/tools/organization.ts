@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanOrganization } from "../types.js";
 import { makeCkanRequest, formatCkanError, CkanApiError } from "../utils/http.js";
-import { truncateText, truncateJson, formatDate, addDemoFooter } from "../utils/formatting.js";
+import { truncateText, truncateJson, formatDate, addDemoFooter, wrapUntrusted } from "../utils/formatting.js";
 import { getOrganizationViewUrl } from "../utils/url-generator.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -24,7 +24,7 @@ export function formatOrganizationShowMarkdown(result: CkanOrganization & { pack
   markdown += `- **State**: ${result.state}\n\n`;
 
   if (result.description) {
-    markdown += `## Description\n\n${result.description}\n\n`;
+    markdown += `## Description\n\n${wrapUntrusted(result.description)}\n\n`;
   }
 
   if (result.packages && result.packages.length > 0) {
@@ -254,7 +254,7 @@ Typical workflow: ckan_organization_list → ckan_organization_show (inspect one
               markdown += `## ${org.title || org.name}\n\n`;
               markdown += `- **ID**: \`${org.id}\`\n`;
               markdown += `- **Name**: \`${org.name}\`\n`;
-              if (org.description) markdown += `- **Description**: ${org.description.substring(0, 200)}\n`;
+              if (org.description) markdown += `- **Description**: ${org.description.substring(0, 200).replace(/[\r\n]+/g, ' ')}\n`;
               markdown += `- **Datasets**: ${org.package_count || 0}\n`;
               markdown += `- **Created**: ${formatDate(org.created)}\n`;
               markdown += `- **Link**: ${getOrganizationViewUrl(params.server_url, org)}\n\n`;

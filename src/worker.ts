@@ -346,13 +346,14 @@ export default {
           headers
         });
       } catch (error) {
+        // Log full detail server-side; return a generic message to the caller so
+        // internal exception text (hostnames, IPs, stack fragments) is not leaked (GHSA-6f9w).
         console.error('Worker error:', error);
         return new Response(JSON.stringify({
           jsonrpc: '2.0',
           error: {
             code: -32603,
-            message: 'Internal error',
-            data: error instanceof Error ? error.message : String(error)
+            message: 'Internal error'
           },
           id: null
         }), {

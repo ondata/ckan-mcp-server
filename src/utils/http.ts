@@ -689,8 +689,19 @@ export async function makeCkanRequest<T>(
       auditLog(serverUrl, action, params, false);
       return result;
     } else {
+      // Do NOT reflect the full upstream body to the caller: if the server was
+      // pointed/redirected at a non-CKAN host it could carry internal detail,
+      // turning blind SSRF into a return-value channel (GHSA-6f9w). Log it
+      // server-side only (truncated) and return a generic, action-scoped error.
+      try {
+        if (typeof process !== "undefined") {
+          process.stderr.write(
+            `[ckan] success=false action=${action}: ${JSON.stringify(decodedData).slice(0, 500)}\n`
+          );
+        }
+      } catch { /* ignore logging failures */ }
       throw new CkanApiError(
-        `CKAN API returned success=false: ${JSON.stringify(decodedData)}`,
+        `CKAN API returned success=false for action "${action}".`,
         undefined,
         action
       );

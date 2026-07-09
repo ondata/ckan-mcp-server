@@ -328,15 +328,19 @@ const DATASTORE_TABLE_HTML = `<!DOCTYPE html>
     }
     // SEP-1865 handshake: host won't send tool-result until initialized
     var _pending={};var _nid=1;
+    // Pin the host origin from the initialize response, then only accept messages
+    // from it and post back to it (never '*') — postMessage origin hardening.
+    var _hostOrigin=null;
+    function target(){return _hostOrigin||'*';}
     function mcpReq(method,params){
       var id=_nid++;
       return new Promise(function(res,rej){
         _pending[id]={resolve:res,reject:rej};
-        window.parent.postMessage({jsonrpc:'2.0',id:id,method:method,params:params||{}},'*');
+        window.parent.postMessage({jsonrpc:'2.0',id:id,method:method,params:params||{}},target());
       });
     }
     function mcpNot(method,params){
-      window.parent.postMessage({jsonrpc:'2.0',method:method,params:params||{}},'*');
+      window.parent.postMessage({jsonrpc:'2.0',method:method,params:params||{}},target());
     }
     var _inited=false;
     function sendInited(){if(_inited)return;_inited=true;mcpNot('ui/notifications/initialized');}
@@ -346,11 +350,15 @@ const DATASTORE_TABLE_HTML = `<!DOCTYPE html>
     window.addEventListener('message',function(event){
       var msg=event.data;
       if(!msg||typeof msg!=='object') return;
+      // Reply to a pending request: pin the responder's origin as the trusted host.
       if(msg.id!==undefined&&_pending[msg.id]){
+        if(_hostOrigin===null)_hostOrigin=event.origin;
         var r=_pending[msg.id];delete _pending[msg.id];
         if(msg.error)r.reject(new Error(JSON.stringify(msg.error)));else r.resolve(msg.result);
         return;
       }
+      // Data-bearing messages must come from the pinned host origin.
+      if(_hostOrigin===null||event.origin!==_hostOrigin) return;
       var data=null;
       if(msg.method==='ui/notifications/tool-result'&&msg.params&&msg.params.structuredContent){
         data=msg.params.structuredContent;
