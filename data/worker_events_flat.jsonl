@@ -5383,3 +5383,7 @@
 {"id": "01KWXNC312CF3M4VJTFPMD318B", "timestamp": "2026-07-07T06:48:42Z", "outcome": "ok", "tool": "ckan_list_resources", "server": "https://dati.toscana.it", "query": "4b49d9a5-6b91-451d-b7c3-73ea6cd3e83b", "error": null}
 {"id": "01KWZXHXQSY0TJ0QNTWFX5XHVK", "timestamp": "2026-07-08T03:50:11Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://dati.puglia.it/ckan", "query": "PFAS", "error": null}
 {"id": "01KX0MXPJPSMNGKWRFZPBEEZDH", "timestamp": "2026-07-08T10:38:34Z", "outcome": "ok", "tool": "sparql_query", "server": "https://data.europa.eu/sparql", "query": "SELECT ?p ?o WHERE { <nodeID://b6213157844> ?p ?o }", "error": null}
+{"id": "01KX2X5B015ZPNNH352RMPMQDY", "timestamp": "2026-07-09T07:41:02Z", "outcome": "ok", "tool": "ckan_status_show", "server": "https://data.e-gov.go.jp/data", "query": null, "error": null}
+{"id": "01KX2X639QARJSFFRTY3GC27XT", "timestamp": "2026-07-09T07:41:27Z", "outcome": "ok", "tool": "ckan_package_search", "server": "https://data.e-gov.go.jp/data", "query": "title:\u4eba\u53e3", "error": null}
+{"id": "01KX37K5SQRKT69PWA1AGBMX3R", "timestamp": "2026-07-09T10:43:21Z", "outcome": "ok", "tool": "ckan_find_relevant_datasets", "server": "https://serviziweb2.inps.it/odapi", "query": "artigiani reddito", "error": null}
+{"id": "01KX3AJMY9EHJVVW49MTKNNAW5", "timestamp": "2026-07-09T11:35:29Z", "outcome": "ok", "tool": "ckan_package_show", "server": "https://dati.gov.it/opendata", "query": "numero-e-media-iscritti-lav-autonomi-artigiani-per-regione-2015", "error": null}
