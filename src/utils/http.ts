@@ -70,10 +70,18 @@ export function getLastCacheHit(): boolean | null {
   return _lastCacheHit;
 }
 
+// Response/decompression size caps (DoS prevention — GHSA-q5gv). Generous enough for
+// any legitimate CKAN JSON, small enough to stop a decompression bomb from OOM-ing us.
+const MAX_RESPONSE_BYTES =
+  (typeof process !== "undefined" && Number(process.env?.CKAN_MAX_RESPONSE_BYTES)) || 32 * 1024 * 1024;
+const MAX_DECOMPRESSED_BYTES =
+  (typeof process !== "undefined" && Number(process.env?.CKAN_MAX_DECOMPRESSED_BYTES)) || 64 * 1024 * 1024;
+
+type ZlibOptions = { maxOutputLength?: number };
 type ZlibModule = {
-  brotliDecompressSync: (input: Buffer) => Buffer;
-  gunzipSync: (input: Buffer) => Buffer;
-  inflateSync: (input: Buffer) => Buffer;
+  brotliDecompressSync: (input: Buffer, options?: ZlibOptions) => Buffer;
+  gunzipSync: (input: Buffer, options?: ZlibOptions) => Buffer;
+  inflateSync: (input: Buffer, options?: ZlibOptions) => Buffer;
 };
 
 const loadZlib = (() => {
@@ -157,6 +165,9 @@ async function decodeArrayBufferText(
       const decompressed = await new Response(
         new Blob([buffer]).stream().pipeThrough(stream)
       ).arrayBuffer();
+      if (decompressed.byteLength > MAX_DECOMPRESSED_BYTES) {
+        throw new Error("Decompressed response exceeds size limit");
+      }
       return new TextDecoder("utf-8").decode(decompressed).trim();
     } catch {
       // Fall back to plain text decoding.
@@ -207,23 +218,26 @@ async function decodePossiblyCompressed(
   let decodedBuffer = buffer;
   const zlib = await loadZlib();
 
+  const zlibOpts: ZlibOptions = { maxOutputLength: MAX_DECOMPRESSED_BYTES };
   try {
     if (zlib) {
       if (encoding?.includes("gzip")) {
-        decodedBuffer = zlib.gunzipSync(buffer);
+        decodedBuffer = zlib.gunzipSync(buffer, zlibOpts);
       } else if (encoding?.includes("br")) {
-        decodedBuffer = zlib.brotliDecompressSync(buffer);
+        decodedBuffer = zlib.brotliDecompressSync(buffer, zlibOpts);
       } else if (encoding?.includes("deflate")) {
-        decodedBuffer = zlib.inflateSync(buffer);
+        decodedBuffer = zlib.inflateSync(buffer, zlibOpts);
       } else if (
         buffer.length >= 2 &&
         buffer[0] === 0x1f &&
         buffer[1] === 0x8b
       ) {
-        decodedBuffer = zlib.gunzipSync(buffer);
+        decodedBuffer = zlib.gunzipSync(buffer, zlibOpts);
       }
     }
   } catch {
+    // Decompression failed or exceeded maxOutputLength: fall back to the raw buffer
+    // (kept bounded below by MAX_RESPONSE_BYTES on the request paths).
     decodedBuffer = buffer;
   }
 
@@ -590,6 +604,8 @@ export async function makeCkanRequest<T>(
         timeout: 30000,
         responseType: "arraybuffer",
         maxRedirects: 5,
+        maxContentLength: MAX_RESPONSE_BYTES,
+        maxBodyLength: MAX_RESPONSE_BYTES,
         ...(safeAgents
           ? { httpAgent: safeAgents.httpAgent, httpsAgent: safeAgents.httpsAgent }
           : {}),
@@ -643,7 +659,14 @@ export async function makeCkanRequest<T>(
         throw new CkanApiError(`CKAN API error (${response.status}): ${response.statusText}`, response.status, action);
       }
 
+      const declaredLength = Number(response.headers.get("content-length"));
+      if (Number.isFinite(declaredLength) && declaredLength > MAX_RESPONSE_BYTES) {
+        throw new CkanApiError(`Response too large (${declaredLength} bytes)`, undefined, action);
+      }
       const buffer = await response.arrayBuffer();
+      if (buffer.byteLength > MAX_RESPONSE_BYTES) {
+        throw new CkanApiError(`Response too large (${buffer.byteLength} bytes)`, undefined, action);
+      }
       const headers: Record<string, string> = {};
       response.headers.forEach((headerValue, headerKey) => {
         headers[headerKey] = headerValue;

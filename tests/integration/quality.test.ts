@@ -82,6 +82,13 @@ describe('ckan_get_mqa_quality integration', () => {
       expect(isValidMqaServer('https://demo.ckan.org')).toBe(false);
       expect(isValidMqaServer('https://data.gov.uk')).toBe(false);
     });
+
+    it('rejects suffix and userinfo bypasses (GHSA-83x6)', () => {
+      expect(isValidMqaServer('https://dati.gov.it.attacker.com/x')).toBe(false);
+      expect(isValidMqaServer('http://dati.gov.it.evil.example/api')).toBe(false);
+      expect(isValidMqaServer('https://dati.gov.it@attacker.com/x')).toBe(false);
+      expect(isValidMqaServer('not-a-url')).toBe(false);
+    });
   });
 
   describe('getMqaQuality', () => {

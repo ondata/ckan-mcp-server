@@ -11,15 +11,22 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const MQA_API_BASE = "https://data.europa.eu/api/mqa/cache/datasets";
 const MQA_METRICS_BASE = "https://data.europa.eu/api/hub/repo/datasets";
-const ALLOWED_SERVER_PATTERNS = [
-  /^https?:\/\/(www\.)?dati\.gov\.it/i
-];
+const ALLOWED_MQA_HOSTS = new Set(["dati.gov.it", "www.dati.gov.it"]);
 
 /**
- * Validate server URL is dati.gov.it
+ * Validate server URL is dati.gov.it. Parses the URL and compares the exact host,
+ * so suffix (`dati.gov.it.attacker.com`) and userinfo (`dati.gov.it@attacker.com`)
+ * tricks that an unanchored regex would accept are rejected (GHSA-83x6).
  */
 export function isValidMqaServer(serverUrl: string): boolean {
-  return ALLOWED_SERVER_PATTERNS.some(pattern => pattern.test(serverUrl));
+  let u: URL;
+  try {
+    u = new URL(serverUrl);
+  } catch {
+    return false;
+  }
+  if (u.protocol !== "https:" && u.protocol !== "http:") return false;
+  return ALLOWED_MQA_HOSTS.has(u.hostname.toLowerCase());
 }
 
 function normalizeMqaIdentifier(identifier: string): string {

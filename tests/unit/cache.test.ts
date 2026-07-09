@@ -10,19 +10,28 @@ import {
 
 describe('canonicalizeParams', () => {
   it('sorts keys alphabetically', () => {
-    expect(canonicalizeParams({ b: 2, a: 1 })).toBe('a=1&b=2');
+    expect(canonicalizeParams({ b: 2, a: 1 })).toBe('{"a":1,"b":2}');
   });
 
   it('skips null and undefined values', () => {
-    expect(canonicalizeParams({ a: 1, b: null, c: undefined, d: 2 })).toBe('a=1&d=2');
+    expect(canonicalizeParams({ a: 1, b: null, c: undefined, d: 2 })).toBe('{"a":1,"d":2}');
   });
 
-  it('serializes objects as JSON', () => {
-    expect(canonicalizeParams({ filters: { x: 1 } })).toBe('filters={"x":1}');
+  it('serializes objects as JSON with sorted nested keys', () => {
+    expect(canonicalizeParams({ filters: { y: 2, x: 1 } })).toBe('{"filters":{"x":1,"y":2}}');
   });
 
-  it('returns empty string for empty params', () => {
-    expect(canonicalizeParams({})).toBe('');
+  it('returns empty object for empty params', () => {
+    expect(canonicalizeParams({})).toBe('{}');
+  });
+
+  it('does NOT collide different param sets onto one key (GHSA-78x9)', () => {
+    // Injection into the alphabetically-first param used to reproduce the target string.
+    expect(canonicalizeParams({ q: 'budget', rows: 10 }))
+      .not.toBe(canonicalizeParams({ q: 'budget&rows=10' }));
+    // Object vs. its stringified form must differ too.
+    expect(canonicalizeParams({ filters: { a: 'b' } }))
+      .not.toBe(canonicalizeParams({ filters: '{"a":"b"}' }));
   });
 });
 

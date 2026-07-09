@@ -2,6 +2,16 @@
 
 ## 2026-07-09
 
+### v0.4.111
+
+Security — Giro 2: tre bug distinti economici.
+
+- **MQA allowlist bypass** (`isValidMqaServer`, `tools/quality.ts`): regex non ancorata sostituita da URL-parse + confronto host esatto (`dati.gov.it`/`www.dati.gov.it`). Ora i trucchi suffix (`dati.gov.it.attacker.com`) e userinfo (`dati.gov.it@attacker.com`) sono rifiutati.
+- **Decompression bomb / unbounded buffering** (`utils/http.ts`): cap dimensione risposta (`maxContentLength`/`maxBodyLength` su axios + check byte su `arrayBuffer` nel branch fetch, def 32MB) e cap output decompressione (`maxOutputLength` su gunzip/brotli/inflateSync + check su DecompressionStream, def 64MB). Override via `CKAN_MAX_RESPONSE_BYTES`/`CKAN_MAX_DECOMPRESSED_BYTES`. Stop a OOM/stallo da payload iper-compressi.
+- **Cache-key collision** (`utils/cache.ts`): `canonicalizeParams` ora produce JSON canonico tipizzato (sort ricorsivo) invece di `k=v` join con `&` non-escapati; `buildCacheKey` incornicia in `JSON.stringify([url,action,canon])`. `{q:"budget",rows:10}` e `{q:"budget&rows=10"}` non collidono più.
+- 2 nuovi test (+regressioni aggiornate); 440 passati. E2e: MQA host valido raggiunge data.europa.eu, bypass rifiutato, richieste normali ok. Worker build ok.
+- Ulteriore hardening in lavorazione nei prossimi rilasci.
+
 ### v0.4.110
 
 Security — Giro 1: cluster SSRF su path `fetch` (GHSA-vmrr, GHSA-38f8; GHSA-8hxx chiarito):

@@ -63,17 +63,32 @@ export function getCacheConfig(): CacheConfig {
   return { enabled, ttlDefault, maxEntries, maxEntryBytes };
 }
 
+/** Recursively sort object keys so serialization is order-independent and type-preserving. */
+function canonicalizeValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalizeValue);
+  if (value && typeof value === "object") {
+    const sorted: Record<string, unknown> = {};
+    for (const key of Object.keys(value as Record<string, unknown>).sort()) {
+      sorted[key] = canonicalizeValue((value as Record<string, unknown>)[key]);
+    }
+    return sorted;
+  }
+  return value;
+}
+
+/**
+ * Serialize params to an unambiguous, injection-proof canonical string. Uses typed JSON
+ * (not `k=v` joins), so `{q:"budget",rows:10}` and `{q:"budget&rows=10"}` — and a nested
+ * object vs. its stringified form — never collide onto the same cache key (GHSA-78x9).
+ */
 export function canonicalizeParams(params: Record<string, unknown>): string {
-  const keys = Object.keys(params).sort();
-  const pairs: string[] = [];
-  for (const key of keys) {
+  const filtered: Record<string, unknown> = {};
+  for (const key of Object.keys(params)) {
     const value = params[key];
     if (value === undefined || value === null) continue;
-    const serialized =
-      typeof value === "object" ? JSON.stringify(value) : String(value);
-    pairs.push(`${key}=${serialized}`);
+    filtered[key] = value;
   }
-  return pairs.join("&");
+  return JSON.stringify(canonicalizeValue(filtered));
 }
 
 async function sha1Hex(input: string): Promise<string> {
@@ -90,7 +105,8 @@ export async function buildCacheKey(
   action: string,
   params: Record<string, unknown>
 ): Promise<string> {
-  const raw = `${serverUrl}|${action}|${canonicalizeParams(params)}`;
+  // JSON-array framing so serverUrl/action/params boundaries are unambiguous too.
+  const raw = JSON.stringify([serverUrl, action, canonicalizeParams(params)]);
   return sha1Hex(raw);
 }
 
