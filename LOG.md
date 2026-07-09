@@ -1,5 +1,18 @@
 # LOG
 
+## 2026-07-09
+
+### v0.4.109
+
+Security hardening — 3 advisories, "veleno + porta" (rischio ambientale prima dei coltelli):
+
+- **GHSA-3369** (second-order SSRF, `ckan_list_resources`): source-portal probing è ora **opt-in** (`check_source_portal` default `false`). Prima era ON: elencare le risorse di un dataset faceva contattare host/porte presi dai dati del dataset (confused-deputy + port-scan oracle + amplificazione via `Promise.all`). Aggiunto: drop delle porte ≠80/443 in `extractSourcePortal` (usa `hostname`, non `host`), cap del fan-out a 10 probe.
+- **GHSA-c499** (indirect prompt injection): campi liberi del portale (`notes`, resource `description`) resi verbatim nell'output. Ora avvolti in un blocco `untrusted` delimitato con avviso (`wrapUntrusted`), fence interne neutralizzate; URL portale validati per scheme (solo http/https) e resi in inline-code (`safeUrlText`); celle tabella di `ckan_list_resources` neutralizzate (`|`, newline). Contenimento, non fix totale — documentato agli integratori.
+- **GHSA-v3j5** (HTTP transport esposto): bind **`127.0.0.1`** di default (era `0.0.0.0`), `enableDnsRebindingProtection` + `allowedHosts`/`allowedOrigins`. `docker-compose.yml` pubblica su `127.0.0.1:3000:3000` (+ `CKAN_HTTP_HOST=0.0.0.0` dentro il container). Nuove env: `CKAN_HTTP_HOST`, `CKAN_HTTP_ALLOWED_HOSTS`, `CKAN_HTTP_ALLOWED_ORIGINS`. Chiudere questa porta declassa l'intero cluster SSRF da "remoto" a "locale".
+- 4 nuovi test; 432 passati. Verificato e2e su deployment HTTP reale (bind loopback, 403 su Host non consentito, no-probe di default, notes fenced). Worker: build ok.
+- Docs: README (tabella env HTTP), SKILL (source-portal ora opt-in), docker/README, docker-compose.
+- **Non ancora fatti** (cluster SSRF fetch, MQA regex, cache, decompression bomb, postMessage UI): coltelli e hardening, in giri successivi.
+
 ## 2026-06-22
 
 ### v0.4.108

@@ -830,15 +830,20 @@ Opens at `http://localhost:5173`.
 
 ### Security: HTTP transport requires a domain allowlist
 
-The HTTP transport (`TRANSPORT=http`) is network-exposed and **unauthenticated**: any
-client that reaches `POST /mcp` can drive requests through it. To prevent SSRF abuse
-(e.g. a caller pointing `server_url` at internal hosts or cloud metadata), the HTTP
-transport **refuses to start** unless you set a domain allowlist:
+The HTTP transport (`TRANSPORT=http`) is **unauthenticated**: any client that reaches
+`POST /mcp` can drive requests through it. Since v0.4.109 it **binds to `127.0.0.1`
+(loopback) by default** and enforces DNS-rebinding protection, so it is not exposed on
+the LAN and cross-origin browser requests are rejected. To prevent SSRF abuse (e.g. a
+caller pointing `server_url` at internal hosts or cloud metadata), it also **refuses to
+start** unless you set a domain allowlist:
 
 | Variable | Effect |
 |---|---|
 | `CKAN_ALLOWED_DOMAINS` | Comma-separated allowlist of hostnames the server may query (default-deny). **Required** to start the HTTP transport. Example: `CKAN_ALLOWED_DOMAINS="www.dati.gov.it,dati.comune.messina.it"` |
 | `CKAN_HTTP_ALLOW_ALL=true` | Explicit opt-out: start the HTTP transport **without** an allowlist (logs a security warning). Not recommended when network-exposed. |
+| `CKAN_HTTP_HOST` | Interface to bind (default `127.0.0.1`). Set `0.0.0.0` to expose it, ideally behind an authenticating reverse proxy. |
+| `CKAN_HTTP_ALLOWED_HOSTS` | Extra `Host` header values accepted by the DNS-rebinding guard (comma-separated). Add your public hostname when binding beyond loopback. |
+| `CKAN_HTTP_ALLOWED_ORIGINS` | Allowed `Origin` header values for browser clients (comma-separated). |
 
 The default `stdio` transport is unaffected — it stays open so you can query any portal
 locally. Regardless of allowlist, all requests are also validated against private/internal

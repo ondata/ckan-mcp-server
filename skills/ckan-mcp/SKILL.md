@@ -185,13 +185,17 @@ Use when: user asks about the content of a specific dataset or wants to query ta
 4. If DataStore is available:
    - `ckan_datastore_search(resource_id=..., limit=0)` — discover columns
    - `ckan_datastore_search(resource_id=..., q=..., limit=100)` — query data
-5. **If no DataStore — check source portal first** (harvested datasets):
+5. **If no DataStore — check source portal** (harvested datasets):
    Many national/regional aggregators (e.g. dati.gov.it) harvest datasets from
    municipal or regional portals but do not replicate the DataStore. The resource
    download URLs often contain the source portal domain, dataset ID, and resource ID.
-   - Inspect resource URLs: if the domain differs from `server_url`, extract the
-     source portal URL (e.g. `https://dati.comune.milano.it`)
-   - Extract the dataset ID and resource ID from the URL path
+   - Automatic probe is **opt-in**: pass `ckan_list_resources(..., check_source_portal=true)`
+     to have the tool probe the source portal and report `source_datastore_active` /
+     `source_portal_url`. It is OFF by default because it issues extra HTTP requests to
+     hosts taken from the dataset's own resource URLs.
+   - Or do it manually: inspect resource URLs; if the domain differs from `server_url`,
+     extract the source portal URL (e.g. `https://dati.comune.milano.it`) and the
+     dataset/resource IDs from the URL path
    - Call `ckan_list_resources(server_url=SOURCE_PORTAL, id=SOURCE_DATASET_ID)` to
      check if DataStore is active there
    - If yes, use `ckan_datastore_search(server_url=SOURCE_PORTAL, resource_id=SOURCE_RESOURCE_ID, ...)`
@@ -215,7 +219,7 @@ Example: "Show me the data in dataset clima-2024"
 -> ckan_datastore_search(resource_id=..., q="...", limit=100)
 
 Example: dataset harvested from source portal, no DataStore on aggregator
--> ckan_list_resources(server_url="https://dati.gov.it/opendata", id="dataset-xyz")
+-> ckan_list_resources(server_url="https://dati.gov.it/opendata", id="dataset-xyz", check_source_portal=true)
 -> datastore_active: No — resource URL: https://dati.comune.milano.it/dataset/abc/resource/def/download/...
 -> [extract] source_portal="https://dati.comune.milano.it", dataset_id="abc", resource_id="def"
 -> ckan_list_resources(server_url="https://dati.comune.milano.it", id="abc")
@@ -455,6 +459,42 @@ curl -s -X POST "https://data.europa.eu/sparql" \
   -H "Content-Type: application/sparql-query" \
   -H "Accept: application/sparql-results+json" \
   --data-raw "SELECT ?s WHERE { ?s a <http://www.w3.org/ns/dcat#Dataset> } LIMIT 5"
+```
+
+### Data Services (DCAT-AP) on dati.gov.it
+
+`dcat:DataService` describes an **API/service** (REST, WFS/WMS, SPARQL, download) that
+exposes one or more datasets. CKAN core has no concept of data service, so these are
+**only reachable via the LOD/SPARQL layer** (`lod.dati.gov.it`), not via the CKAN action
+API. The national portal exposes ~100 of them (geodati.gov.it geo services, MeteoHub API,
+CCIAA Marche explorers, etc.). Useful properties: `dct:title`, `dct:description`,
+`dcat:endpointURL`, `dcat:endpointDescription`, `dct:license`, `dct:accessRights`, and
+`dcat:servesDataset` (links back to the datasets served). Always use `DISTINCT` — triples
+are duplicated across named graphs.
+
+Run these with `sparql_query(endpoint="https://lod.dati.gov.it/sparql", ...)` or via the
+GET curl pattern above.
+
+```sparql
+# 1. List data services with title and API endpoint
+SELECT DISTINCT ?service ?title ?endpoint WHERE {
+  ?service a <http://www.w3.org/ns/dcat#DataService> ;
+           <http://purl.org/dc/terms/title> ?title ;
+           <http://www.w3.org/ns/dcat#endpointURL> ?endpoint .
+} LIMIT 50
+
+# 2. Full metadata of one data service
+SELECT DISTINCT ?p ?o WHERE {
+  <https://meteohub.agenziaitaliameteo.it/service> ?p ?o .
+}
+
+# 3. Reverse lookup — which APIs serve a given dataset?
+SELECT DISTINCT ?service ?title ?endpoint WHERE {
+  ?service a <http://www.w3.org/ns/dcat#DataService> ;
+           <http://www.w3.org/ns/dcat#servesDataset> <DATASET_URI> ;
+           <http://purl.org/dc/terms/title> ?title ;
+           <http://www.w3.org/ns/dcat#endpointURL> ?endpoint .
+}
 ```
 
 ## Reference Files

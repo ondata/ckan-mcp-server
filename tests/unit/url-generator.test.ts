@@ -98,4 +98,18 @@ describe('extractSourcePortal', () => {
     expect(result).not.toBeNull();
     expect(result?.resourceId).toBe(uuid);
   });
+
+  it('rejects non-default ports to avoid a port-scan oracle (GHSA-3369)', () => {
+    const uuid = '550e8400-e29b-41d4-a716-446655440000';
+    const url = `https://otherdomain.it:2222/dataset/x/resource/${uuid}`;
+    expect(extractSourcePortal(url, SERVER)).toBeNull();
+  });
+
+  it('accepts explicit default ports and strips them from portalUrl', () => {
+    const uuid = '550e8400-e29b-41d4-a716-446655440000';
+    const url = `https://otherdomain.it:443/dataset/x/resource/${uuid}`;
+    const result = extractSourcePortal(url, SERVER);
+    expect(result).not.toBeNull();
+    expect(result?.portalUrl).toBe('https://otherdomain.it');
+  });
 });

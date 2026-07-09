@@ -23,10 +23,14 @@ export function extractSourcePortal(
     return null;
   }
   if (rParsed.hostname === sParsed.hostname) return null;
+  // Reject non-default ports: probing an arbitrary host:port taken from dataset
+  // data would turn source-portal checks into a port-scan oracle (GHSA-3369).
+  // An empty `port` means the default 80/443 for the scheme.
+  if (rParsed.port !== "") return null;
   const match = rParsed.pathname.match(UUID_RE);
   if (!match) return null;
   return {
-    portalUrl: `${rParsed.protocol}//${rParsed.host}`,
+    portalUrl: `${rParsed.protocol}//${rParsed.hostname}`,
     resourceId: match[1]
   };
 }

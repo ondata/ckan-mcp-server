@@ -8,13 +8,20 @@ services:
     restart: unless-stopped
 
     ports:
-      - "3000:3000"
+      # Publish on host loopback only. Front with an authenticating reverse
+      # proxy (and change to "3000:3000") to expose it on the network.
+      - "127.0.0.1:3000:3000"
 
     environment:
       # Transport mode: "http" for HTTP server, "stdio" for local pipe
       TRANSPORT: http
       PORT: 3000
       NODE_ENV: production
+      # Bind all interfaces INSIDE the container so Docker's port publishing can
+      # reach it; network isolation is enforced by the 127.0.0.1 host binding above.
+      CKAN_HTTP_HOST: 0.0.0.0
+      # Domain allowlist is mandatory for the HTTP transport (set your portals):
+      # CKAN_ALLOWED_DOMAINS: www.dati.gov.it,dati.comune.messina.it
 
       # Optional: set a default CKAN portal
       # CKAN_DEFAULT_SERVER_URL: https://www.dati.gov.it/opendata

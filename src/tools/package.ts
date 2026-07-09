@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanTag, CkanResource, CkanPackage } from "../types.js";
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
-import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter } from "../utils/formatting.js";
+import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter, wrapUntrusted, safeUrlText } from "../utils/formatting.js";
 import { getDatasetViewUrl, extractSourcePortal } from "../utils/url-generator.js";
 import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from "../utils/search.js";
 import { getPortalHvdConfig, getPortalApiPath, requiresMultilingualNormalization, isPortalSearchExplicitlyConfigured } from "../utils/portal-config.js";
@@ -321,7 +321,7 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
   }
 
   if (result.notes) {
-    markdown += `## Description\n\n${result.notes}\n\n`;
+    markdown += `## Description\n\n${wrapUntrusted(result.notes)}\n\n`;
   }
 
   if (result.tags && result.tags.length > 0) {
@@ -343,8 +343,8 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
       markdown += `### ${resource.name || 'Unnamed Resource'}\n\n`;
       markdown += `- **ID**: \`${resource.id}\`\n`;
       markdown += `- **Format**: ${resource.format || 'Unknown'}\n`;
-      if (resource.description) markdown += `- **Description**: ${resource.description}\n`;
-      markdown += `- **URL**: ${resource.url}\n`;
+      if (resource.description) markdown += `- **Description**:\n\n${wrapUntrusted(resource.description)}\n\n`;
+      markdown += `- **URL**: ${safeUrlText(resource.url)}\n`;
       const accessServices = parseAccessServices(resource);
       const accessEndpoints = extractServiceEndpoints(accessServices);
       if (accessEndpoints.length > 0) {
@@ -352,7 +352,7 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
       }
       const effectiveDownloadUrl = resolveDownloadUrl(resource);
       if (effectiveDownloadUrl) {
-        markdown += `- **Effective Download URL**: ${effectiveDownloadUrl}\n`;
+        markdown += `- **Effective Download URL**: ${safeUrlText(effectiveDownloadUrl)}\n`;
       }
       if (resource.size) {
         const formatBytes = (bytes: number) => {
@@ -1270,9 +1270,10 @@ Examples:
 Typical workflow: ckan_package_search → ckan_list_resources (assess available files) → ckan_datastore_search (for resources with DataStore=true)
 
 When a resource has DataStore=false but its download URL belongs to a different (source) portal,
-the tool automatically probes the source portal for DataStore availability and reports
+the tool can probe the source portal for DataStore availability and report
 source_datastore_active and source_portal_url so you can query the data there instead.
-Set check_source_portal=false to skip these extra HTTP calls.`,
+This probing is OFF by default (it issues extra HTTP requests to hosts taken from the
+dataset's own resource URLs); set check_source_portal=true to enable it.`,
       inputSchema: z.object({
         server_url: z.string()
           .url()
@@ -1285,7 +1286,7 @@ Set check_source_portal=false to skip these extra HTTP calls.`,
           .describe("Filter resources by format, case-insensitive (e.g., 'CSV', 'json', 'XLSX')"),
         check_source_portal: z.boolean()
           .optional()
-          .describe("When true (default), probes the source portal for DataStore availability when a resource URL points to a different CKAN instance"),
+          .describe("Opt-in (default false): when true, probes the source portal for DataStore availability when a resource URL points to a different CKAN instance. Issues extra HTTP requests to hosts taken from the dataset's resource URLs."),
         response_format: ResponseFormatSchema
       }).strict(),
       annotations: {
@@ -1305,7 +1306,7 @@ Set check_source_portal=false to skip these extra HTTP calls.`,
 
         const resources = Array.isArray(result.resources) ? result.resources : [];
         const formatFilter = params.format_filter?.toUpperCase();
-        const doSourceCheck = params.check_source_portal !== false;
+        const doSourceCheck = params.check_source_portal === true;
 
         const summary: {
           name: string;
@@ -1331,9 +1332,15 @@ Set check_source_portal=false to skip these extra HTTP calls.`,
           });
 
         if (doSourceCheck) {
+          // Cap the number of outbound probes so one call cannot fan out to an
+          // attacker-chosen number of requests (GHSA-3369 amplification).
+          const MAX_SOURCE_PROBES = 10;
+          const probes = summary
+            .map((item, idx) => ({ item, idx }))
+            .filter(({ item }) => !item.datastore_active && extractSourcePortal(item.url, params.server_url))
+            .slice(0, MAX_SOURCE_PROBES);
           await Promise.all(
-            summary.map(async (item, idx) => {
-              if (item.datastore_active) return;
+            probes.map(async ({ item, idx }) => {
               const extracted = extractSourcePortal(item.url, params.server_url);
               if (!extracted) return;
               const active = await checkSourceDatastore(extracted.portalUrl, extracted.resourceId);
@@ -1375,18 +1382,21 @@ Set check_source_portal=false to skip these extra HTTP calls.`,
           markdown += `| Name | Format | Size | DataStore | ID |\n`;
           markdown += `| --- | --- | --- | --- | --- |\n`;
 
+          // Neutralize portal-controlled names so they cannot break the table
+          // structure or inject markdown (GHSA-c499).
+          const cell = (s: string) => s.replace(/[\r\n]+/g, ' ').replace(/\|/g, '\\|');
           for (const r of summary) {
-            const name = r.name.length > 40 ? r.name.substring(0, 37) + '...' : r.name;
+            const clipped = r.name.length > 40 ? r.name.substring(0, 37) + '...' : r.name;
             const ds = r.datastore_active ? 'Yes' : 'No';
             const size = r.size || '-';
-            markdown += `| ${name} | ${r.format} | ${size} | ${ds} | \`${r.id}\` |\n`;
+            markdown += `| ${cell(clipped)} | ${cell(r.format)} | ${size} | ${ds} | \`${r.id}\` |\n`;
           }
 
           const dsResources = summary.filter((r) => r.datastore_active);
           if (dsResources.length > 0) {
             markdown += `\n**DataStore-enabled resources** (queryable with \`ckan_datastore_search\`):\n`;
             for (const r of dsResources) {
-              markdown += `- **${r.name}** (${r.format}): \`${r.id}\`\n`;
+              markdown += `- **${cell(r.name)}** (${cell(r.format)}): \`${r.id}\`\n`;
             }
           }
 
@@ -1394,7 +1404,7 @@ Set check_source_portal=false to skip these extra HTTP calls.`,
           if (sourceResources.length > 0) {
             markdown += `\n**Available on source portal** (use \`ckan_datastore_search\` with the source portal URL):\n`;
             for (const r of sourceResources) {
-              markdown += `- **${r.name}** (${r.format}): \`${r.id}\` on ${r.source_portal_url}\n`;
+              markdown += `- **${cell(r.name)}** (${cell(r.format)}): \`${r.id}\` on ${safeUrlText(r.source_portal_url)}\n`;
             }
           }
         }
