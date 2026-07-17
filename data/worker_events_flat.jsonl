@@ -5544,3 +5544,4 @@
 {"id": "01KXN1DDZSXR1EXWKAMM776BYZ", "timestamp": "2026-07-16T08:41:41Z", "outcome": null, "tool": "ckan_package_show", "server": "https://dati.gov.it/opendata", "query": "statistiche-demografiche-fertilita", "error": null}
 {"id": "01KXNPRF5Y30M2PVCVQE8MWBWV", "timestamp": "2026-07-16T14:54:43Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://open.canada.ca/data/en", "query": "proactive disclosure contracts over 10000", "error": null}
 {"id": "01KXNPX12759QWNPQ3Z1T2RW9B", "timestamp": "2026-07-16T14:57:12Z", "outcome": null, "tool": "ckan_datastore_search", "server": "https://open.canada.ca/data/en", "query": "fac950c0-00d5-4ec1-a4d3-9cbebf98a305", "error": null}
+{"id": "01KXP602MNSRTWESTX5EA58PBN", "timestamp": "2026-07-16T19:21:01Z", "outcome": null, "tool": "ckan_package_search", "server": "https://data.ontario.ca", "query": "air quality", "error": null}
