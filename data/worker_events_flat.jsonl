@@ -5629,3 +5629,14 @@
 {"id": "01KXTXZY04BM1CGG2KYPMYS976", "timestamp": "2026-07-18T15:37:20Z", "outcome": null, "tool": "ckan_datastore_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "6ab1ffae-a6ef-4d39-b943-4f6670fe58fa", "error": null}
 {"id": "01KXTY01W30E9DHPN8TWW4QKAT", "timestamp": "2026-07-18T15:37:24Z", "outcome": null, "tool": "ckan_datastore_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "6ab1ffae-a6ef-4d39-b943-4f6670fe58fa", "error": null}
 {"id": "01KXTY06W0K052JSWCQAY0QK76", "timestamp": "2026-07-18T15:37:29Z", "outcome": null, "tool": "ckan_datastore_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "6ab1ffae-a6ef-4d39-b943-4f6670fe58fa", "error": null}
+{"id": "01KXVSRYM936KB71JS74JHDYFF", "timestamp": "2026-07-18T23:42:51Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Canada query=Caledon", "error": null}
+{"id": "01KXVSSFVBS2C6EZ00EGGTP2RV", "timestamp": "2026-07-18T23:43:09Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Canada query=Peel", "error": null}
+{"id": "01KXVSSQZ4S25QZNDYX55YRVMA", "timestamp": "2026-07-18T23:43:17Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Canada", "error": null}
+{"id": "01KXVSSYN80ZVKVZMZHQ74TAFE", "timestamp": "2026-07-18T23:43:24Z", "outcome": null, "tool": "ckan_package_search", "server": "https://open.canada.ca/data", "query": "Caledon", "error": null}
+{"id": "01KXVST9JXWXDNXQPGAB2GECH7", "timestamp": "2026-07-18T23:43:35Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "query=Ontario", "error": null}
+{"id": "01KXVSTCPXMY0RR3FM5FJYH130", "timestamp": "2026-07-18T23:43:38Z", "outcome": null, "tool": "ckan_package_search", "server": "https://data.ontario.ca", "query": "Caledon", "error": null}
+{"id": "01KXVSTGF4BCM1Q1KT89VP9F17", "timestamp": "2026-07-18T23:43:42Z", "outcome": null, "tool": "ckan_status_show", "server": "https://open.toronto.ca", "query": null, "error": null}
+{"id": "01KXVSTVK1WAERR5R41QPHW8Z4", "timestamp": "2026-07-18T23:43:53Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "query=Toronto", "error": null}
+{"id": "01KXVSV2E4TYXQD3Q3R6ZD5NE9", "timestamp": "2026-07-18T23:44:00Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "Caledon", "error": null}
+{"id": "01KXVSV8ZVC4G89YBD78GDQ3C7", "timestamp": "2026-07-18T23:44:07Z", "outcome": null, "tool": "ckan_package_search", "server": "https://data.ontario.ca", "query": "Peel Region", "error": null}
+{"id": "01KXVSVDZ70HCDCCQX0WPRFKJS", "timestamp": "2026-07-18T23:44:12Z", "outcome": null, "tool": "ckan_package_search", "server": "https://open.canada.ca/data", "query": "Peel Region Ontario", "error": null}
