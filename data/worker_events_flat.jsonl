@@ -5640,3 +5640,6 @@
 {"id": "01KXVSV2E4TYXQD3Q3R6ZD5NE9", "timestamp": "2026-07-18T23:44:00Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "Caledon", "error": null}
 {"id": "01KXVSV8ZVC4G89YBD78GDQ3C7", "timestamp": "2026-07-18T23:44:07Z", "outcome": null, "tool": "ckan_package_search", "server": "https://data.ontario.ca", "query": "Peel Region", "error": null}
 {"id": "01KXVSVDZ70HCDCCQX0WPRFKJS", "timestamp": "2026-07-18T23:44:12Z", "outcome": null, "tool": "ckan_package_search", "server": "https://open.canada.ca/data", "query": "Peel Region Ontario", "error": null}
+{"id": "01KXZKC2KDDMR5XHAVNQ4WTQRX", "timestamp": "2026-07-20T11:07:55Z", "outcome": null, "tool": "sdmx_search", "server": null, "query": null, "error": null}
+{"id": "01KY02H6BJHM0CRX8YZ868V9BH", "timestamp": "2026-07-20T15:32:52Z", "outcome": null, "tool": "sdmx_providers", "server": null, "query": null, "error": null}
+{"id": "01KY038EG0PSG6FRQ50WXJP41A", "timestamp": "2026-07-20T15:45:34Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "aree non idonee impianti rinnovabili Basilicata PIEAR", "error": null}
