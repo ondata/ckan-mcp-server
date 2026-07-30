@@ -24,7 +24,7 @@ CKAN is the open-source platform behind most public open data portals worldwide 
 |---|---|---|
 | **How** | `npm install -g @aborruso/ckan-mcp-server` | Point your tool to the hosted HTTP endpoint |
 | **Best for** | Runs on your machine, works with any local tool | Quick start, zero setup |
-| **Limits** | None | 100k requests/day shared quota |
+| **Request quota** | No shared quota | 100k requests/day shared quota |
 
 Hosted endpoint: `https://ckan-mcp-server.andy-pr.workers.dev/mcp`
 
@@ -35,6 +35,24 @@ Hosted endpoint: `https://ckan-mcp-server.andy-pr.workers.dev/mcp`
 **License**: MIT — see [LICENSE](LICENSE) for complete details. Third-party notices: [NOTICE.md](NOTICE.md).
 
 ![CKAN MCP Server demo](docs/guide/mcp_server_demo.gif)
+
+---
+
+## ⚖️ Limits
+
+The local and hosted server use the same tool and output caps. The hosted endpoint also has the shared request quota shown above.
+
+| Area | Default | Maximum or configuration |
+|---|---:|---|
+| Tool output | 50,000 characters | Fixed server-wide cap |
+| `ckan_datastore_search` rows | 100 | 32,000 (`0` returns column names only) |
+| Injected `sparql_query` rows | 25 | 1,000; an explicit `LIMIT` in the query is preserved |
+| `ckan_tag_list` results | 100 | 1,000 |
+| `ckan_find_portals` results | 10 | 50 |
+| HTTP response body | 32 MiB | `CKAN_MAX_RESPONSE_BYTES` for local Node.js deployments |
+| Decompressed response body | 64 MiB | `CKAN_MAX_DECOMPRESSED_BYTES` for local Node.js deployments |
+
+Text and Markdown responses that exceed the output cap are cut and include a truncation note. JSON-producing tools first try compact serialization and reduce known result arrays while adding truncation metadata; if the remaining object still cannot fit, the final fallback is text truncation and the result may no longer be parseable JSON. Use pagination or a narrower query when complete machine-readable output matters.
 
 ---
 
