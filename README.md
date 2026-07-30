@@ -52,7 +52,7 @@ The local and hosted server use the same tool and output caps. The hosted endpoi
 | HTTP response body | 32 MiB | `CKAN_MAX_RESPONSE_BYTES` for local Node.js deployments |
 | Decompressed response body | 64 MiB | `CKAN_MAX_DECOMPRESSED_BYTES` for local Node.js deployments |
 
-Text and Markdown responses that exceed the output cap are cut and include a truncation note. JSON-producing tools first try compact serialization and reduce known result arrays while adding truncation metadata; if the remaining object still cannot fit, the final fallback is text truncation and the result may no longer be parseable JSON. Use pagination or a narrower query when complete machine-readable output matters.
+Text and Markdown responses that exceed the output cap are cut and include a truncation note. JSON handling varies by tool: some compact the response and reduce known result arrays while adding truncation metadata, while others truncate serialized JSON as text. An over-limit JSON response may therefore be incomplete or no longer parseable. Use pagination or a narrower query when complete machine-readable output matters.
 
 ---
 
