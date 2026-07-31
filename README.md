@@ -24,7 +24,7 @@ CKAN is the open-source platform behind most public open data portals worldwide 
 |---|---|---|
 | **How** | `npm install -g @aborruso/ckan-mcp-server` | Point your tool to the hosted HTTP endpoint |
 | **Best for** | Runs on your machine, works with any local tool | Quick start, zero setup |
-| **Limits** | None | 100k requests/day shared quota |
+| **Request quota** | No shared quota | 100k requests/day shared quota |
 
 Hosted endpoint: `https://ckan-mcp-server.andy-pr.workers.dev/mcp`
 
@@ -35,6 +35,26 @@ Hosted endpoint: `https://ckan-mcp-server.andy-pr.workers.dev/mcp`
 **License**: MIT — see [LICENSE](LICENSE) for complete details. Third-party notices: [NOTICE.md](NOTICE.md).
 
 ![CKAN MCP Server demo](docs/guide/mcp_server_demo.gif)
+
+---
+
+## ⚖️ Limits
+
+The local and hosted server use the same tool and output caps. The hosted endpoint also has the shared request quota shown above.
+
+| Area | Default | Maximum or configuration |
+|---|---:|---|
+| Tool output | 50,000 characters | Fixed server-wide cap |
+| `ckan_datastore_search` rows | 100 | 32,000 (`0` returns column names only) |
+| `ckan_package_search` results per page | 10 | 1,000 |
+| `ckan_find_relevant_datasets` results | 10 | 50 |
+| Injected `sparql_query` rows | 25 | 1,000 when injected; a query that supplies its own `LIMIT` is not capped |
+| `ckan_tag_list` results | 100 | 1,000 |
+| `ckan_find_portals` results | 10 | 50 |
+| HTTP response body | 32 MiB | `CKAN_MAX_RESPONSE_BYTES` for local Node.js deployments |
+| Decompressed response body | 64 MiB | `CKAN_MAX_DECOMPRESSED_BYTES` for local Node.js deployments |
+
+Text and Markdown responses that exceed the output cap are cut and include a truncation note. JSON responses stay parseable: the server reduces known result arrays and flags the response with `_truncated` and `_original_count`, and if a response still cannot fit it is replaced by a small object carrying `_truncated` and an explanatory `_error`. Use pagination or a narrower query when you need the complete result set. Note that `structuredContent`, where a client reads it, is not subject to this cap and may exceed it.
 
 ---
 
