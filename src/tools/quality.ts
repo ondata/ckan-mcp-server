@@ -6,7 +6,7 @@ import { z } from "zod";
 import axios from "axios";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest, formatCkanError, safeFetch } from "../utils/http.js";
-import { addDemoFooter } from "../utils/formatting.js";
+import { truncateText, truncateJson, formatError, addDemoFooter } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const MQA_API_BASE = "https://data.europa.eu/api/mqa/cache/datasets";
@@ -874,31 +874,38 @@ export function registerQualityTools(server: McpServer): void {
         return {
           content: [{
             type: "text" as const,
-            text: `Error: MQA quality metrics are only available for dati.gov.it datasets. ` +
-                  `Provided server: ${server_url}\n\n` +
-                  `The MQA (Metadata Quality Assurance) system is operated by data.europa.eu ` +
-                  `and only evaluates datasets from Italian open data portal.`
-          }]
+            text: formatError(
+              `Error: MQA quality metrics are only available for dati.gov.it datasets. ` +
+              `Provided server: ${server_url}\n\n` +
+              `The MQA (Metadata Quality Assurance) system is operated by data.europa.eu ` +
+              `and only evaluates datasets from Italian open data portal.`,
+              response_format === ResponseFormat.JSON
+            )
+          }],
+          isError: true
         };
       }
 
       try {
         const qualityData = await getMqaQuality(server_url, dataset_id);
 
+        // The demo footer is Markdown: appending it to JSON would break parsing (Workers only)
         const format = response_format || ResponseFormat.MARKDOWN;
         const output = format === ResponseFormat.JSON
-          ? JSON.stringify(qualityData, null, 2)
-          : formatQualityMarkdown(qualityData, dataset_id);
+          ? truncateJson(qualityData)
+          : truncateText(addDemoFooter(formatQualityMarkdown(qualityData, dataset_id)));
 
         return {
           content: [{
             type: "text" as const,
-            text: addDemoFooter(output)
+            text: output
           }]
         };
       } catch (error) {
+        const message = `Error retrieving quality metrics: ${formatCkanError(error, "ckan_get_mqa_quality")}`;
         return {
-          content: [{ type: "text" as const, text: `Error retrieving quality metrics: ${formatCkanError(error, "ckan_get_mqa_quality")}` }]
+          content: [{ type: "text" as const, text: formatError(message, response_format === ResponseFormat.JSON) }],
+          isError: true
         };
       }
     }
@@ -929,30 +936,37 @@ export function registerQualityTools(server: McpServer): void {
         return {
           content: [{
             type: "text" as const,
-            text: `Error: MQA quality details are only available for dati.gov.it datasets. ` +
-                  `Provided server: ${server_url}\n\n` +
-                  `The MQA (Metadata Quality Assurance) system is operated by data.europa.eu ` +
-                  `and only evaluates datasets from Italian open data portal.`
-          }]
+            text: formatError(
+              `Error: MQA quality details are only available for dati.gov.it datasets. ` +
+              `Provided server: ${server_url}\n\n` +
+              `The MQA (Metadata Quality Assurance) system is operated by data.europa.eu ` +
+              `and only evaluates datasets from Italian open data portal.`,
+              response_format === ResponseFormat.JSON
+            )
+          }],
+          isError: true
         };
       }
 
       try {
         const details = await getMqaQualityDetails(server_url, dataset_id);
+        // The demo footer is Markdown: appending it to JSON would break parsing (Workers only)
         const format = response_format || ResponseFormat.MARKDOWN;
         const output = format === ResponseFormat.JSON
-          ? JSON.stringify(details, null, 2)
-          : formatQualityDetailsMarkdown(details, dataset_id);
+          ? truncateJson(details)
+          : truncateText(addDemoFooter(formatQualityDetailsMarkdown(details, dataset_id)));
 
         return {
           content: [{
             type: "text" as const,
-            text: addDemoFooter(output)
+            text: output
           }]
         };
       } catch (error) {
+        const message = `Error retrieving quality details: ${formatCkanError(error, "ckan_get_mqa_quality_details")}`;
         return {
-          content: [{ type: "text" as const, text: `Error retrieving quality details: ${formatCkanError(error, "ckan_get_mqa_quality_details")}` }]
+          content: [{ type: "text" as const, text: formatError(message, response_format === ResponseFormat.JSON) }],
+          isError: true
         };
       }
     }

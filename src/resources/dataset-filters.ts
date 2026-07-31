@@ -11,7 +11,7 @@
 import { ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { makeCkanRequest } from "../utils/http.js";
-import { truncateText } from "../utils/formatting.js";
+import { truncateJson } from "../utils/formatting.js";
 import { parseCkanUri } from "./uri.js";
 
 type FilterConfig = {
@@ -59,7 +59,7 @@ const registerDatasetFilterResource = (server: McpServer, config: FilterConfig) 
           fq,
         });
 
-        const content = truncateText(JSON.stringify(result, null, 2));
+        const content = truncateJson(result);
 
         return {
           contents: [
