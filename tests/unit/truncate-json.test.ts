@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { truncateJson, formatError } from '../../src/utils/formatting';
+import { truncateJson, formatError, jsonToolResult } from '../../src/utils/formatting';
 
 /**
  * The contract under test: whatever the input, the output parses as JSON.
@@ -80,6 +80,42 @@ describe('truncateJson', () => {
     const out = truncateJson(obj, 1000);
     expect(out).not.toContain('[Response truncated at');
     expect(() => JSON.parse(out)).not.toThrow();
+  });
+});
+
+/**
+ * The cap must apply to both channels: structuredContent used to carry the full
+ * untruncated object while the text was capped, making the limit meaningless for
+ * any client reading it (issue #39).
+ */
+describe('jsonToolResult', () => {
+  it('returns the object unchanged when it fits', () => {
+    const obj = { count: 2, results: [{ id: 'a' }, { id: 'b' }] };
+    const res = jsonToolResult(obj, 1000);
+    expect(res.structuredContent).toEqual(obj);
+    expect(JSON.parse(res.content[0].text)).toEqual(obj);
+  });
+
+  it('caps structuredContent, not just the text', () => {
+    const obj = { count: 50, results: Array.from({ length: 50 }, (_, i) => ({ id: `id-${i}`, pad: 'x'.repeat(100) })) };
+    const res = jsonToolResult(obj, 2000);
+    const structured = res.structuredContent as { results: unknown[]; _truncated: boolean; _original_count: number };
+    expect(structured.results.length).toBeLessThan(50);
+    expect(structured._truncated).toBe(true);
+    expect(structured._original_count).toBe(50);
+  });
+
+  it('keeps the two channels identical', () => {
+    const obj = { count: 30, records: Array.from({ length: 30 }, (_, i) => ({ v: 'y'.repeat(120), i })) };
+    const res = jsonToolResult(obj, 1500);
+    expect(res.structuredContent).toEqual(JSON.parse(res.content[0].text));
+  });
+
+  it('degrades to a data-less object when nothing fits', () => {
+    const res = jsonToolResult({ id: 'x', blob: 'z'.repeat(5000) }, 40);
+    expect(res.content[0].text.length).toBeLessThanOrEqual(40);
+    expect(res.structuredContent).toEqual(JSON.parse(res.content[0].text));
+    expect(res.structuredContent).not.toHaveProperty('blob');
   });
 });
 

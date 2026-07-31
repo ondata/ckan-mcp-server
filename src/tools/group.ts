@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
-import { truncateText, truncateJson, formatDate, addDemoFooter, wrapUntrusted, formatError } from "../utils/formatting.js";
+import { truncateText, truncateJson, formatDate, addDemoFooter, wrapUntrusted, formatError, jsonToolResult } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type GroupFacetItem = {
@@ -178,6 +178,7 @@ Typical workflow: ckan_group_list → ckan_group_show (inspect one) → ckan_pac
           const groupCount = searchResult.search_facets?.groups?.items?.length || 0;
 
           if (params.response_format === ResponseFormat.JSON) {
+            // A single count: no array to shrink, cannot approach the limit (#39).
             return {
               content: [{ type: "text", text: JSON.stringify({ count: groupCount }, null, 2) }],
               structuredContent: { count: groupCount }
@@ -204,10 +205,7 @@ Typical workflow: ckan_group_list → ckan_group_show (inspect one) → ckan_pac
 
         if (params.response_format === ResponseFormat.JSON) {
           const compact = compactGroupList(result);
-          return {
-            content: [{ type: "text", text: truncateJson(compact) }],
-            structuredContent: compact
-          };
+          return jsonToolResult(compact);
         }
 
         let markdown = `# CKAN Groups\n\n`;
@@ -284,10 +282,7 @@ Typical workflow: ckan_group_show → ckan_package_show (inspect a dataset) → 
 
         if (params.response_format === ResponseFormat.JSON) {
           const compact = compactGroupShow(result);
-          return {
-            content: [{ type: "text", text: truncateJson(compact) }],
-            structuredContent: compact
-          };
+          return jsonToolResult(compact);
         }
 
         const markdown = formatGroupShowMarkdown(result, params.server_url);
@@ -362,10 +357,7 @@ Typical workflow: ckan_group_search → ckan_group_show (get details) → ckan_p
             }))
           };
 
-          return {
-            content: [{ type: "text", text: truncateJson(jsonResult) }],
-            structuredContent: jsonResult
-          };
+          return jsonToolResult(jsonResult);
         }
 
         let markdown = `# CKAN Group Search Results\n\n`;

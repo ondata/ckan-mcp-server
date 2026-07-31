@@ -69,6 +69,8 @@ Typical workflow: ckan_status_show (verify server is up) → ckan_package_search
 
         const markdown = formatStatusMarkdown(result, params.server_url, hvdCount);
 
+        // Not routed through jsonToolResult: the text channel is Markdown here, and the
+        // status payload is a single small object — bounded by shape, not by a cap (#39).
         return {
           content: [{ type: "text", text: truncateText(addDemoFooter(markdown)) }],
           structuredContent: result

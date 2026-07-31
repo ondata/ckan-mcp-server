@@ -143,6 +143,8 @@ Typical workflow: ckan_find_portals (discover portal URL) → ckan_status_show (
 
         const markdown = formatMarkdown(results, active.length, params.limit);
 
+        // Not routed through jsonToolResult: the text channel is Markdown here, and the
+        // portal list is bounded by the tool's own limit (max 50 results) (#39).
         return {
           content: [{ type: "text", text: truncateText(addDemoFooter(markdown)) }],
           structuredContent: { portals: results.map(p => ({

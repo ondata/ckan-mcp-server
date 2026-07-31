@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanField } from "../types.js";
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
-import { truncateText, truncateJson, addDemoFooter, formatError } from "../utils/formatting.js";
+import { truncateText, truncateJson, addDemoFooter, formatError, jsonToolResult } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 export function formatDatastoreSearchMarkdown(
@@ -264,10 +264,7 @@ Security note: SQL queries are forwarded directly to the CKAN DataStore API. The
 
         if (params.response_format === ResponseFormat.JSON) {
           const compact = compactDatastoreResult(result);
-          return {
-            content: [{ type: "text", text: truncateJson(compact) }],
-            structuredContent: compact
-          };
+          return jsonToolResult(compact);
         }
 
         const markdown = formatDatastoreSqlMarkdown(result, params.server_url, params.sql);

@@ -2,6 +2,15 @@
 
 ## 2026-07-31
 
+### structuredContent capped like the text (closes #39) — unreleased
+
+The v0.4.113 cap applied to `content[].text` only, so any client reading the structured channel got the full payload — `ckan_tag_list limit=1000` on dati.gov.it: ~50K of text against 65,382 uncapped characters. The limit was a fiction for those clients.
+
+- New `jsonToolResult()`: truncates once via `truncateJson` and parses the result back into `structuredContent`, so the two channels cannot disagree and `_truncated`/`_original_count` reach structured readers too. Applied to 13 call sites.
+- Four call sites deliberately left out, each bounded by shape rather than by the cap, and now commented as such: `ckan_status_show` and `ckan_find_portals` (structured output paired with Markdown text), and the `all_fields=false` branches of `ckan_organization_list`/`ckan_group_list` (a single count).
+- **Correction**: the deferral in v0.4.113 claimed capping would drop rows from `datastore-table-ui`. That was wrong and never verified — the UI resource is commented out in `src/resources/index.ts:18` and never registered, and `ckan_datastore_search` returns no `structuredContent` at all. No exception was needed. Same failure mode as the bug being fixed: a plausible claim about the code that nobody checked.
+- 4 new tests (458 total). Docs realigned: `README.md`, `docs/JSON-OUTPUT.md`, `docs/DECISIONS.md`, `CLAUDE.md` all asserted the uncapped behaviour.
+
 ### v0.4.113
 
 JSON output always parseable (issue #39).

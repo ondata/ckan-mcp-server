@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
-import { truncateText, truncateJson, addDemoFooter, formatError } from "../utils/formatting.js";
+import { truncateText, truncateJson, addDemoFooter, formatError, jsonToolResult } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type TagItem = {
@@ -118,10 +118,7 @@ Typical workflow: ckan_tag_list → ckan_package_search with fq="tags:tag_name" 
             count: tags.length,
             tags
           };
-          return {
-            content: [{ type: "text", text: truncateJson(output) }],
-            structuredContent: output
-          };
+          return jsonToolResult(output);
         }
 
         let markdown = `# CKAN Tags\n\n`;
