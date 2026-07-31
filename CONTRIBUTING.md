@@ -56,6 +56,18 @@ Before opening a PR:
 - [ ] All tests pass: `npm test`
 - [ ] Build succeeds: `npm run build`
 
+## AI-Assisted Contributions
+
+They are welcome, under conditions. The rule here is not "human or machine" but "reviewable or not": a maintainer must be able to check the whole change in a few minutes.
+
+- **Disclose it.** Say so in the PR body, or run an account whose profile makes it plain. Undisclosed automated contributions will be closed without review.
+- **Keep it small and single-purpose.** One issue, one concern, a diff a reviewer can read end to end. Large generated refactors will be closed regardless of quality.
+- **Claim only what a reviewer can verify.** Do not list test runs or manual checks that cannot be reproduced from the diff — a passing suite on a docs-only change proves nothing and costs trust. If a claim matters, make it reproducible: exact command, exact portal, exact output.
+- **Check that the work is wanted first.** Prefer an existing open issue. Unsolicited drive-by PRs are the most likely to be closed.
+- **Read the code, don't paraphrase the issue.** If the issue and the code disagree, say so in the PR — that is the most useful thing a contributor can do.
+
+Same bar as any other PR otherwise: tests pass, build succeeds, no unrelated diffs.
+
 ## Adding an Example Integration
 
 Community integrations go under `examples/<name>/`. Each integration must have a `README.md` explaining what it does and how to run it. The core server files (`src/`, `docker/`) must not be modified as part of an example contribution.
