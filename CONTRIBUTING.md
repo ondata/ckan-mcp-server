@@ -56,6 +56,8 @@ Before opening a PR:
 - [ ] All tests pass: `npm test`
 - [ ] Build succeeds: `npm run build`
 
+`npm run build` uses esbuild and takes milliseconds. **Do not run `build:tsc`** — it is a fallback for editor type-checking only, and it routinely exhausts the heap on some setups (WSL in particular). It is not a gate: nothing in CI runs it, and no PR is expected to pass it.
+
 ## AI-Assisted Contributions
 
 They are welcome, under conditions. The rule here is not "human or machine" but "reviewable or not": a maintainer must be able to check the whole change in a few minutes.
