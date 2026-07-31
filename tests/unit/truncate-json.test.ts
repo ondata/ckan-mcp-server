@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { truncateJson, formatError, jsonToolResult } from '../../src/utils/formatting';
+import { truncateJson, formatError, jsonToolResult, cappedStructured } from '../../src/utils/formatting';
 
 /**
  * The contract under test: whatever the input, the output parses as JSON.
@@ -116,6 +116,32 @@ describe('jsonToolResult', () => {
     expect(res.content[0].text.length).toBeLessThanOrEqual(40);
     expect(res.structuredContent).toEqual(JSON.parse(res.content[0].text));
     expect(res.structuredContent).not.toHaveProperty('blob');
+  });
+});
+
+/**
+ * For tools whose text channel is Markdown: the structured payload has no truncated
+ * JSON to derive from, so it is capped on its own. Element count is not a size bound
+ * when the field lengths come from upstream.
+ */
+describe('cappedStructured', () => {
+  it('leaves a small payload untouched', () => {
+    const obj = { site_title: 'Portal', extensions: ['datastore'] };
+    expect(cappedStructured(obj, 1000)).toEqual(obj);
+  });
+
+  it('caps a payload whose upstream fields are long, not numerous', () => {
+    const obj = { site_title: 'x'.repeat(60000), site_description: 'y'.repeat(60000) };
+    const out = cappedStructured(obj, 1000) as Record<string, unknown>;
+    expect(JSON.stringify(out).length).toBeLessThanOrEqual(1000);
+    expect(out._truncated).toBe(true);
+  });
+
+  it('shrinks a bounded-count list whose entries are unbounded in size', () => {
+    const portals = Array.from({ length: 50 }, (_, i) => ({ url: `https://p${i}`, title: 't'.repeat(2000) }));
+    const out = cappedStructured({ portals }, 5000) as { portals?: unknown[] };
+    expect(JSON.stringify(out).length).toBeLessThanOrEqual(5000);
+    expect(out.portals?.length ?? 0).toBeLessThan(50);
   });
 });
 

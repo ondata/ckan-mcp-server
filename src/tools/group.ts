@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
-import { truncateText, truncateJson, formatDate, addDemoFooter, wrapUntrusted, formatError, jsonToolResult } from "../utils/formatting.js";
+import { truncateText, formatDate, addDemoFooter, wrapUntrusted, formatError, jsonToolResult } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type GroupFacetItem = {

@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanOrganization } from "../types.js";
 import { makeCkanRequest, formatCkanError, CkanApiError } from "../utils/http.js";
-import { truncateText, truncateJson, formatDate, addDemoFooter, wrapUntrusted, formatError, jsonToolResult } from "../utils/formatting.js";
+import { truncateText, formatDate, addDemoFooter, wrapUntrusted, formatError, jsonToolResult } from "../utils/formatting.js";
 import { getOrganizationViewUrl } from "../utils/url-generator.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 

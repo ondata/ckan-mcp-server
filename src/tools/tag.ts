@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
-import { truncateText, truncateJson, addDemoFooter, formatError, jsonToolResult } from "../utils/formatting.js";
+import { truncateText, addDemoFooter, formatError, jsonToolResult } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type TagItem = {

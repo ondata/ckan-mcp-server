@@ -7,7 +7,7 @@ import { ResponseFormatSchema, ResponseFormat } from "../types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getSparqlConfig } from "../utils/portal-config.js";
 import { validateServerUrl, assertHostnameResolvesSafe, safeFetch } from "../utils/http.js";
-import { truncateText, truncateJson, formatError, jsonToolResult } from "../utils/formatting.js";
+import { truncateText, formatError, jsonToolResult } from "../utils/formatting.js";
 
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 1000;

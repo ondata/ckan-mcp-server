@@ -73,12 +73,23 @@ export function truncateJson(obj: unknown, limit: number = CHARACTER_LIMIT): str
  * Before this, `structuredContent` carried the full untruncated object while the text
  * was capped, which made the cap meaningless for any client reading that channel.
  */
-export function jsonToolResult(obj: unknown, limit: number = CHARACTER_LIMIT) {
+export function jsonToolResult(obj: unknown, limit: number = CHARACTER_LIMIT): {
+  content: { type: "text"; text: string }[];
+  structuredContent: unknown;
+} {
   const text = truncateJson(obj, limit);
   return {
-    content: [{ type: "text" as const, text }],
+    content: [{ type: "text", text }],
     structuredContent: JSON.parse(text) as unknown
   };
+}
+
+/**
+ * Cap a structured payload on its own, for tools whose text channel is Markdown
+ * and therefore has no truncated JSON to derive it from.
+ */
+export function cappedStructured(obj: unknown, limit: number = CHARACTER_LIMIT): unknown {
+  return JSON.parse(truncateJson(obj, limit)) as unknown;
 }
 
 /**

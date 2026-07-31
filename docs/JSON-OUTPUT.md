@@ -10,7 +10,7 @@ JSON output uses safe truncation (`truncateJson`): when a response exceeds the 5
 
 Error paths respect the requested format too: with `response_format: "json"` a failure returns `{"error": "...", "_error": true}` and `isError: true`, never bare prose. Note that Zod input-validation failures are emitted by the MCP SDK before the tool handler runs, so those remain plain text.
 
-`structuredContent`, where present, carries the **same capped payload** as the text: it is the parsed form of the truncated JSON, so the two channels cannot disagree and `_truncated`/`_original_count` reach structured readers too. Four call sites are deliberately outside this path, each bounded by shape rather than by the cap: `ckan_status_show` (one status object) and `ckan_find_portals` (max 50 results) pair structured output with Markdown text, and the `all_fields=false` branches of `ckan_organization_list`/`ckan_group_list` return a single count.
+`structuredContent`, where present, carries the **same capped payload** as the text: it is the parsed form of the truncated JSON, so the two channels cannot disagree and `_truncated`/`_original_count` reach structured readers too. Tools whose text channel is Markdown — `ckan_status_show` and `ckan_find_portals` — have no truncated JSON to derive the structured payload from, so they cap it on its own via `cappedStructured()`. The only responses outside the cap are the `all_fields=false` branches of `ckan_organization_list`/`ckan_group_list`, which return a single integer count and have nothing to shrink.
 
 ---
 
