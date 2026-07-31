@@ -46,13 +46,15 @@ The local and hosted server use the same tool and output caps. The hosted endpoi
 |---|---:|---|
 | Tool output | 50,000 characters | Fixed server-wide cap |
 | `ckan_datastore_search` rows | 100 | 32,000 (`0` returns column names only) |
-| Injected `sparql_query` rows | 25 | 1,000; an explicit `LIMIT` in the query is preserved |
+| `ckan_package_search` results per page | 10 | 1,000 |
+| `ckan_find_relevant_datasets` results | 10 | 50 |
+| Injected `sparql_query` rows | 25 | 1,000 when injected; a query that supplies its own `LIMIT` is not capped |
 | `ckan_tag_list` results | 100 | 1,000 |
 | `ckan_find_portals` results | 10 | 50 |
 | HTTP response body | 32 MiB | `CKAN_MAX_RESPONSE_BYTES` for local Node.js deployments |
 | Decompressed response body | 64 MiB | `CKAN_MAX_DECOMPRESSED_BYTES` for local Node.js deployments |
 
-Text and Markdown responses that exceed the output cap are cut and include a truncation note. JSON handling varies by tool: some compact the response and reduce known result arrays while adding truncation metadata, while others truncate serialized JSON as text. An over-limit JSON response may therefore be incomplete or no longer parseable. Use pagination or a narrower query when complete machine-readable output matters.
+Text and Markdown responses that exceed the output cap are cut and include a truncation note. JSON responses stay parseable: the server reduces known result arrays and flags the response with `_truncated` and `_original_count`, and if a response still cannot fit it is replaced by a small object carrying `_truncated` and an explanatory `_error`. Use pagination or a narrower query when you need the complete result set. Note that `structuredContent`, where a client reads it, is not subject to this cap and may exceed it.
 
 ---
 
