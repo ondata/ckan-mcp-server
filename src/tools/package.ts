@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanTag, CkanResource, CkanPackage } from "../types.js";
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
-import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter, wrapUntrusted, safeUrlText, formatError } from "../utils/formatting.js";
+import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter, wrapUntrusted, safeUrlText, formatError, jsonToolResult } from "../utils/formatting.js";
 import { getDatasetViewUrl, extractSourcePortal } from "../utils/url-generator.js";
 import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from "../utils/search.js";
 import { getPortalHvdConfig, getPortalApiPath, requiresMultilingualNormalization, isPortalSearchExplicitlyConfigured } from "../utils/portal-config.js";
@@ -1085,10 +1085,7 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
         };
 
         if (params.response_format === ResponseFormat.JSON) {
-          return {
-            content: [{ type: "text", text: truncateJson(payload) }],
-            structuredContent: payload
-          };
+          return jsonToolResult(payload);
         }
 
         let markdown = `# Relevant CKAN Datasets\n\n`;
@@ -1214,10 +1211,7 @@ Typical workflow: ckan_package_show → pick a resource with datastore_active=tr
 
         if (params.response_format === ResponseFormat.JSON) {
           const compact = compactPackageShow(enrichPackageShowResult(result), params.server_url);
-          return {
-            content: [{ type: "text", text: truncateJson(compact) }],
-            structuredContent: compact
-          };
+          return jsonToolResult(compact);
         }
 
         const markdown = formatPackageShowMarkdown(result, params.server_url);
@@ -1360,10 +1354,7 @@ dataset's own resource URLs); set check_source_portal=true to enable it.`,
             format_filter: formatFilter ?? null,
             resources: summary
           };
-          return {
-            content: [{ type: "text", text: truncateJson(payload) }],
-            structuredContent: payload
-          };
+          return jsonToolResult(payload);
         }
 
         let markdown = `# Resources: ${result.title || result.name}\n\n`;

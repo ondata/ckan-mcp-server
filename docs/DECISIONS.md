@@ -34,7 +34,9 @@ Markdown is optimized for human readability in AI conversations. JSON (`response
 
 **Character limit**: 50,000 chars hardcoded in `src/types.ts` (`CHARACTER_LIMIT`). When exceeded, `truncateJson` shrinks known arrays instead of cutting mid-string, and degrades to a small `{_truncated, _error}` object when shrinking cannot get under the limit — the output always parses as JSON. Markdown uses `truncateText` which cuts at the limit with a note. Error paths go through `formatError` so that `response_format: "json"` stays parseable on failures too.
 
-**`structuredContent` is not capped** (issue #39): the limit applies to `content[].text` only, so clients reading the structured channel receive the full payload — e.g. `ckan_tag_list` with `limit=1000` on dati.gov.it returns ~50K of text and ~65K of `structuredContent`. Capping it would silently drop rows from `datastore-table-ui`, which consumes it to render the table, so the decision is deferred rather than made inside a bugfix.
+**`structuredContent` is capped like the text** (issue #39): `jsonToolResult()` truncates once and parses the result back, so both channels carry the same bounded payload. Before this, the limit applied to `content[].text` only — `ckan_tag_list` with `limit=1000` on dati.gov.it returned ~50K of text alongside 65,382 uncapped characters of `structuredContent`, which made the cap meaningless for any client reading that channel.
+
+An earlier note here claimed capping would drop rows from `datastore-table-ui`. That was wrong: the UI resource is commented out in `src/resources/index.ts` and never registered, and `ckan_datastore_search` returns no `structuredContent` at all. No exception was needed.
 
 See `docs/JSON-OUTPUT.md` for the full field schema per tool.
 

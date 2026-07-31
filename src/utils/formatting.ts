@@ -66,6 +66,33 @@ export function truncateJson(obj: unknown, limit: number = CHARACTER_LIMIT): str
 }
 
 /**
+ * Build a JSON tool result whose two channels can never disagree: `structuredContent`
+ * is the parsed form of the already-truncated text, so the character limit applies to
+ * both and `_truncated`/`_original_count` reach structured readers too (issue #39).
+ *
+ * Before this, `structuredContent` carried the full untruncated object while the text
+ * was capped, which made the cap meaningless for any client reading that channel.
+ */
+export function jsonToolResult(obj: unknown, limit: number = CHARACTER_LIMIT): {
+  content: { type: "text"; text: string }[];
+  structuredContent: unknown;
+} {
+  const text = truncateJson(obj, limit);
+  return {
+    content: [{ type: "text", text }],
+    structuredContent: JSON.parse(text) as unknown
+  };
+}
+
+/**
+ * Cap a structured payload on its own, for tools whose text channel is Markdown
+ * and therefore has no truncated JSON to derive it from.
+ */
+export function cappedStructured(obj: unknown, limit: number = CHARACTER_LIMIT): unknown {
+  return JSON.parse(truncateJson(obj, limit)) as unknown;
+}
+
+/**
  * Render an error as the caller's requested format, so `response_format: "json"`
  * stays parseable on failure paths too.
  */

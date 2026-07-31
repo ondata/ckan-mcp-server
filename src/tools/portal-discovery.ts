@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import axios from "axios";
-import { truncateText, addDemoFooter } from "../utils/formatting.js";
+import { truncateText, cappedStructured, addDemoFooter } from "../utils/formatting.js";
 import { formatCkanError } from "../utils/http.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -143,9 +143,12 @@ Typical workflow: ckan_find_portals (discover portal URL) → ckan_status_show (
 
         const markdown = formatMarkdown(results, active.length, params.limit);
 
+        // Text channel is Markdown, so cap the structured payload on its own. The 50-result
+        // limit bounds the number of entries, not their size: titles and URLs come from
+        // datashades.info and have no length bound (#39).
         return {
           content: [{ type: "text", text: truncateText(addDemoFooter(markdown)) }],
-          structuredContent: { portals: results.map(p => ({
+          structuredContent: cappedStructured({ portals: results.map(p => ({
             url: p.Href,
             title: p.SiteInfo.site_title,
             country: p.Coordinates.country_name,
@@ -153,7 +156,7 @@ Typical workflow: ckan_find_portals (discover portal URL) → ckan_status_show (
             datasets: p.DatasetsNumber,
             locale: p.SiteInfo.locale_default,
             has_datastore: (p.Plugins || []).includes("datastore")
-          }))}
+          }))})
         };
       } catch (error) {
         return {

@@ -54,7 +54,7 @@ The local and hosted server use the same tool and output caps. The hosted endpoi
 | HTTP response body | 32 MiB | `CKAN_MAX_RESPONSE_BYTES` for local Node.js deployments |
 | Decompressed response body | 64 MiB | `CKAN_MAX_DECOMPRESSED_BYTES` for local Node.js deployments |
 
-Text and Markdown responses that exceed the output cap are cut and include a truncation note. JSON responses stay parseable: the server reduces known result arrays and flags the response with `_truncated` and `_original_count`, and if a response still cannot fit it is replaced by a small object carrying `_truncated` and an explanatory `_error`. Use pagination or a narrower query when you need the complete result set. Note that `structuredContent`, where a client reads it, is not subject to this cap and may exceed it.
+Text and Markdown responses that exceed the output cap are cut and include a truncation note. JSON responses stay parseable: the server reduces known result arrays and flags the response with `_truncated` and `_original_count`, and if a response still cannot fit it is replaced by a small object carrying `_truncated` and an explanatory `_error`. The same capped payload is sent on both channels, so a client reading `structuredContent` sees exactly what the text shows, truncation flags included. Use pagination or a narrower query when you need the complete result set.
 
 ---
 

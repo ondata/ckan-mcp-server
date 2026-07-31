@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanOrganization } from "../types.js";
 import { makeCkanRequest, formatCkanError, CkanApiError } from "../utils/http.js";
-import { truncateText, truncateJson, formatDate, addDemoFooter, wrapUntrusted, formatError } from "../utils/formatting.js";
+import { truncateText, formatDate, addDemoFooter, wrapUntrusted, formatError, jsonToolResult } from "../utils/formatting.js";
 import { getOrganizationViewUrl } from "../utils/url-generator.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -152,6 +152,7 @@ Typical workflow: ckan_organization_list → ckan_organization_show (inspect one
           const orgCount = searchResult.search_facets?.organization?.items?.length || 0;
 
           if (params.response_format === ResponseFormat.JSON) {
+            // A single count: no array to shrink, cannot approach the limit (#39).
             return {
               content: [{ type: "text", text: JSON.stringify({ count: orgCount }, null, 2) }],
               structuredContent: { count: orgCount }
@@ -212,10 +213,7 @@ Typical workflow: ckan_organization_list → ckan_organization_show (inspect one
 
             if (params.response_format === ResponseFormat.JSON) {
               const output = { count: items.length, organizations };
-              return {
-                content: [{ type: "text", text: truncateJson(output) }],
-                structuredContent: output
-              };
+              return jsonToolResult(output);
             }
 
             let markdown = `# CKAN Organizations\n\n`;
@@ -238,10 +236,7 @@ Typical workflow: ckan_organization_list → ckan_organization_show (inspect one
 
         if (params.response_format === ResponseFormat.JSON) {
           const compact = compactOrganizationList(result);
-          return {
-            content: [{ type: "text", text: truncateJson(compact) }],
-            structuredContent: compact
-          };
+          return jsonToolResult(compact);
         }
 
         let markdown = `# CKAN Organizations\n\n`;
@@ -324,10 +319,7 @@ Typical workflow: ckan_organization_show → ckan_package_show (inspect a datase
 
         if (params.response_format === ResponseFormat.JSON) {
           const compact = compactOrganizationShow(result, params.server_url);
-          return {
-            content: [{ type: "text", text: truncateJson(compact) }],
-            structuredContent: compact
-          };
+          return jsonToolResult(compact);
         }
 
         const markdown = formatOrganizationShowMarkdown(result, params.server_url);
@@ -413,10 +405,7 @@ Typical workflow: ckan_organization_search → ckan_organization_show (get detai
             }))
           };
 
-          return {
-            content: [{ type: "text", text: truncateJson(jsonResult) }],
-            structuredContent: jsonResult
-          };
+          return jsonToolResult(jsonResult);
         }
 
         // Markdown format

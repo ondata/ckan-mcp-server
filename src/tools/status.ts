@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import { makeCkanRequest } from "../utils/http.js";
-import { truncateText, addDemoFooter } from "../utils/formatting.js";
+import { truncateText, cappedStructured, addDemoFooter } from "../utils/formatting.js";
 import { getPortalSparqlConfig, getPortalHvdConfig } from "../utils/portal-config.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -69,9 +69,12 @@ Typical workflow: ckan_status_show (verify server is up) → ckan_package_search
 
         const markdown = formatStatusMarkdown(result, params.server_url, hvdCount);
 
+        // Text channel is Markdown, so there is no truncated JSON to derive the structured
+        // payload from — cap it on its own. status_show is echoed straight from the portal,
+        // so its field lengths are upstream-controlled and not bounded by anything (#39).
         return {
           content: [{ type: "text", text: truncateText(addDemoFooter(markdown)) }],
-          structuredContent: result
+          structuredContent: cappedStructured(result)
         };
       } catch (error) {
         return {
