@@ -2,7 +2,9 @@
 
 ## 2026-07-31
 
-### structuredContent capped like the text (closes #39) — unreleased
+### v0.4.114
+
+structuredContent capped like the text (closes #39).
 
 The v0.4.113 cap applied to `content[].text` only, so any client reading the structured channel got the full payload — `ckan_tag_list limit=1000` on dati.gov.it: ~50K of text against 65,382 uncapped characters. The limit was a fiction for those clients.
 
