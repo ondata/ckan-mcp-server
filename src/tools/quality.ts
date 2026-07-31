@@ -881,22 +881,24 @@ export function registerQualityTools(server: McpServer): void {
               `and only evaluates datasets from Italian open data portal.`,
               response_format === ResponseFormat.JSON
             )
-          }]
+          }],
+          isError: true
         };
       }
 
       try {
         const qualityData = await getMqaQuality(server_url, dataset_id);
 
+        // The demo footer is Markdown: appending it to JSON would break parsing (Workers only)
         const format = response_format || ResponseFormat.MARKDOWN;
         const output = format === ResponseFormat.JSON
           ? truncateJson(qualityData)
-          : truncateText(formatQualityMarkdown(qualityData, dataset_id));
+          : truncateText(addDemoFooter(formatQualityMarkdown(qualityData, dataset_id)));
 
         return {
           content: [{
             type: "text" as const,
-            text: addDemoFooter(output)
+            text: output
           }]
         };
       } catch (error) {
@@ -941,21 +943,23 @@ export function registerQualityTools(server: McpServer): void {
               `and only evaluates datasets from Italian open data portal.`,
               response_format === ResponseFormat.JSON
             )
-          }]
+          }],
+          isError: true
         };
       }
 
       try {
         const details = await getMqaQualityDetails(server_url, dataset_id);
+        // The demo footer is Markdown: appending it to JSON would break parsing (Workers only)
         const format = response_format || ResponseFormat.MARKDOWN;
         const output = format === ResponseFormat.JSON
           ? truncateJson(details)
-          : truncateText(formatQualityDetailsMarkdown(details, dataset_id));
+          : truncateText(addDemoFooter(formatQualityDetailsMarkdown(details, dataset_id)));
 
         return {
           content: [{
             type: "text" as const,
-            text: addDemoFooter(output)
+            text: output
           }]
         };
       } catch (error) {

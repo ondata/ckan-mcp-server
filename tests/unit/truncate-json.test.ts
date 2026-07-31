@@ -66,6 +66,15 @@ describe('truncateJson', () => {
     expect(parsed.fields.length).toBe(5);
   });
 
+  it('respects the limit even when the explanatory fallback does not fit', () => {
+    const obj = { id: 'x', blob: 'y'.repeat(1000) };
+    for (const limit of [200, 40, 20, 2]) {
+      const out = truncateJson(obj, limit);
+      expect(() => JSON.parse(out), `limit ${limit}`).not.toThrow();
+      expect(out.length, `limit ${limit}`).toBeLessThanOrEqual(limit);
+    }
+  });
+
   it('never emits the invalid-JSON tail the old fallback produced', () => {
     const obj = { id: 'x', blob: 'y'.repeat(200000) };
     const out = truncateJson(obj, 1000);

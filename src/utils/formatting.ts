@@ -53,11 +53,16 @@ export function truncateJson(obj: unknown, limit: number = CHARACTER_LIMIT): str
     }
   }
 
-  // Last resort: a valid object saying so, instead of a string cut mid-value
-  return JSON.stringify({
+  // Last resort: a valid object saying so, instead of a string cut mid-value.
+  // Degrades further if even that does not fit, so the limit always holds.
+  const explained = JSON.stringify({
     _truncated: true,
     _error: `Response exceeded the ${limit} character limit and could not be reduced to fit. Narrow the query or use pagination.`
   });
+  if (explained.length <= limit) return explained;
+
+  const bare = JSON.stringify({ _truncated: true });
+  return bare.length <= limit ? bare : "{}";
 }
 
 /**
