@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import axios from "axios";
-import { addDemoFooter } from "../utils/formatting.js";
+import { truncateText, addDemoFooter } from "../utils/formatting.js";
 import { formatCkanError } from "../utils/http.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -144,7 +144,7 @@ Typical workflow: ckan_find_portals (discover portal URL) → ckan_status_show (
         const markdown = formatMarkdown(results, active.length, params.limit);
 
         return {
-          content: [{ type: "text", text: addDemoFooter(markdown) }],
+          content: [{ type: "text", text: truncateText(addDemoFooter(markdown)) }],
           structuredContent: { portals: results.map(p => ({
             url: p.Href,
             title: p.SiteInfo.site_title,

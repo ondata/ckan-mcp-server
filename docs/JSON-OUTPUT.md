@@ -6,7 +6,11 @@ JSON responses are **compact**: they include only essential fields, dropping ext
 
 ## Truncation
 
-JSON output uses safe truncation (`truncateJson`): when a response exceeds the 50K character limit, it shrinks known arrays (results, records, resources, packages) instead of cutting mid-string. This guarantees valid JSON output.
+JSON output uses safe truncation (`truncateJson`): when a response exceeds the 50K character limit, it shrinks known arrays (`results`, `records`, `rows`, `datasets`, `resources`, `packages`, `organizations`, `groups`, `portals`, `tags`, `facets`, `fields`, in that sacrifice order) instead of cutting mid-string, flagging the result with `_truncated: true` and `_original_count`. If shrinking is not enough — a single oversized element, or no shrinkable key at all — the payload is replaced by a small `{_truncated: true, _error: "..."}` object. The output always parses as JSON.
+
+Error paths respect the requested format too: with `response_format: "json"` a failure returns `{"error": "...", "_error": true}` and `isError: true`, never bare prose. Note that Zod input-validation failures are emitted by the MCP SDK before the tool handler runs, so those remain plain text.
+
+`structuredContent`, where present, carries the **full untruncated** object — the character limit applies only to `content[].text`.
 
 ---
 

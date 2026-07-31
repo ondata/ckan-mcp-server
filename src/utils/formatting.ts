@@ -15,10 +15,19 @@ export function truncateText(text: string, limit: number = CHARACTER_LIMIT): str
 }
 
 /**
+ * Array keys the shrink loop knows how to reduce, in sacrifice order:
+ * bulk result rows go first, structural metadata (fields) last.
+ */
+const SHRINKABLE_KEYS = [
+  'results', 'records', 'rows', 'datasets', 'resources', 'packages',
+  'organizations', 'groups', 'portals', 'tags', 'facets', 'fields'
+];
+
+/**
  * Truncate a JSON-serializable object to fit within character limit.
- * Unlike truncateText, this always produces valid JSON by shrinking
- * known arrays (results, records, resources, packages, organizations, groups, tags)
- * before falling back to compact serialization.
+ * Unlike truncateText, the result is ALWAYS parseable JSON: known arrays are
+ * shrunk progressively, and if that is not enough the payload is replaced by a
+ * small valid object rather than a string cut mid-value.
  */
 export function truncateJson(obj: unknown, limit: number = CHARACTER_LIMIT): string {
   // Try pretty first
@@ -29,24 +38,36 @@ export function truncateJson(obj: unknown, limit: number = CHARACTER_LIMIT): str
   json = JSON.stringify(obj);
   if (json.length <= limit) return json;
 
-  // Shrink known arrays progressively
+  // Shrink known arrays progressively, emptying one before moving to the next
   const data = structuredClone(obj) as Record<string, unknown>;
-  const arrayKeys = ['results', 'records', 'resources', 'packages', 'organizations', 'groups', 'tags'];
-  for (const key of arrayKeys) {
+  for (const key of SHRINKABLE_KEYS) {
     if (Array.isArray(data[key]) && data[key].length > 0) {
       const originalCount = data[key].length;
-      while (data[key].length > 1) {
+      data['_truncated'] = true;
+      data['_original_count'] = originalCount;
+      while (data[key].length > 0) {
         data[key].pop();
-        data['_truncated'] = true;
-        data['_original_count'] = originalCount;
         json = JSON.stringify(data);
         if (json.length <= limit) return json;
       }
     }
   }
 
-  // Last resort: compact with truncateText (may produce invalid JSON, but respects limit)
-  return truncateText(JSON.stringify(data), limit);
+  // Last resort: a valid object saying so, instead of a string cut mid-value
+  return JSON.stringify({
+    _truncated: true,
+    _error: `Response exceeded the ${limit} character limit and could not be reduced to fit. Narrow the query or use pagination.`
+  });
+}
+
+/**
+ * Render an error as the caller's requested format, so `response_format: "json"`
+ * stays parseable on failure paths too.
+ */
+export function formatError(message: string, asJson: boolean): string {
+  return asJson
+    ? JSON.stringify({ error: message, _error: true }, null, 2)
+    : message;
 }
 
 /**

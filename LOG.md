@@ -1,5 +1,20 @@
 # LOG
 
+## 2026-07-31
+
+### JSON output sempre parsabile (issue #39) — non rilasciato, in working tree
+
+I doc promettevano "always valid JSON"; il codice no. Emerso rivedendo la PR #38 (contributo AI di `averyquinnhq`), che documentava il comportamento reale contraddicendo la issue #37 — aveva ragione la PR.
+
+- **Repro reale**: `ckan_tag_list limit=1000` su dati.gov.it → 50.046 caratteri, `JSON.parse` fallisce. Non un caso limite: una chiamata ordinaria.
+- **`truncateJson`**: il fallback finale tagliava la stringa serializzata (`truncateText(JSON.stringify(...))`, commento nel codice: "may produce invalid JSON"). Ora svuota gli array progressivamente e, se non basta, degrada a `{_truncated, _error}` valido. `SHRINKABLE_KEYS` esteso (+`rows`, `datasets`, `portals`, `facets`, `fields`) con ordine di sacrificio: righe prima, `fields` per ultimo.
+- **8 tool + 4 Resources** usavano `truncateText(JSON.stringify(...))` diretto: uniformati su `truncateJson`. `sparql_query` appendeva `/* output truncated */` a JSON tagliato (JSON non ha commenti): riscritto.
+- **4 tool senza alcun cap**: `ckan_get_mqa_quality`, `ckan_get_mqa_quality_details` (JSON.stringify nudo), `ckan_find_portals`, `ckan_status_show` (markdown).
+- **Terzo percorso non parsabile**: nessun `catch` rispettava `response_format` — ogni errore usciva in prosa anche con `json`. Nuova `formatError()`; gli errori ora tornano `{error, _error: true}` + `isError: true`. Restano testuali gli errori di validazione Zod (emessi dall'SDK prima dell'handler).
+- **`structuredContent` resta non limitato** (65.382 caratteri contro 50.000 di testo su tag_list): capparlo toglierebbe righe a `datastore-table-ui` che lo consuma. Decisione rimandata, documentata in `docs/DECISIONS.md`.
+- 10 nuovi test (`truncateJson` ne aveva zero), 453 passati. E2e: `tag_list` da PARSE-FAIL a parse-ok; errori reali in modalità json parsabili.
+- `CONTRIBUTING.md`: sezione sui contributi AI (disclosure, diff piccolo, claim verificabili).
+
 ## 2026-07-09
 
 ### v0.4.112

@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanPackage, CkanField } from "../types.js";
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
-import { truncateText, addDemoFooter } from "../utils/formatting.js";
+import { truncateText, truncateJson, addDemoFooter, formatError } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 interface CkanFieldWithInfo extends CkanField {
@@ -180,7 +180,7 @@ Typical workflow: ckan_analyze_datasets → ckan_datastore_search (with known fi
 
         if (params.response_format === ResponseFormat.JSON) {
           return {
-            content: [{ type: "text" as const, text: truncateText(JSON.stringify({ total: searchResult.count, datasets: analyzed }, null, 2)) }]
+            content: [{ type: "text" as const, text: truncateJson({ total: searchResult.count, datasets: analyzed }) }]
           };
         }
 
@@ -195,7 +195,7 @@ Typical workflow: ckan_analyze_datasets → ckan_datastore_search (with known fi
         };
       } catch (error) {
         return {
-          content: [{ type: "text" as const, text: formatCkanError(error, "ckan_analyze_datasets") }],
+          content: [{ type: "text" as const, text: formatError(formatCkanError(error, "ckan_analyze_datasets"), params.response_format === ResponseFormat.JSON) }],
           isError: true
         };
       }
@@ -276,7 +276,7 @@ Typical workflow: ckan_catalog_stats (understand the portal) → ckan_package_se
 
         if (params.response_format === ResponseFormat.JSON) {
           return {
-            content: [{ type: "text" as const, text: truncateText(JSON.stringify({ total: result.count, facets: result.facets }, null, 2)) }]
+            content: [{ type: "text" as const, text: truncateJson({ total: result.count, facets: result.facets }) }]
           };
         }
 
@@ -286,7 +286,7 @@ Typical workflow: ckan_catalog_stats (understand the portal) → ckan_package_se
         };
       } catch (error) {
         return {
-          content: [{ type: "text" as const, text: formatCkanError(error, "ckan_catalog_stats") }],
+          content: [{ type: "text" as const, text: formatError(formatCkanError(error, "ckan_catalog_stats"), params.response_format === ResponseFormat.JSON) }],
           isError: true
         };
       }

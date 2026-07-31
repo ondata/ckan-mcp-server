@@ -32,7 +32,9 @@ Default is `stdio` (for Claude Desktop and local MCP clients). HTTP mode is opt-
 
 Markdown is optimized for human readability in AI conversations. JSON (`response_format: "json"`) is available when the caller needs machine-readable data — it strips ~70% of CKAN metadata fields to reduce token usage.
 
-**Character limit**: 50,000 chars hardcoded in `src/types.ts` (`CHARACTER_LIMIT`). When exceeded, `truncateJson` shrinks known arrays (results, records, resources) instead of cutting mid-string — always produces valid JSON. Markdown uses `truncateText` which cuts at the limit with a note.
+**Character limit**: 50,000 chars hardcoded in `src/types.ts` (`CHARACTER_LIMIT`). When exceeded, `truncateJson` shrinks known arrays instead of cutting mid-string, and degrades to a small `{_truncated, _error}` object when shrinking cannot get under the limit — the output always parses as JSON. Markdown uses `truncateText` which cuts at the limit with a note. Error paths go through `formatError` so that `response_format: "json"` stays parseable on failures too.
+
+**`structuredContent` is not capped** (issue #39): the limit applies to `content[].text` only, so clients reading the structured channel receive the full payload — e.g. `ckan_tag_list` with `limit=1000` on dati.gov.it returns ~50K of text and ~65K of `structuredContent`. Capping it would silently drop rows from `datastore-table-ui`, which consumes it to render the table, so the decision is deferred rather than made inside a bugfix.
 
 See `docs/JSON-OUTPUT.md` for the full field schema per tool.
 

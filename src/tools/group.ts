@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
-import { truncateText, truncateJson, formatDate, addDemoFooter, wrapUntrusted } from "../utils/formatting.js";
+import { truncateText, truncateJson, formatDate, addDemoFooter, wrapUntrusted, formatError } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type GroupFacetItem = {
@@ -235,7 +235,7 @@ Typical workflow: ckan_group_list → ckan_group_show (inspect one) → ckan_pac
         };
       } catch (error) {
         return {
-          content: [{ type: "text", text: formatCkanError(error, "ckan_group_list") }],
+          content: [{ type: "text", text: formatError(formatCkanError(error, "ckan_group_list"), params.response_format === ResponseFormat.JSON) }],
           isError: true
         };
       }
@@ -296,7 +296,7 @@ Typical workflow: ckan_group_show → ckan_package_show (inspect a dataset) → 
         };
       } catch (error) {
         return {
-          content: [{ type: "text", text: formatCkanError(error, "ckan_group_show") }],
+          content: [{ type: "text", text: formatError(formatCkanError(error, "ckan_group_show"), params.response_format === ResponseFormat.JSON) }],
           isError: true
         };
       }
@@ -363,7 +363,7 @@ Typical workflow: ckan_group_search → ckan_group_show (get details) → ckan_p
           };
 
           return {
-            content: [{ type: "text", text: truncateText(JSON.stringify(jsonResult, null, 2)) }],
+            content: [{ type: "text", text: truncateJson(jsonResult) }],
             structuredContent: jsonResult
           };
         }
@@ -392,7 +392,7 @@ Typical workflow: ckan_group_search → ckan_group_show (get details) → ckan_p
         };
       } catch (error) {
         return {
-          content: [{ type: "text", text: formatCkanError(error, "ckan_group_search") }],
+          content: [{ type: "text", text: formatError(formatCkanError(error, "ckan_group_search"), params.response_format === ResponseFormat.JSON) }],
           isError: true
         };
       }

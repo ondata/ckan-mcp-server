@@ -3,10 +3,11 @@
  */
 
 import { z } from "zod";
-import { ResponseFormatSchema, ResponseFormat, CHARACTER_LIMIT } from "../types.js";
+import { ResponseFormatSchema, ResponseFormat } from "../types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getSparqlConfig } from "../utils/portal-config.js";
 import { validateServerUrl, assertHostnameResolvesSafe, safeFetch } from "../utils/http.js";
+import { truncateText, truncateJson, formatError } from "../utils/formatting.js";
 
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 1000;
@@ -195,26 +196,21 @@ Typical workflow: sparql_query (explore schema) → sparql_query (targeted query
 
         if (params.response_format === ResponseFormat.JSON) {
           const result = formatSparqlJson(data);
-          let text = JSON.stringify(result, null, 2);
-          if (text.length > CHARACTER_LIMIT) {
-            text = text.slice(0, CHARACTER_LIMIT) + "\n/* output truncated */";
-          }
           return {
-            content: [{ type: "text", text }],
+            content: [{ type: "text", text: truncateJson(result) }],
             structuredContent: result
           };
         }
 
-        let text = formatSparqlMarkdown(data, params.endpoint_url);
-        if (text.length > CHARACTER_LIMIT) {
-          text = text.slice(0, CHARACTER_LIMIT) + "\n\n_Output truncated._";
-        }
-        return { content: [{ type: "text", text }] };
+        return {
+          content: [{ type: "text", text: truncateText(formatSparqlMarkdown(data, params.endpoint_url)) }]
+        };
       } catch (error) {
+        const message = `SPARQL query failed:\n${error instanceof Error ? error.message : String(error)}`;
         return {
           content: [{
             type: "text",
-            text: `SPARQL query failed:\n${error instanceof Error ? error.message : String(error)}`
+            text: formatError(message, params.response_format === ResponseFormat.JSON)
           }],
           isError: true
         };

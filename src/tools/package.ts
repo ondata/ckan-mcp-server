@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanTag, CkanResource, CkanPackage } from "../types.js";
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
-import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter, wrapUntrusted, safeUrlText } from "../utils/formatting.js";
+import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter, wrapUntrusted, safeUrlText, formatError } from "../utils/formatting.js";
 import { getDatasetViewUrl, extractSourcePortal } from "../utils/url-generator.js";
 import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from "../utils/search.js";
 import { getPortalHvdConfig, getPortalApiPath, requiresMultilingualNormalization, isPortalSearchExplicitlyConfigured } from "../utils/portal-config.js";
@@ -941,7 +941,7 @@ ${hvdNote}`;
         };
       } catch (error) {
         return {
-          content: [{ type: "text", text: formatCkanError(error, "ckan_package_search") }],
+          content: [{ type: "text", text: formatError(formatCkanError(error, "ckan_package_search"), params.response_format === ResponseFormat.JSON) }],
           isError: true
         };
       }
@@ -1086,7 +1086,7 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
 
         if (params.response_format === ResponseFormat.JSON) {
           return {
-            content: [{ type: "text", text: truncateText(JSON.stringify(payload, null, 2)) }],
+            content: [{ type: "text", text: truncateJson(payload) }],
             structuredContent: payload
           };
         }
@@ -1137,7 +1137,7 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
         };
       } catch (error) {
         return {
-          content: [{ type: "text", text: formatCkanError(error, "ckan_find_relevant_datasets") }],
+          content: [{ type: "text", text: formatError(formatCkanError(error, "ckan_find_relevant_datasets"), params.response_format === ResponseFormat.JSON) }],
           isError: true
         };
       }
@@ -1226,7 +1226,7 @@ Typical workflow: ckan_package_show → pick a resource with datastore_active=tr
         };
       } catch (error) {
         return {
-          content: [{ type: "text", text: formatCkanError(error, "ckan_package_show") }],
+          content: [{ type: "text", text: formatError(formatCkanError(error, "ckan_package_show"), params.response_format === ResponseFormat.JSON) }],
           isError: true
         };
       }
@@ -1361,7 +1361,7 @@ dataset's own resource URLs); set check_source_portal=true to enable it.`,
             resources: summary
           };
           return {
-            content: [{ type: "text", text: truncateText(JSON.stringify(payload, null, 2)) }],
+            content: [{ type: "text", text: truncateJson(payload) }],
             structuredContent: payload
           };
         }
@@ -1414,7 +1414,7 @@ dataset's own resource URLs); set check_source_portal=true to enable it.`,
         };
       } catch (error) {
         return {
-          content: [{ type: "text", text: formatCkanError(error, "ckan_list_resources") }],
+          content: [{ type: "text", text: formatError(formatCkanError(error, "ckan_list_resources"), params.response_format === ResponseFormat.JSON) }],
           isError: true
         };
       }

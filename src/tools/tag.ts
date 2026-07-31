@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
-import { truncateText, addDemoFooter } from "../utils/formatting.js";
+import { truncateText, truncateJson, addDemoFooter, formatError } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type TagItem = {
@@ -119,7 +119,7 @@ Typical workflow: ckan_tag_list → ckan_package_search with fq="tags:tag_name" 
             tags
           };
           return {
-            content: [{ type: "text", text: truncateText(JSON.stringify(output, null, 2)) }],
+            content: [{ type: "text", text: truncateJson(output) }],
             structuredContent: output
           };
         }
@@ -146,7 +146,7 @@ Typical workflow: ckan_tag_list → ckan_package_search with fq="tags:tag_name" 
         return {
           content: [{
             type: "text",
-            text: `Error listing tags: ${error instanceof Error ? error.message : String(error)}`
+            text: formatError(`Error listing tags: ${error instanceof Error ? error.message : String(error)}`, params.response_format === ResponseFormat.JSON)
           }],
           isError: true
         };

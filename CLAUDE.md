@@ -236,7 +236,8 @@ The server (`src/index.ts`):
    - All tools support two formats: `markdown` (default) and `json`
    - Markdown format optimized for human readability
    - JSON format returns compact objects with only essential fields (~70% token reduction vs raw CKAN API)
-   - JSON truncation is safe: shrinks arrays instead of cutting mid-string (always valid JSON)
+   - JSON truncation is safe: shrinks known arrays, then degrades to a small `{_truncated, _error}` object — never a string cut mid-value (always valid JSON)
+   - Errors respect `response_format`: JSON callers get `{error, _error: true}`, not prose (see `formatError`)
    - See `docs/JSON-OUTPUT.md` for complete field schemas
 
 ### Transport Modes
