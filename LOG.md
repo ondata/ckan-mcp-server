@@ -2,7 +2,9 @@
 
 ## 2026-07-31
 
-### JSON output always parseable (issue #39) — unreleased, in working tree
+### v0.4.113
+
+JSON output always parseable (issue #39).
 
 The docs promised "always valid JSON"; the code did not deliver it. Surfaced while reviewing PR #38 (an AI contribution by `averyquinnhq`), which documented the real behaviour and contradicted issue #37 — the PR was right.
 
