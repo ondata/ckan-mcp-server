@@ -2,61 +2,62 @@
 
 ## 2026-07-31
 
-### JSON output sempre parsabile (issue #39) — non rilasciato, in working tree
+### JSON output always parseable (issue #39) — unreleased, in working tree
 
-I doc promettevano "always valid JSON"; il codice no. Emerso rivedendo la PR #38 (contributo AI di `averyquinnhq`), che documentava il comportamento reale contraddicendo la issue #37 — aveva ragione la PR.
+The docs promised "always valid JSON"; the code did not deliver it. Surfaced while reviewing PR #38 (an AI contribution by `averyquinnhq`), which documented the real behaviour and contradicted issue #37 — the PR was right.
 
-- **Repro reale**: `ckan_tag_list limit=1000` su dati.gov.it → 50.046 caratteri, `JSON.parse` fallisce. Non un caso limite: una chiamata ordinaria.
-- **`truncateJson`**: il fallback finale tagliava la stringa serializzata (`truncateText(JSON.stringify(...))`, commento nel codice: "may produce invalid JSON"). Ora svuota gli array progressivamente e, se non basta, degrada a `{_truncated, _error}` valido. `SHRINKABLE_KEYS` esteso (+`rows`, `datasets`, `portals`, `facets`, `fields`) con ordine di sacrificio: righe prima, `fields` per ultimo.
-- **8 tool + 4 Resources** usavano `truncateText(JSON.stringify(...))` diretto: uniformati su `truncateJson`. `sparql_query` appendeva `/* output truncated */` a JSON tagliato (JSON non ha commenti): riscritto.
-- **4 tool senza alcun cap**: `ckan_get_mqa_quality`, `ckan_get_mqa_quality_details` (JSON.stringify nudo), `ckan_find_portals`, `ckan_status_show` (markdown).
-- **Terzo percorso non parsabile**: nessun `catch` rispettava `response_format` — ogni errore usciva in prosa anche con `json`. Nuova `formatError()`; gli errori ora tornano `{error, _error: true}` + `isError: true`. Restano testuali gli errori di validazione Zod (emessi dall'SDK prima dell'handler).
-- **`structuredContent` resta non limitato** (65.382 caratteri contro 50.000 di testo su tag_list): capparlo toglierebbe righe a `datastore-table-ui` che lo consuma. Decisione rimandata, documentata in `docs/DECISIONS.md`.
-- 10 nuovi test (`truncateJson` ne aveva zero), 453 passati. E2e: `tag_list` da PARSE-FAIL a parse-ok; errori reali in modalità json parsabili.
-- `CONTRIBUTING.md`: sezione sui contributi AI (disclosure, diff piccolo, claim verificabili).
+- **Live repro**: `ckan_tag_list limit=1000` on dati.gov.it → 50,046 characters, `JSON.parse` fails. Not a corner case: an ordinary call.
+- **`truncateJson`**: the last-resort branch cut the serialized string (`truncateText(JSON.stringify(...))`, with an in-code comment admitting "may produce invalid JSON"). It now empties arrays progressively and, when that is not enough, degrades to a valid `{_truncated, _error}`. `SHRINKABLE_KEYS` extended (+`rows`, `datasets`, `portals`, `facets`, `fields`) with a sacrifice order: bulk rows first, `fields` last.
+- **8 tools + 4 Resources** used `truncateText(JSON.stringify(...))` directly: routed through `truncateJson`. `sparql_query` appended `/* output truncated */` to cut JSON (JSON has no comments): rewritten.
+- **4 tools with no cap at all**: `ckan_get_mqa_quality`, `ckan_get_mqa_quality_details` (bare JSON.stringify), `ckan_find_portals`, `ckan_status_show` (markdown).
+- **A third unparseable path**: no `catch` honoured `response_format` — every error came back as prose even with `json`. New `formatError()`; errors now return `{error, _error: true}` plus `isError: true`. Zod validation errors stay textual (emitted by the SDK before the handler runs).
+- **`structuredContent` stays uncapped** (65,382 characters against 50,000 of text on tag_list): capping it would drop rows from `datastore-table-ui`, which consumes it. Decision deferred, documented in `docs/DECISIONS.md`.
+- 10 new tests (`truncateJson` had none), 453 passing. E2e: `tag_list` from PARSE-FAIL to parse-ok; real errors parseable in json mode.
+- `CONTRIBUTING.md`: section on AI-assisted contributions (disclosure, small diffs, verifiable claims).
+- Review follow-up: `addDemoFooter()` was appended to JSON output in `quality.ts`, breaking parsing on Workers — now wraps the Markdown branch only, inside `truncateText`. Added `isError: true` to the two non-dati.gov.it guards. The `truncateJson` fallback now degrades further so it always respects small limits. 454 passing.
 
 ## 2026-07-09
 
 ### v0.4.112
 
-Security — Giro 3: hardening (chiude l'ultimo gruppo di advisory in triage).
+Security — Round 3: hardening (closes the last group of advisories in triage).
 
-- **Error reflection**: `makeCkanRequest` non incorpora più il body upstream (`JSON.stringify(decodedData)`) nell'errore verso il caller — ora messaggio generico action-scoped, dettaglio solo su stderr (troncato). `worker.ts` catch-all: rimosso `error.message` dal campo `data` JSON-RPC (log solo server-side). Chiude il canale di lettura semi-cieco della SSRF.
-- **postMessage UI** (`resources/datastore-table-ui.ts`): l'origin dell'host viene pinnato dalla risposta all'handshake `ui/initialize`; i messaggi con dati vengono accettati solo da quell'origin e gli outbound usano il target origin esplicito (mai `'*'`).
-- **Prompt-injection su org/group**: esteso il contenimento c499 ai renderer di `organization.ts` e `group.ts` — `description` in blocco untrusted (`wrapUntrusted`), newline collassati nelle liste.
-- 3 nuovi test (no-leak errore, fence description org/group); 443 passati. E2e: errore generico su 404 (nessun body interno), richieste normali ok. Worker build ok.
+- **Error reflection**: `makeCkanRequest` no longer embeds the upstream body (`JSON.stringify(decodedData)`) in the error returned to the caller — now a generic action-scoped message, with detail on stderr only (truncated). `worker.ts` catch-all: removed `error.message` from the JSON-RPC `data` field (server-side logging only). Closes the semi-blind read channel of the SSRF.
+- **postMessage UI** (`resources/datastore-table-ui.ts`): the host origin is pinned from the reply to the `ui/initialize` handshake; messages carrying data are accepted only from that origin, and outbound messages use an explicit target origin (never `'*'`).
+- **Prompt injection on org/group**: extended the c499 containment to the `organization.ts` and `group.ts` renderers — `description` in an untrusted block (`wrapUntrusted`), newlines collapsed in lists.
+- 3 new tests (error no-leak, org/group description fencing); 443 passing. E2e: generic error on 404 (no internal body), normal requests fine. Worker build fine.
 
 ### v0.4.111
 
-Security — Giro 2: tre bug distinti economici.
+Security — Round 2: three distinct low-cost bugs.
 
-- **MQA allowlist bypass** (`isValidMqaServer`, `tools/quality.ts`): regex non ancorata sostituita da URL-parse + confronto host esatto (`dati.gov.it`/`www.dati.gov.it`). Ora i trucchi suffix (`dati.gov.it.attacker.com`) e userinfo (`dati.gov.it@attacker.com`) sono rifiutati.
-- **Decompression bomb / unbounded buffering** (`utils/http.ts`): cap dimensione risposta (`maxContentLength`/`maxBodyLength` su axios + check byte su `arrayBuffer` nel branch fetch, def 32MB) e cap output decompressione (`maxOutputLength` su gunzip/brotli/inflateSync + check su DecompressionStream, def 64MB). Override via `CKAN_MAX_RESPONSE_BYTES`/`CKAN_MAX_DECOMPRESSED_BYTES`. Stop a OOM/stallo da payload iper-compressi.
-- **Cache-key collision** (`utils/cache.ts`): `canonicalizeParams` ora produce JSON canonico tipizzato (sort ricorsivo) invece di `k=v` join con `&` non-escapati; `buildCacheKey` incornicia in `JSON.stringify([url,action,canon])`. `{q:"budget",rows:10}` e `{q:"budget&rows=10"}` non collidono più.
-- 2 nuovi test (+regressioni aggiornate); 440 passati. E2e: MQA host valido raggiunge data.europa.eu, bypass rifiutato, richieste normali ok. Worker build ok.
-- Ulteriore hardening in lavorazione nei prossimi rilasci.
+- **MQA allowlist bypass** (`isValidMqaServer`, `tools/quality.ts`): unanchored regex replaced by URL parsing plus exact host comparison (`dati.gov.it`/`www.dati.gov.it`). Suffix (`dati.gov.it.attacker.com`) and userinfo (`dati.gov.it@attacker.com`) tricks are now rejected.
+- **Decompression bomb / unbounded buffering** (`utils/http.ts`): response size cap (`maxContentLength`/`maxBodyLength` on axios plus a byte check on `arrayBuffer` in the fetch branch, default 32MB) and decompression output cap (`maxOutputLength` on gunzip/brotli/inflateSync plus a check on DecompressionStream, default 64MB). Override via `CKAN_MAX_RESPONSE_BYTES`/`CKAN_MAX_DECOMPRESSED_BYTES`. Stops OOM/stalls from hyper-compressed payloads.
+- **Cache-key collision** (`utils/cache.ts`): `canonicalizeParams` now produces typed canonical JSON (recursive sort) instead of a `k=v` join with unescaped `&`; `buildCacheKey` frames it in `JSON.stringify([url,action,canon])`. `{q:"budget",rows:10}` and `{q:"budget&rows=10"}` no longer collide.
+- 2 new tests (plus updated regressions); 440 passing. E2e: valid MQA host reaches data.europa.eu, bypass rejected, normal requests fine. Worker build fine.
+- Further hardening in progress for upcoming releases.
 
 ### v0.4.110
 
-Security — Giro 1: cluster SSRF su path `fetch` (GHSA-vmrr, GHSA-38f8; GHSA-8hxx chiarito):
+Security — Round 1: SSRF cluster on the `fetch` path (GHSA-vmrr, GHSA-38f8; GHSA-8hxx clarified):
 
-- **`safeFetch()` centralizzato** in `utils/http.ts`: `redirect:"manual"` + ri-validazione di ogni hop (`validateServerUrl` + `assertHostnameResolvesSafe`), bounded hops, opzione `httpsOnly`. Chiude il redirect-SSRF (es. endpoint pubblico che fa 302 verso `169.254.169.254`) senza rompere i redirect canonici legittimi. Usato da `sparql_query` (3 fetch) e dal fetch MQA metrics in `quality.ts`.
-- **`assertHostnameResolvesSafe` ora fail-closed**: distingue "modulo DNS assente (Workers) → no-op" da "risoluzione fallita → throw". Prima un errore DNS lasciava proseguire (fail-open / TOCTOU).
-- **GHSA-8hxx**: verificato che WHATWG `URL` normalizza già gli encoding IPv4 (int/hex/ottale/short) a dotted-decimal prima di `validateServerUrl` → il check esistente li copre già. Nessun codice aggiunto (la PoC dell'advisory testava la regex sulle stringhe grezze, non sull'hostname parsato). Aggiunto solo un commento e test di regressione. Residuo `::7f00:1` (IPv4-compatible IPv6) non instradabile, come ammesso dall'advisory stesso.
-- MQA fetch: host costante (`data.europa.eu`), quindi hardening per coerenza, non vettore reale.
-- 6 nuovi test (redirect→interno bloccato, redirect→non-HTTPS rifiutato, fail-closed su DNS error, IPv4-encoding bloccati). 438 passati. E2e: Wikidata via `safeFetch` ok, IP interno bloccato. Worker build ok.
-- Ulteriore hardening di sicurezza in lavorazione nei prossimi rilasci.
+- **Centralized `safeFetch()`** in `utils/http.ts`: `redirect:"manual"` plus re-validation of every hop (`validateServerUrl` + `assertHostnameResolvesSafe`), bounded hops, `httpsOnly` option. Closes redirect-SSRF (e.g. a public endpoint 302-ing to `169.254.169.254`) without breaking legitimate canonical redirects. Used by `sparql_query` (3 fetches) and by the MQA metrics fetch in `quality.ts`.
+- **`assertHostnameResolvesSafe` is now fail-closed**: it distinguishes "DNS module absent (Workers) → no-op" from "resolution failed → throw". Previously a DNS error let the request proceed (fail-open / TOCTOU).
+- **GHSA-8hxx**: verified that WHATWG `URL` already normalizes IPv4 encodings (int/hex/octal/short) to dotted-decimal before `validateServerUrl` → the existing check already covers them. No code added (the advisory PoC tested the regex against raw strings, not the parsed hostname). Only a comment and regression tests. The remaining `::7f00:1` (IPv4-compatible IPv6) is not routable, as the advisory itself concedes.
+- MQA fetch: constant host (`data.europa.eu`), so hardening for consistency rather than a real vector.
+- 6 new tests (redirect→internal blocked, redirect→non-HTTPS rejected, fail-closed on DNS error, IPv4 encodings blocked). 438 passing. E2e: Wikidata via `safeFetch` fine, internal IP blocked. Worker build fine.
+- Further security hardening in progress for upcoming releases.
 
 ### v0.4.109
 
-Security hardening — 3 advisories, "veleno + porta" (rischio ambientale prima dei coltelli):
+Security hardening — 3 advisories, "poison and door" (environmental risk before the knives):
 
-- **GHSA-3369** (second-order SSRF, `ckan_list_resources`): source-portal probing è ora **opt-in** (`check_source_portal` default `false`). Prima era ON: elencare le risorse di un dataset faceva contattare host/porte presi dai dati del dataset (confused-deputy + port-scan oracle + amplificazione via `Promise.all`). Aggiunto: drop delle porte ≠80/443 in `extractSourcePortal` (usa `hostname`, non `host`), cap del fan-out a 10 probe.
-- **GHSA-c499** (indirect prompt injection): campi liberi del portale (`notes`, resource `description`) resi verbatim nell'output. Ora avvolti in un blocco `untrusted` delimitato con avviso (`wrapUntrusted`), fence interne neutralizzate; URL portale validati per scheme (solo http/https) e resi in inline-code (`safeUrlText`); celle tabella di `ckan_list_resources` neutralizzate (`|`, newline). Contenimento, non fix totale — documentato agli integratori.
-- **GHSA-v3j5** (HTTP transport esposto): bind **`127.0.0.1`** di default (era `0.0.0.0`), `enableDnsRebindingProtection` + `allowedHosts`/`allowedOrigins`. `docker-compose.yml` pubblica su `127.0.0.1:3000:3000` (+ `CKAN_HTTP_HOST=0.0.0.0` dentro il container). Nuove env: `CKAN_HTTP_HOST`, `CKAN_HTTP_ALLOWED_HOSTS`, `CKAN_HTTP_ALLOWED_ORIGINS`. Chiudere questa porta declassa l'intero cluster SSRF da "remoto" a "locale".
-- 4 nuovi test; 432 passati. Verificato e2e su deployment HTTP reale (bind loopback, 403 su Host non consentito, no-probe di default, notes fenced). Worker: build ok.
-- Docs: README (tabella env HTTP), SKILL (source-portal ora opt-in), docker/README, docker-compose.
-- **Non ancora fatti** (cluster SSRF fetch, MQA regex, cache, decompression bomb, postMessage UI): coltelli e hardening, in giri successivi.
+- **GHSA-3369** (second-order SSRF, `ckan_list_resources`): source-portal probing is now **opt-in** (`check_source_portal` defaults to `false`). It used to be ON: listing a dataset's resources contacted hosts and ports taken from the dataset's own data (confused deputy + port-scan oracle + amplification via `Promise.all`). Added: ports other than 80/443 dropped in `extractSourcePortal` (uses `hostname`, not `host`), fan-out capped at 10 probes.
+- **GHSA-c499** (indirect prompt injection): free-text portal fields (`notes`, resource `description`) were rendered verbatim in the output. They are now wrapped in a delimited `untrusted` block with a warning (`wrapUntrusted`), with inner fences neutralized; portal URLs are scheme-validated (http/https only) and rendered as inline code (`safeUrlText`); `ckan_list_resources` table cells are neutralized (`|`, newlines). Containment, not a complete fix — documented for integrators.
+- **GHSA-v3j5** (exposed HTTP transport): binds to **`127.0.0.1`** by default (was `0.0.0.0`), `enableDnsRebindingProtection` plus `allowedHosts`/`allowedOrigins`. `docker-compose.yml` publishes on `127.0.0.1:3000:3000` (with `CKAN_HTTP_HOST=0.0.0.0` inside the container). New env vars: `CKAN_HTTP_HOST`, `CKAN_HTTP_ALLOWED_HOSTS`, `CKAN_HTTP_ALLOWED_ORIGINS`. Closing this door downgrades the whole SSRF cluster from "remote" to "local".
+- 4 new tests; 432 passing. Verified e2e against a real HTTP deployment (loopback bind, 403 on disallowed Host, no probing by default, notes fenced). Worker build fine.
+- Docs: README (HTTP env var table), SKILL (source-portal now opt-in), docker/README, docker-compose.
+- **Not done yet** (fetch SSRF cluster, MQA regex, cache, decompression bomb, postMessage UI): knives and hardening, in later rounds.
 
 ## 2026-06-22
 

@@ -21,7 +21,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Important**: This project uses **English** as its primary language. All documentation, code comments, and commit messages should be in English.
+**Important**: This project uses **English** as its primary language. All documentation, code comments, and commit messages should be in English. This includes `LOG.md`, `tasks/`, issues and pull request descriptions — no exceptions.
 
 ## Project Overview
 
