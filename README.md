@@ -3,6 +3,7 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ondata/ckan-mcp-server)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Newsletter](https://img.shields.io/badge/newsletter-ondata-FF6719?logo=substack)](https://ondata.substack.com/)
+[![MCP status](https://mcpvitals.com/badge/1b08365a88.svg)](https://mcpvitals.com/status/1b08365a88)
 
 # CKAN MCP Server
 
