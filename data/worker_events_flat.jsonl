@@ -5998,3 +5998,12 @@
 {"id": "01KYW96TS1HBTC8ZA53ZQZY86V", "timestamp": "2026-07-31T14:28:16Z", "outcome": null, "tool": "ckan_datastore_search", "server": "https://indicepa.gov.it/ipa-dati", "query": "aspeco", "error": null}
 {"id": "01KYW96WX6VRDAB0MGAHERX885", "timestamp": "2026-07-31T14:28:18Z", "outcome": null, "tool": "ckan_datastore_search", "server": "https://indicepa.gov.it/ipa-dati", "query": "FOR.MA", "error": null}
 {"id": "01KYWA8X4B551MCDVH0NEQPKV2", "timestamp": "2026-07-31T14:46:53Z", "outcome": null, "tool": "ckan_datastore_search", "server": "https://indicepa.gov.it/ipa-dati", "query": "gandolfo mantova", "error": null}
+{"id": "01KYYNNEF86H43NE71EG6BN2C2", "timestamp": "2026-08-01T12:44:27Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_modified:[NOW-1DAY TO NOW]", "error": null}
+{"id": "01KYYNNE8ZDX10619YRSNAGD9N", "timestamp": "2026-08-01T12:44:27Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_created:[NOW-7DAYS TO NOW]", "error": null}
+{"id": "01KYYNNWQW30BZYCAJZNQ8T1MH", "timestamp": "2026-08-01T12:44:42Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_created:[NOW-7DAYS TO NOW]", "error": null}
+{"id": "01KYZ5NAXN5G0MYPMWJSTA62H1", "timestamp": "2026-08-01T17:24:01Z", "outcome": null, "tool": "ckan_status_show", "server": "", "query": null, "error": null}
+{"id": "01KYZ5NFDD6EJJFFXVQW05CRYE", "timestamp": "2026-08-01T17:24:05Z", "outcome": null, "tool": "ckan_status_show", "server": "https://www.dati.gov.it/opendata", "query": null, "error": null}
+{"id": "01KYZ8QA3Z1FFGP1N780WYDA2M", "timestamp": "2026-08-01T18:17:31Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Canada", "error": null}
+{"id": "01KYZ8QNA4RZJYFF3BPBTZ9C8F", "timestamp": "2026-08-01T18:17:42Z", "outcome": null, "tool": "ckan_catalog_stats", "server": "https://open.canada.ca/data/", "query": null, "error": null}
+{"id": "01KYZ8QXCWMYPWFT7JHFXKSVN6", "timestamp": "2026-08-01T18:17:51Z", "outcome": null, "tool": "ckan_catalog_stats", "server": "https://www.donneesquebec.ca/", "query": null, "error": null}
+{"id": "01KYZ8R1T78YDPR0NE1BZKNBBG", "timestamp": "2026-08-01T18:17:55Z", "outcome": null, "tool": "ckan_catalog_stats", "server": "https://catalogue.data.gov.bc.ca/", "query": null, "error": null}
