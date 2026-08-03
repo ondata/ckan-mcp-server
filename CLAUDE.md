@@ -459,7 +459,7 @@ npm cannot resolve relative paths from the tarball.
 
 When releasing a new version:
 
-1. **Update version**: Edit `package.json` version field and `manifest.json` version field
+1. **Update version**: Edit the version field in `package.json`, `manifest.json` **and `server.json`** (in `server.json` there are **two** fields: top-level `version` and `packages[0].version` — both must match)
 2. **Update LOG.md**: Add entry with date and changes
 3. **Commit changes**: `git add . && git commit -m "..."`
 4. **Push to GitHub**: `git push origin main`
@@ -468,9 +468,17 @@ When releasing a new version:
 7. **Build skill**: `npm run pack:skill` → produces `tmp/ckan-mcp.skill`
 8. **Attach to release**: `gh release upload v0.x.0 ckan-mcp-server.dxt tmp/ckan-mcp.skill`
 9. **Publish to npm** (optional): `npm publish`
-10. **Deploy to Cloudflare** (if code changed): `npm run deploy`
+10. **Publish to the MCP Registry** (after npm — the registry validates that the npm version exists): `mcp-publisher login github && mcp-publisher publish`
+11. **Deploy to Cloudflare** (if code changed): `npm run deploy`
 
 See `docs/DEPLOYMENT.md` for detailed Cloudflare deployment instructions.
+
+**Why steps 1 and 10 matter**: `server.json` feeds the official MCP Registry entry, which is what clients installing via the registry resolve. It is *not* updated by `npm publish`. Skipping it silently pins public installs to an old version: between v0.4.83 (2026-03-12) and v0.4.114 (2026-08-03) the registry advertised a build predating the v0.4.108 SSRF remediation, while npm was current. Verify after publishing:
+
+```bash
+curl -s "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.aborruso/ckan-mcp-server" | \
+  jq -r '.servers[] | select(.server.name|test("aborruso")) | "\(.server.version) | pkg \(.server.packages[0].version) | latest \(._meta["io.modelcontextprotocol.registry/official"].isLatest)"'
+```
 
 ## CSV Data Exploration
 

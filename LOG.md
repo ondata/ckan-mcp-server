@@ -1,5 +1,18 @@
 # LOG
 
+## 2026-08-03
+
+### MCP Registry entry realigned to 0.4.114
+
+Published and verified against the public endpoint: the registry now serves **0.4.114** with `isLatest: true` (updated 2026-08-03T06:01:07Z), and the old 0.4.83 record dropped to `isLatest: false`.
+
+The official MCP Registry entry for `io.github.aborruso/ckan-mcp-server` had been stuck at **0.4.83 since 2026-03-12** — 31 patch releases and almost five months behind npm, while still flagged `isLatest: true`. Clients resolving the server through the registry were pointed at a build predating the v0.4.108 SSRF remediation, and 0.4.83 is still installable from npm.
+
+- Root cause, not a one-off slip: the Release Workflow in `CLAUDE.md` listed the version bump for `package.json` and `manifest.json` but never `server.json`, and `npm publish` does not touch the registry. The drift was structural and would have kept growing.
+- Fixed `server.json` (both `version` and `packages[0].version` — two fields, easy to half-update) and rewrote the release workflow: `server.json` added to step 1, a new step 10 for `mcp-publisher publish` placed after `npm publish` since the registry validates that the npm version exists, plus a `curl` one-liner to verify the published entry.
+- Surfaced by an unsolicited vendor email selling a £395 "MCP Readiness Audit". The sales pitch was worthless — the remedy it offered has nothing to do with the defect — but the three technical claims all checked out under verification. Worth recording: the finding was real and cost the sender two `curl` calls, which is exactly how long it would have taken us to catch it ourselves with a check in the release procedure.
+- Registry tokens (`.mcpregistry_*`) verified: gitignored, never committed.
+
 ## 2026-07-31
 
 ### v0.4.114
