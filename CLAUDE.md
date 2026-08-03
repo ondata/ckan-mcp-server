@@ -463,12 +463,12 @@ When releasing a new version:
 2. **Update LOG.md**: Add entry with date and changes
 3. **Commit changes**: `git add . && git commit -m "..."`
 4. **Push to GitHub**: `git push origin main`
-5. **Create tag**: `git tag -a v0.x.0 -m "..." && git push origin v0.x.0`
+5. **Create tag**: `git tag -a v0.x.0 -m "..." && git push origin v0.x.0` — ⚠️ **this triggers the npm publish**, see step 9
 6. **Build DXT**: `npm run pack:dxt` → produces `ckan-mcp-server.dxt`
 7. **Build skill**: `npm run pack:skill` → produces `tmp/ckan-mcp.skill`
 8. **Attach to release**: `gh release upload v0.x.0 ckan-mcp-server.dxt tmp/ckan-mcp.skill`
-9. **Publish to npm** (optional): `npm publish`
-10. **Publish to the MCP Registry** (after npm — the registry validates that the npm version exists): `mcp-publisher login github && mcp-publisher publish`
+9. **npm publish happens automatically**: pushing the tag in step 5 starts `.github/workflows/release.yml`, which verifies the tag matches `package.json`, builds, tests, and runs `npm publish --provenance`. **Do not run `npm publish` by hand** — the two paths collide and the loser gets `EPUBLISHCONFLICT`. Watch the run: `gh run watch $(gh run list --workflow=release.yml --limit 1 --json databaseId -q '.[0].databaseId')`
+10. **Publish to the MCP Registry** — only **after** the step 9 run has finished green, since the registry validates that the npm version exists: `mcp-publisher login github && mcp-publisher publish`
 11. **Deploy to Cloudflare** (if code changed): `npm run deploy`
 
 See `docs/DEPLOYMENT.md` for detailed Cloudflare deployment instructions.
@@ -478,6 +478,27 @@ See `docs/DEPLOYMENT.md` for detailed Cloudflare deployment instructions.
 ```bash
 curl -s "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.aborruso/ckan-mcp-server" | \
   jq -r '.servers[] | select(.server.name|test("aborruso")) | "\(.server.version) | pkg \(.server.packages[0].version) | latest \(._meta["io.modelcontextprotocol.registry/official"].isLatest)"'
+```
+
+### npm Provenance
+
+Releases are published from CI with [npm provenance](https://docs.npmjs.com/generating-provenance-statements) (Sigstore), so every tarball carries a signed attestation binding it to the commit and workflow run that built it. Adopters see a "Provenance" badge on the npm page and can verify the package really came from this repository — the supply-chain equivalent of the registry alignment above.
+
+Authentication uses **trusted publishing (OIDC)**, not a token: no `NPM_TOKEN` secret exists and none should be created. Each publish authenticates with a short-lived, workflow-specific credential that cannot be exfiltrated or reused, which also sidesteps npm's ongoing restriction of 2FA-bypassing tokens for direct publishing.
+
+Requirements:
+
+- **Trusted publisher configured on npmjs.com** (one-off, manual): package page → *Settings* → *Trusted Publisher* → GitHub Actions → organization `ondata`, repository `ckan-mcp-server`, workflow `release.yml`, no environment. **The workflow is inert until this is done.**
+- `id-token: write` permission in `release.yml` (set)
+- a `repository` field in `package.json` matching this repo (set)
+- npm ≥ 11.5.1 in CI — the workflow upgrades npm explicitly, because Node 22 ships npm 10.x and **older versions fall back to token auth silently**, publishing without provenance
+
+⚠️ The workflow **filename** is part of the trusted-publisher identity. Renaming `release.yml` breaks publishing with a non-obvious error; rename it on npmjs.com first.
+
+Verify after a release:
+
+```bash
+npm view @aborruso/ckan-mcp-server@<version> dist.attestations
 ```
 
 ## CSV Data Exploration

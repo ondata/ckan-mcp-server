@@ -31,6 +31,10 @@ Thumbs.db
 .claude/*.local.json
 .mcpregistry_*
 
+# prepack backup of the full README — left behind if a local publish fails
+# between prepack and postpack, must never be committed
+.readme-full.md
+
 # Logs
 logs/
 *.log

@@ -2,6 +2,17 @@
 
 ## 2026-08-03
 
+### npm provenance: release workflow on tags
+
+`npm view @aborruso/ckan-mcp-server@0.4.114 dist.attestations` came back empty — packages were published by hand from a local machine, with nothing binding a tarball to the commit that produced it. Adopters could check *which* version was current (see below) but not *where it came from*.
+
+- New `.github/workflows/release.yml`: triggers on `v*` tags, verifies the tag matches `package.json` **before** anything else (npm publishes are irreversible after 72h), then `npm ci` → build → tests → `npm publish --provenance`. Guard tested both ways; `npm test -- --run` confirmed against the current 461-test suite.
+- `package.json` had **no `repository` field** — a hard prerequisite for provenance, which would have failed the publish. Set to `ondata/ckan-mcp-server`.
+- Release workflow in `CLAUDE.md` rewritten rather than extended: step 5 now warns that pushing the tag *is* the publish, step 9 says explicitly not to run `npm publish` by hand (two paths would collide on `EPUBLISHCONFLICT`), and step 10 must wait for the CI run to go green because the MCP Registry validates that the npm version exists.
+- `.readme-full.md` added to `.gitignore`: the `prepack`/`postpack` pair swaps in the short npm README, so a local publish failing between the two hooks leaves the wrong `README.md` in the tree, one `git add .` away from being committed.
+- Authentication is **trusted publishing (OIDC)**, not a secret. The first draft used an `NPM_TOKEN`; `npm profile get` then surfaced npm's own warning that "tokens that bypass 2FA are being restricted for direct publishing", which pointed at the mechanism npm now recommends instead. Trusted publishing needs no stored credential, emits provenance by default, and — because the trusted publisher names the GitHub repo explicitly — also settles the open question about the npm scope (`@aborruso`) differing from the GitHub org (`ondata`). The workflow upgrades npm to ≥ 11.5.1 explicitly: Node 22 ships npm 10.x, which falls back to token auth *silently* and would publish unattested. `--provenance` is kept although implied, so that degradation fails the job instead of passing quietly.
+- **Not yet active**: the trusted publisher has to be registered by hand on npmjs.com (package → Settings → Trusted Publisher → GitHub Actions → `ondata` / `ckan-mcp-server` / `release.yml`). Until then the workflow runs and fails at the publish step. Note that the workflow filename is part of that identity.
+
 ### MCP Registry entry realigned to 0.4.114
 
 Published and verified against the public endpoint: the registry now serves **0.4.114** with `isLatest: true` (updated 2026-08-03T06:01:07Z), and the old 0.4.83 record dropped to `isLatest: false`.

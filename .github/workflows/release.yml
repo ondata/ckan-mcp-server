@@ -1,0 +1,64 @@
+name: Release to npm
+
+# Publishes to npm with Sigstore provenance when a v* tag is pushed.
+# Provenance links each tarball to the commit and workflow run that produced it,
+# so adopters can verify the package really came from this repository.
+#
+# Authentication uses npm trusted publishing (OIDC) — there is no NPM_TOKEN.
+# The package must list this repo as a trusted publisher on npmjs.com:
+#   Settings -> Trusted Publisher -> GitHub Actions -> ondata / ckan-mcp-server / release.yml
+# The workflow FILENAME is part of that identity: renaming this file breaks publishing.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+
+      # Node 22 ships npm 10.x, but OIDC needs >= 11.5.1. Older versions fall
+      # back to token auth *silently*, so this step is not optional.
+      - name: Upgrade npm for OIDC support
+        run: npm install -g npm@latest
+
+      # Guard first: npm publishes cannot be undone after 72 hours, so a
+      # mistyped tag must stop here rather than ship a mismatched version.
+      - name: Verify tag matches package.json
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "::error::Tag v$TAG does not match package.json version $PKG"
+            exit 1
+          fi
+          echo "Tag and package.json agree on $PKG"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test -- --run
+
+      # --provenance is implied by trusted publishing, but keeping it explicit
+      # makes the job fail loudly if OIDC ever degrades to token auth, instead
+      # of quietly publishing an unattested tarball.
+      - name: Publish to npm with provenance
+        run: npm publish --provenance --access public
