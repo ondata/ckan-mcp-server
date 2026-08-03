@@ -2,6 +2,12 @@
 
 ## 2026-08-03
 
+### v0.4.115
+
+First release published from CI. No functional change: this exists to exercise the release workflow added earlier today end to end — tag guard, OIDC authentication, provenance attestation — rather than discovering whether it works during a release that actually matters.
+
+
+
 ### npm provenance: release workflow on tags
 
 `npm view @aborruso/ckan-mcp-server@0.4.114 dist.attestations` came back empty — packages were published by hand from a local machine, with nothing binding a tarball to the commit that produced it. Adopters could check *which* version was current (see below) but not *where it came from*.
