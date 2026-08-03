@@ -6,6 +6,10 @@
 
 First release published from CI. No functional change: this exists to exercise the release workflow added earlier today end to end — tag guard, OIDC authentication, provenance attestation — rather than discovering whether it works during a release that actually matters.
 
+Worked on the first try: the job went green in 34s and the attestation binds the tarball to `ondata/ckan-mcp-server`, workflow `release.yml`, ref `refs/tags/v0.4.115`, on a GitHub-hosted runner. `npm view @aborruso/ckan-mcp-server@0.4.115 dist.attestations` returns an SLSA v1 provenance; the same query on the hand-published 0.4.114 returns nothing.
+
+One snag worth remembering: `mcp-publisher` failed with an expired JWT, and re-running `login github` then died with `incorrect_device_code` before the browser step. Neither error named the real cause — the local binary was **1.5.0 from 6 March**, and the device-auth flow changed by **1.8.0**. Updating the binary fixed it. When the registry token expires, check the publisher version too: both were installed the same day and go stale together.
+
 
 
 ### npm provenance: release workflow on tags

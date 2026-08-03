@@ -468,7 +468,7 @@ When releasing a new version:
 7. **Build skill**: `npm run pack:skill` → produces `tmp/ckan-mcp.skill`
 8. **Attach to release**: `gh release upload v0.x.0 ckan-mcp-server.dxt tmp/ckan-mcp.skill`
 9. **npm publish happens automatically**: pushing the tag in step 5 starts `.github/workflows/release.yml`, which verifies the tag matches `package.json`, builds, tests, and runs `npm publish --provenance`. **Do not run `npm publish` by hand** — the two paths collide and the loser gets `EPUBLISHCONFLICT`. Watch the run: `gh run watch $(gh run list --workflow=release.yml --limit 1 --json databaseId -q '.[0].databaseId')`
-10. **Publish to the MCP Registry** — only **after** the step 9 run has finished green, since the registry validates that the npm version exists: `mcp-publisher login github && mcp-publisher publish`
+10. **Publish to the MCP Registry** — only **after** the step 9 run has finished green, since the registry validates that the npm version exists: `mcp-publisher login github && mcp-publisher publish`. If login fails with `incorrect_device_code`, the local binary is stale: compare `mcp-publisher --version` against the [latest release](https://github.com/modelcontextprotocol/registry/releases) and update it — the device-auth flow has changed between versions, and the error does not say so
 11. **Deploy to Cloudflare** (if code changed): `npm run deploy`
 
 See `docs/DEPLOYMENT.md` for detailed Cloudflare deployment instructions.
