@@ -1,5 +1,21 @@
 # LOG
 
+## 2026-08-04
+
+### DataStore tables no longer hide columns silently
+
+Both markdown renderers in `src/tools/datastore.ts` cut the record table at 8 columns with no notice. On the Messina electoral-lists resource (14 columns) the table stopped right before `cognome`, `nome`, `sesso` and `voti`: a model reading it saw an election dataset with no votes and no candidate names, and nothing told it anything was missing. Row truncation was already handled properly (`... and N more records`, `Total Records`); columns were not.
+
+Both renderers now append a note naming the omitted columns and pointing at the way to retrieve them (`fields` parameter for search, an explicit SELECT list for SQL, or `response_format: "json"`). The JSON path never had the bug — `compactDatastoreResult` passes every column through.
+
+Found while checking what the GovInsider piece on the OKFN Brazil/Uruguay pilot added to `docs/future-ideas.md` (nothing new — it covers the same pilot already recorded on 2026-06-11), but its failure mode is exactly this: the model fills a gap it cannot see.
+
+### `_full_text` no longer eats a table slot
+
+Surfaced by the end-to-end check above: `datastore_search_sql` on `SELECT *` returns CKAN's internal `_full_text` column, which repeats the whole row as one concatenated string. It was taking the first table slot and pushing out a real column, and the same query reported 15 columns via SQL against 14 via `datastore_search`. `_id` was already filtered; `_full_text` now is too, in both renderers and in the JSON output (where it was pure token waste). The two tools now agree on the column count.
+
+465 tests pass; verified end to end against `dati.comune.messina.it`.
+
 ## 2026-08-03
 
 ### v0.4.115

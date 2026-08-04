@@ -56,6 +56,26 @@ describe("formatDatastoreSearchMarkdown", () => {
     const md = formatDatastoreSearchMarkdown(result, SERVER, RESOURCE_ID, 0, 100);
     expect(md).not.toContain("More results available");
   });
+
+  it("no omitted-columns note when every column fits the table", () => {
+    const md = formatDatastoreSearchMarkdown(result, SERVER, RESOURCE_ID, 0, 100);
+    expect(md).not.toContain("columns. Columns not shown");
+  });
+
+  it("warns about columns omitted from the table and names them", () => {
+    const wide = {
+      total: 1,
+      fields: [
+        { id: "_id", type: "int4" },
+        ...Array.from({ length: 10 }, (_, i) => ({ id: `col${i + 1}`, type: "text" }))
+      ],
+      records: [Object.fromEntries(Array.from({ length: 10 }, (_, i) => [`col${i + 1}`, `v${i + 1}`]))]
+    };
+    const md = formatDatastoreSearchMarkdown(wide, SERVER, RESOURCE_ID, 0, 100);
+    expect(md).toContain("shows only the first 8 of 10 columns");
+    expect(md).toContain("Columns not shown: col9, col10");
+    expect(md).toContain("`fields` parameter");
+  });
 });
 
 describe("formatDatastoreSqlMarkdown", () => {
@@ -87,5 +107,31 @@ describe("formatDatastoreSqlMarkdown", () => {
     const emptyResult = { fields: [], records: [] };
     const md = formatDatastoreSqlMarkdown(emptyResult, SERVER, SQL);
     expect(md).toContain("No records returned by the SQL query.");
+  });
+
+  it("keeps _full_text out of the record table", () => {
+    const withFullText = {
+      fields: [
+        { id: "_id", type: "int4" },
+        { id: "_full_text", type: "tsvector" },
+        { id: "country", type: "text" },
+        { id: "total", type: "int4" }
+      ],
+      records: [{ _id: 1, _full_text: "'italy':1 '10':2", country: "Italy", total: 10 }]
+    };
+    const md = formatDatastoreSqlMarkdown(withFullText, SERVER, SQL);
+    expect(md).toContain("| country | total |");
+    expect(md).not.toContain("| _full_text |");
+  });
+
+  it("warns about columns omitted from the table and points at the SELECT clause", () => {
+    const wide = {
+      fields: Array.from({ length: 9 }, (_, i) => ({ id: `col${i + 1}`, type: "text" })),
+      records: [Object.fromEntries(Array.from({ length: 9 }, (_, i) => [`col${i + 1}`, `v${i + 1}`]))]
+    };
+    const md = formatDatastoreSqlMarkdown(wide, SERVER, SQL);
+    expect(md).toContain("shows only the first 8 of 9 columns");
+    expect(md).toContain("Columns not shown: col9");
+    expect(md).toContain("SELECT clause");
   });
 });
