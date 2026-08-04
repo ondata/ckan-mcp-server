@@ -2,6 +2,20 @@
 
 ## 2026-08-04
 
+### v0.4.117 — escaping portal-controlled strings
+
+Field names, titles, cell values and every other short string coming from a third-party portal were interpolated into markdown structure unescaped. Since every response here is read by a model, that has two effects: a newline ends the construct and opens a line that reads as server-authored — indistinguishable from the `> **Note**:` lines this server writes to instruct the model — and an unescaped `|` adds table cells, shifting later values under the wrong header.
+
+Worst case was `ckan_analyze_datasets`, which used none of the existing defenses and rendered the DataStore Data Dictionary (`info.notes`, publisher free text) straight into a bullet list. A newline let a portal fabricate a field entry, in the very tool an agent calls to learn which fields exist.
+
+`sanitizeInline` now sits in `utils/formatting.ts` beside `wrapUntrusted` and `safeUrlText`: collapses newlines, escapes pipes, and replaces backticks with U+02BC so a value cannot close the inline code span it is rendered in. It promotes the private copy that lived in `datastore.ts` and retires the three ad-hoc `.replace(/[\r\n]+/g, ' ')` copies, which stripped newlines but escaped neither pipes nor backticks.
+
+Long free text keeps `wrapUntrusted` — a fence states "this is data" better than escaping — and was already safe. The JSON path was never affected. URL query parameters use `encodeURIComponent`, not the markdown escaper: `&` and `#` would otherwise pass through.
+
+Three review rounds on #45, each finding real gaps. Two are worth recording. The first automated sweep matched `markdown +=`, so every renderer's opening `let markdown = \`# ...\`` escaped it — all four top-level headings. And the sweep wrapped two scoring weights that are our own numbers, not portal strings; both reverted. A grep-driven audit produced a false sense of completeness twice; if anything else surfaces, the answer is a generative test that enumerates portal fields, not a fourth grep.
+
+485 tests, 15 of them new.
+
 ### v0.4.116
 
 Ships the two DataStore output fixes below, plus `.greptile/rules.md`: the automated review on #43 produced one confident false positive, so the invariants a generic reviewer cannot know are now stated in the repo.
