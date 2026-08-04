@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanField } from "../types.js";
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
-import { truncateText, truncateJson, addDemoFooter, formatError, jsonToolResult } from "../utils/formatting.js";
+import { truncateText, truncateJson, addDemoFooter, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const MAX_TABLE_COLUMNS = 8;
@@ -21,19 +21,13 @@ const isInternalField = (id: string) => INTERNAL_FIELDS.includes(id);
 const MAX_LISTED_OMITTED_COLUMNS = 15;
 
 /**
- * Field names come from the portal. A newline would break out of the note and
- * could forge a blockquote the model reads as server-authored guidance.
- */
-const sanitizeFieldName = (id: string) => id.replace(/[\r\n]+/g, ' ').replace(/\|/g, '\\|');
-
-/**
  * Warn when the record table shows only a subset of the columns, so the model
  * does not read a truncated table as the full set of available columns.
  */
 function formatOmittedColumnsNote(allFields: string[], hint: string): string {
   if (allFields.length <= MAX_TABLE_COLUMNS) return '';
   const omitted = allFields.slice(MAX_TABLE_COLUMNS);
-  const listed = omitted.slice(0, MAX_LISTED_OMITTED_COLUMNS).map(sanitizeFieldName).join(', ');
+  const listed = omitted.slice(0, MAX_LISTED_OMITTED_COLUMNS).map(sanitizeInline).join(', ');
   const rest = omitted.length > MAX_LISTED_OMITTED_COLUMNS
     ? ` and ${omitted.length - MAX_LISTED_OMITTED_COLUMNS} more`
     : '';
@@ -56,20 +50,20 @@ export function formatDatastoreSearchMarkdown(
   const declaredFields = (result.fields || []).filter((f: CkanField) => f.id !== '_full_text');
   if (declaredFields.length > 0) {
     markdown += `## Fields\n\n`;
-    markdown += declaredFields.map((f: CkanField) => `- **${f.id}** (${f.type})`).join('\n') + '\n\n';
+    markdown += declaredFields.map((f: CkanField) => `- **${sanitizeInline(f.id)}** (${sanitizeInline(f.type)})`).join('\n') + '\n\n';
   }
 
   if (result.records && result.records.length > 0) {
     markdown += `## Records\n\n`;
     const fields = result.fields ? result.fields.map((f: CkanField) => f.id).filter(id => !isInternalField(id)) : [];
     const displayFields = fields.slice(0, MAX_TABLE_COLUMNS);
-    markdown += `| ${displayFields.join(' | ')} |\n`;
+    markdown += `| ${displayFields.map(sanitizeInline).join(' | ')} |\n`;
     markdown += `| ${displayFields.map(() => '---').join(' | ')} |\n`;
     for (const record of result.records.slice(0, 50)) {
       const values = displayFields.map(field => {
         const val = record[field];
         if (val === null || val === undefined) return '-';
-        const str = String(val);
+        const str = sanitizeInline(val);
         return str.length > 80 ? str.substring(0, 77) + '...' : str;
       });
       markdown += `| ${values.join(' | ')} |\n`;
@@ -108,19 +102,19 @@ export function formatDatastoreSqlMarkdown(
   const declaredFields = (result.fields || []).filter((field: CkanField) => field.id !== '_full_text');
   if (declaredFields.length > 0) {
     markdown += `## Fields\n\n`;
-    markdown += declaredFields.map((field: CkanField) => `- **${field.id}** (${field.type})`).join('\n') + '\n\n';
+    markdown += declaredFields.map((field: CkanField) => `- **${sanitizeInline(field.id)}** (${sanitizeInline(field.type)})`).join('\n') + '\n\n';
   }
 
   if (records.length > 0 && fieldIds.length > 0) {
     markdown += `## Records\n\n`;
     const displayFields = fieldIds.slice(0, MAX_TABLE_COLUMNS);
-    markdown += `| ${displayFields.join(' | ')} |\n`;
+    markdown += `| ${displayFields.map(sanitizeInline).join(' | ')} |\n`;
     markdown += `| ${displayFields.map(() => '---').join(' | ')} |\n`;
     for (const record of records.slice(0, 50)) {
       const values = displayFields.map((field) => {
         const value = record[field];
         if (value === null || value === undefined) return '-';
-        const text = String(value);
+        const text = sanitizeInline(value);
         return text.length > 80 ? text.substring(0, 77) + '...' : text;
       });
       markdown += `| ${values.join(' | ')} |\n`;

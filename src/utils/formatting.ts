@@ -103,6 +103,23 @@ export function formatError(message: string, asJson: boolean): string {
 }
 
 /**
+ * Render a short portal-provided string (title, name, field id, label) inside a markdown
+ * line — heading, bullet or table cell.
+ *
+ * Two characters carry structure and must not survive: a newline ends the construct and
+ * lets the portal open a line of its own, which reads to an agent exactly like one this
+ * server wrote; a pipe adds a cell and shifts every later value under the wrong header.
+ *
+ * For free text (notes, description) use `wrapUntrusted` instead — a fence says "this is
+ * data" in a way escaping cannot.
+ */
+export function sanitizeInline(text: unknown): string {
+  return String(text ?? '')
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/\|/g, '\\|');
+}
+
+/**
  * Wrap portal-provided free text (notes/description) — which is attacker-influenced —
  * in a clearly delimited, non-authoritative block, so a downstream agent does not treat
  * it as system instructions (indirect prompt injection containment — GHSA-c499).

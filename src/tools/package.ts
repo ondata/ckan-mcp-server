@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanTag, CkanResource, CkanPackage } from "../types.js";
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
-import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter, wrapUntrusted, safeUrlText, formatError, jsonToolResult } from "../utils/formatting.js";
+import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter, wrapUntrusted, safeUrlText, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
 import { getDatasetViewUrl, extractSourcePortal } from "../utils/url-generator.js";
 import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from "../utils/search.js";
 import { getPortalHvdConfig, getPortalApiPath, requiresMultilingualNormalization, isPortalSearchExplicitlyConfigured } from "../utils/portal-config.js";
@@ -278,16 +278,16 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
   let markdown = `# Dataset: ${result.title || result.name}\n\n`;
   markdown += `**Server**: ${serverUrl}\n`;
   markdown += `**Link**: ${getDatasetViewUrl(serverUrl, result)}\n`;
-  markdown += `**Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/package_show?id=${result.id}\n\n`;
+  markdown += `**Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/package_show?id=${sanitizeInline(result.id)}\n\n`;
 
   markdown += `## Basic Information\n\n`;
-  markdown += `- **ID**: \`${result.id}\`\n`;
-  markdown += `- **Name**: \`${result.name}\`\n`;
-  if (result.author) markdown += `- **Author**: ${result.author}\n`;
-  if (result.author_email) markdown += `- **Author Email**: ${result.author_email}\n`;
-  if (result.maintainer) markdown += `- **Maintainer**: ${result.maintainer}\n`;
-  if (result.maintainer_email) markdown += `- **Maintainer Email**: ${result.maintainer_email}\n`;
-  markdown += `- **License**: ${result.license_title || result.license_id || 'Not specified'}\n`;
+  markdown += `- **ID**: \`${sanitizeInline(result.id)}\`\n`;
+  markdown += `- **Name**: \`${sanitizeInline(result.name)}\`\n`;
+  if (result.author) markdown += `- **Author**: ${sanitizeInline(result.author)}\n`;
+  if (result.author_email) markdown += `- **Author Email**: ${sanitizeInline(result.author_email)}\n`;
+  if (result.maintainer) markdown += `- **Maintainer**: ${sanitizeInline(result.maintainer)}\n`;
+  if (result.maintainer_email) markdown += `- **Maintainer Email**: ${sanitizeInline(result.maintainer_email)}\n`;
+  markdown += `- **License**: ${sanitizeInline(result.license_title || result.license_id || 'Not specified')}\n`;
   markdown += `- **State**: ${result.state}\n`;
   markdown += `- **Created**: ${formatDate(result.metadata_created)}\n`;
   if (result.issued) {
@@ -316,8 +316,8 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
 
   if (result.organization) {
     markdown += `## Organization\n\n`;
-    markdown += `- **Name**: ${result.organization.title || result.organization.name}\n`;
-    markdown += `- **ID**: \`${result.organization.id}\`\n\n`;
+    markdown += `- **Name**: ${sanitizeInline(result.organization.title || result.organization.name)}\n`;
+    markdown += `- **ID**: \`${sanitizeInline(result.organization.id)}\`\n\n`;
   }
 
   if (result.notes) {
@@ -326,13 +326,13 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
 
   if (result.tags && result.tags.length > 0) {
     markdown += `## Tags\n\n`;
-    markdown += result.tags.map((t: CkanTag) => `- ${t.name}`).join('\n') + '\n\n';
+    markdown += result.tags.map((t: CkanTag) => `- ${sanitizeInline(t.name)}`).join('\n') + '\n\n';
   }
 
   if (result.groups && result.groups.length > 0) {
     markdown += `## Groups\n\n`;
     for (const group of result.groups) {
-      markdown += `- **${group.title || group.name}** (\`${group.name}\`)\n`;
+      markdown += `- **${sanitizeInline(group.title || group.name)}** (\`${sanitizeInline(group.name)}\`)\n`;
     }
     markdown += '\n';
   }
@@ -340,9 +340,9 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
   if (result.resources && result.resources.length > 0) {
     markdown += `## Resources (${result.resources.length})\n\n`;
     for (const resource of result.resources) {
-      markdown += `### ${resource.name || 'Unnamed Resource'}\n\n`;
-      markdown += `- **ID**: \`${resource.id}\`\n`;
-      markdown += `- **Format**: ${resource.format || 'Unknown'}\n`;
+      markdown += `### ${sanitizeInline(resource.name || 'Unnamed Resource')}\n\n`;
+      markdown += `- **ID**: \`${sanitizeInline(resource.id)}\`\n`;
+      markdown += `- **Format**: ${sanitizeInline(resource.format || 'Unknown')}\n`;
       if (resource.description) markdown += `- **Description**:\n\n${wrapUntrusted(resource.description)}\n\n`;
       markdown += `- **URL**: ${safeUrlText(resource.url)}\n`;
       const accessServices = parseAccessServices(resource);
@@ -374,7 +374,7 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
       } else {
         markdown += `- **DataStore**: ❓ Not reported by portal\n`;
       }
-      markdown += `- **Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/resource_show?id=${resource.id}\n`;
+      markdown += `- **Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/resource_show?id=${sanitizeInline(resource.id)}\n`;
       markdown += '\n';
     }
   }
@@ -900,11 +900,11 @@ ${hvdNote}`;
           markdown += `## Datasets\n\n`;
           for (const rawPkg of result.results) {
             const pkg = requiresMultilingualNormalization(params.server_url) ? normalizePackage(rawPkg) : rawPkg;
-            markdown += `### ${pkg.title || pkg.name}\n\n`;
-            markdown += `- **ID**: \`${pkg.id}\`\n`;
-            markdown += `- **Name**: \`${pkg.name}\`\n`;
+            markdown += `### ${sanitizeInline(pkg.title || pkg.name)}\n\n`;
+            markdown += `- **ID**: \`${sanitizeInline(pkg.id)}\`\n`;
+            markdown += `- **Name**: \`${sanitizeInline(pkg.name)}\`\n`;
             if (pkg.organization) {
-              markdown += `- **Organization**: ${pkg.organization.title || pkg.organization.name}\n`;
+              markdown += `- **Organization**: ${sanitizeInline(pkg.organization.title || pkg.organization.name)}\n`;
             }
             if (pkg.notes) {
               const notes = pkg.notes.substring(0, 200);
@@ -1113,12 +1113,12 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
 
           top.forEach((dataset, index) => {
             const tags = dataset.tags.slice(0, 3).join(', ');
-            markdown += `| ${index + 1} | ${dataset.name} | ${dataset.score} | ${dataset.title} | ${dataset.organization || '-'} | ${tags || '-'} |\n`;
+            markdown += `| ${index + 1} | ${sanitizeInline(dataset.name)} | ${dataset.score} | ${sanitizeInline(dataset.title)} | ${dataset.organization || '-'} | ${tags || '-'} |\n`;
           });
 
           markdown += `\n### Score Breakdown\n\n`;
           top.forEach((dataset, index) => {
-            markdown += `**${index + 1}. ${dataset.title}**\n`;
+            markdown += `**${index + 1}. ${sanitizeInline(dataset.title)}**\n`;
             markdown += `- Title: ${dataset.breakdown.title}\n`;
             markdown += `- Notes: ${dataset.breakdown.notes}\n`;
             markdown += `- Tags: ${dataset.breakdown.tags}\n`;
@@ -1359,7 +1359,7 @@ dataset's own resource URLs); set check_source_portal=true to enable it.`,
 
         let markdown = `# Resources: ${result.title || result.name}\n\n`;
         markdown += `**Server**: ${params.server_url}\n`;
-        markdown += `**Dataset**: \`${result.name}\` (\`${result.id}\`)\n`;
+        markdown += `**Dataset**: \`${sanitizeInline(result.name)}\` (\`${sanitizeInline(result.id)}\`)\n`;
         markdown += `**Total Resources**: ${resources.length}`;
         if (formatFilter) {
           markdown += ` (showing ${summary.length} ${formatFilter})`;
@@ -1380,14 +1380,14 @@ dataset's own resource URLs); set check_source_portal=true to enable it.`,
             const clipped = r.name.length > 40 ? r.name.substring(0, 37) + '...' : r.name;
             const ds = r.datastore_active ? 'Yes' : 'No';
             const size = r.size || '-';
-            markdown += `| ${cell(clipped)} | ${cell(r.format)} | ${size} | ${ds} | \`${r.id}\` |\n`;
+            markdown += `| ${cell(clipped)} | ${cell(r.format)} | ${size} | ${ds} | \`${sanitizeInline(r.id)}\` |\n`;
           }
 
           const dsResources = summary.filter((r) => r.datastore_active);
           if (dsResources.length > 0) {
             markdown += `\n**DataStore-enabled resources** (queryable with \`ckan_datastore_search\`):\n`;
             for (const r of dsResources) {
-              markdown += `- **${cell(r.name)}** (${cell(r.format)}): \`${r.id}\`\n`;
+              markdown += `- **${cell(r.name)}** (${cell(r.format)}): \`${sanitizeInline(r.id)}\`\n`;
             }
           }
 
@@ -1395,7 +1395,7 @@ dataset's own resource URLs); set check_source_portal=true to enable it.`,
           if (sourceResources.length > 0) {
             markdown += `\n**Available on source portal** (use \`ckan_datastore_search\` with the source portal URL):\n`;
             for (const r of sourceResources) {
-              markdown += `- **${cell(r.name)}** (${cell(r.format)}): \`${r.id}\` on ${safeUrlText(r.source_portal_url)}\n`;
+              markdown += `- **${cell(r.name)}** (${cell(r.format)}): \`${sanitizeInline(r.id)}\` on ${safeUrlText(r.source_portal_url)}\n`;
             }
           }
         }

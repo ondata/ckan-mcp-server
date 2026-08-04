@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
-import { truncateText, formatDate, addDemoFooter, wrapUntrusted, formatError, jsonToolResult } from "../utils/formatting.js";
+import { truncateText, formatDate, addDemoFooter, wrapUntrusted, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type GroupFacetItem = {
@@ -25,8 +25,8 @@ export function formatGroupShowMarkdown(result: { id: string; name: string; titl
   markdown += `**Link**: ${getGroupViewUrl(serverUrl, result)}\n\n`;
 
   markdown += `## Details\n\n`;
-  markdown += `- **ID**: \`${result.id}\`\n`;
-  markdown += `- **Name**: \`${result.name}\`\n`;
+  markdown += `- **ID**: \`${sanitizeInline(result.id)}\`\n`;
+  markdown += `- **Name**: \`${sanitizeInline(result.name)}\`\n`;
   markdown += `- **Datasets**: ${result.package_count || 0}\n`;
   markdown += `- **Created**: ${formatDate(result.created)}\n`;
   markdown += `- **State**: ${result.state}\n\n`;
@@ -42,7 +42,7 @@ export function formatGroupShowMarkdown(result: { id: string; name: string; titl
       : '';
     markdown += `## Datasets (showing ${displayed} of ${result.packages.length} returned${totalHint})\n\n`;
     for (const pkg of result.packages.slice(0, 20)) {
-      markdown += `- **${pkg.title || pkg.name}** (\`${pkg.name}\`)\n`;
+      markdown += `- **${sanitizeInline(pkg.title || pkg.name)}** (\`${sanitizeInline(pkg.name)}\`)\n`;
     }
     if (result.packages.length > 20) {
       markdown += `\n... and ${result.packages.length - 20} more datasets\n`;
@@ -215,9 +215,9 @@ Typical workflow: ckan_group_list → ckan_group_show (inspect one) → ckan_pac
         if (Array.isArray(result)) {
           if (params.all_fields) {
             for (const group of result) {
-              markdown += `## ${group.title || group.name}\n\n`;
-              markdown += `- **ID**: \`${group.id}\`\n`;
-              markdown += `- **Name**: \`${group.name}\`\n`;
+              markdown += `## ${sanitizeInline(group.title || group.name)}\n\n`;
+              markdown += `- **ID**: \`${sanitizeInline(group.id)}\`\n`;
+              markdown += `- **Name**: \`${sanitizeInline(group.name)}\`\n`;
               if (group.description) markdown += `- **Description**: ${group.description.substring(0, 200).replace(/[\r\n]+/g, ' ')}\n`;
               markdown += `- **Datasets**: ${group.package_count || 0}\n`;
               markdown += `- **Created**: ${formatDate(group.created)}\n`;
@@ -375,7 +375,7 @@ Typical workflow: ckan_group_search → ckan_group_show (get details) → ckan_p
           markdown += `|-------|----------|\n`;
 
           for (const group of groupFacets) {
-            markdown += `| ${group.display_name || group.name} | ${group.count} |\n`;
+            markdown += `| ${sanitizeInline(group.display_name || group.name)} | ${group.count} |\n`;
           }
         }
 

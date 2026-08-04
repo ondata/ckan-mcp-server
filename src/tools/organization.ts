@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanOrganization } from "../types.js";
 import { makeCkanRequest, formatCkanError, CkanApiError } from "../utils/http.js";
-import { truncateText, formatDate, addDemoFooter, wrapUntrusted, formatError, jsonToolResult } from "../utils/formatting.js";
+import { truncateText, formatDate, addDemoFooter, wrapUntrusted, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
 import { getOrganizationViewUrl } from "../utils/url-generator.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -17,8 +17,8 @@ export function formatOrganizationShowMarkdown(result: CkanOrganization & { pack
   markdown += `**Link**: ${getOrganizationViewUrl(serverUrl, result)}\n\n`;
 
   markdown += `## Details\n\n`;
-  markdown += `- **ID**: \`${result.id}\`\n`;
-  markdown += `- **Name**: \`${result.name}\`\n`;
+  markdown += `- **ID**: \`${sanitizeInline(result.id)}\`\n`;
+  markdown += `- **Name**: \`${sanitizeInline(result.name)}\`\n`;
   markdown += `- **Datasets**: ${result.package_count || 0}\n`;
   markdown += `- **Created**: ${formatDate(result.created)}\n`;
   markdown += `- **State**: ${result.state}\n\n`;
@@ -34,7 +34,7 @@ export function formatOrganizationShowMarkdown(result: CkanOrganization & { pack
       : '';
     markdown += `## Datasets (showing ${displayed} of ${result.packages.length} returned${totalHint})\n\n`;
     for (const pkg of result.packages.slice(0, 20)) {
-      markdown += `- **${pkg.title || pkg.name}** (\`${pkg.name}\`)\n`;
+      markdown += `- **${sanitizeInline(pkg.title || pkg.name)}** (\`${sanitizeInline(pkg.name)}\`)\n`;
     }
     if (result.packages.length > 20) {
       markdown += `\n... and ${result.packages.length - 20} more datasets\n`;
@@ -45,7 +45,7 @@ export function formatOrganizationShowMarkdown(result: CkanOrganization & { pack
   if (result.users && result.users.length > 0) {
     markdown += `## Users (${result.users.length})\n\n`;
     for (const user of result.users) {
-      markdown += `- **${user.name}** (${user.capacity})\n`;
+      markdown += `- **${sanitizeInline(user.name)}** (${sanitizeInline(user.capacity)})\n`;
     }
     markdown += '\n';
   }
@@ -221,8 +221,8 @@ Typical workflow: ckan_organization_list → ckan_organization_show (inspect one
             markdown += `**Total**: ${items.length}\n`;
             markdown += `\nNote: organization_list returned 500; using package_search facets.\n\n`;
             for (const org of organizations) {
-              markdown += `## ${org.title || org.name}\n\n`;
-              markdown += `- **Name**: \`${org.name}\`\n`;
+              markdown += `## ${sanitizeInline(org.title || org.name)}\n\n`;
+              markdown += `- **Name**: \`${sanitizeInline(org.name)}\`\n`;
               markdown += `- **Datasets**: ${org.package_count || 0}\n`;
               markdown += `- **Link**: ${getOrganizationViewUrl(params.server_url, org)}\n\n`;
             }
@@ -246,9 +246,9 @@ Typical workflow: ckan_organization_list → ckan_organization_show (inspect one
         if (Array.isArray(result)) {
           if (params.all_fields) {
             for (const org of result) {
-              markdown += `## ${org.title || org.name}\n\n`;
-              markdown += `- **ID**: \`${org.id}\`\n`;
-              markdown += `- **Name**: \`${org.name}\`\n`;
+              markdown += `## ${sanitizeInline(org.title || org.name)}\n\n`;
+              markdown += `- **ID**: \`${sanitizeInline(org.id)}\`\n`;
+              markdown += `- **Name**: \`${sanitizeInline(org.name)}\`\n`;
               if (org.description) markdown += `- **Description**: ${org.description.substring(0, 200).replace(/[\r\n]+/g, ' ')}\n`;
               markdown += `- **Datasets**: ${org.package_count || 0}\n`;
               markdown += `- **Created**: ${formatDate(org.created)}\n`;
@@ -425,7 +425,7 @@ Typical workflow: ckan_organization_search → ckan_organization_show (get detai
 
           for (const org of orgFacets) {
             const viewUrl = getOrganizationViewUrl(params.server_url, { name: org.name });
-            markdown += `| ${org.display_name || org.name} | ${org.count} | ${viewUrl} |\n`;
+            markdown += `| ${sanitizeInline(org.display_name || org.name)} | ${org.count} | ${viewUrl} |\n`;
           }
         }
 
