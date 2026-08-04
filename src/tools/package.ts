@@ -278,7 +278,7 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
   let markdown = `# Dataset: ${sanitizeInline(result.title || result.name)}\n\n`;
   markdown += `**Server**: ${serverUrl}\n`;
   markdown += `**Link**: ${getDatasetViewUrl(serverUrl, result)}\n`;
-  markdown += `**Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/package_show?id=${sanitizeInline(result.id)}\n\n`;
+  markdown += `**Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/package_show?id=${encodeURIComponent(result.id)}\n\n`;
 
   markdown += `## Basic Information\n\n`;
   markdown += `- **ID**: \`${sanitizeInline(result.id)}\`\n`;
@@ -374,7 +374,7 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
       } else {
         markdown += `- **DataStore**: ❓ Not reported by portal\n`;
       }
-      markdown += `- **Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/resource_show?id=${sanitizeInline(resource.id)}\n`;
+      markdown += `- **Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/resource_show?id=${encodeURIComponent(resource.id)}\n`;
       markdown += '\n';
     }
   }

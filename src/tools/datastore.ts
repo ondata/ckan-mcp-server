@@ -63,8 +63,9 @@ export function formatDatastoreSearchMarkdown(
       const values = displayFields.map(field => {
         const val = record[field];
         if (val === null || val === undefined) return '-';
-        const str = sanitizeInline(val);
-        return str.length > 80 ? str.substring(0, 77) + '...' : str;
+        // Clip first, escape second: escaping after the cut can slice a `\|` in half.
+        const raw = String(val);
+        return sanitizeInline(raw.length > 80 ? raw.substring(0, 77) + '...' : raw);
       });
       markdown += `| ${values.join(' | ')} |\n`;
     }
@@ -114,8 +115,9 @@ export function formatDatastoreSqlMarkdown(
       const values = displayFields.map((field) => {
         const value = record[field];
         if (value === null || value === undefined) return '-';
-        const text = sanitizeInline(value);
-        return text.length > 80 ? text.substring(0, 77) + '...' : text;
+        // Clip first, escape second: escaping after the cut can slice a `\|` in half.
+        const raw = String(value);
+        return sanitizeInline(raw.length > 80 ? raw.substring(0, 77) + '...' : raw);
       });
       markdown += `| ${values.join(' | ')} |\n`;
     }

@@ -106,3 +106,30 @@ describe("view URLs built from portal fields", () => {
     expect(url).not.toContain("%");
   });
 });
+
+describe("URL query parameters", () => {
+  it("percent-encodes an id instead of markdown-escaping it", async () => {
+    const { formatPackageShowMarkdown } = await import("../../src/tools/package");
+    const md = formatPackageShowMarkdown(
+      { id: "abc&admin=1", name: "d1", title: "D", resources: [], tags: [] } as any,
+      "https://portale.example"
+    );
+    const line = md.split('\n').find(l => l.includes("package_show?id=")) || '';
+    expect(line).toContain("abc%26admin%3D1");
+    expect(line).not.toContain("abc&admin=1");
+  });
+});
+
+describe("cell truncation", () => {
+  it("does not leave a half-cut escape at the end of a clipped cell", () => {
+    const value = "A".repeat(76) + "|" + "B".repeat(30);
+    const md = formatDatastoreSearchMarkdown(
+      { total: 1, fields: [{ id: "a", type: "text" }, { id: "b", type: "text" }], records: [{ a: value, b: "SECOND" }] },
+      "https://portale.example", "r", 0, 100
+    );
+    const row = md.split('\n').find(l => l.includes("AAA")) || '';
+    expect(row).not.toMatch(/\\\.\.\./);          // no orphan backslash before the ellipsis
+    expect(row.split(/(?<!\\)\|/).length - 2).toBe(2);  // still two cells
+    expect(row).toMatch(/\|\s*SECOND\s*\|/);
+  });
+});
