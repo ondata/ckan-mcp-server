@@ -46,8 +46,8 @@ export function getDatasetViewUrl(serverUrl: string, pkg: any): string {
   
   return template
     .replace('{server_url}', cleanServerUrl)
-    .replace('{id}', pkg.id)
-    .replace('{name}', pkg.name);
+    .replace('{id}', encodeURIComponent(pkg.id ?? ''))
+    .replace('{name}', encodeURIComponent(pkg.name ?? ''));
 }
 
 /**
@@ -61,6 +61,6 @@ export function getOrganizationViewUrl(serverUrl: string, org: any): string {
   
   return template
     .replace('{server_url}', cleanServerUrl)
-    .replace('{id}', org.id)
-    .replace('{name}', org.name);
+    .replace('{id}', encodeURIComponent(org.id ?? ''))
+    .replace('{name}', encodeURIComponent(org.name ?? ''));
 }

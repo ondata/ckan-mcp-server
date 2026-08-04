@@ -12,7 +12,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 type OrgFacetItem = { name: string; display_name?: string; count: number };
 
 export function formatOrganizationShowMarkdown(result: CkanOrganization & { packages?: { title?: string; name: string }[]; users?: { name: string; capacity: string }[]; created?: string; state?: string }, serverUrl: string): string {
-  let markdown = `# Organization: ${result.title || result.name}\n\n`;
+  let markdown = `# Organization: ${sanitizeInline(result.title || result.name)}\n\n`;
   markdown += `**Server**: ${serverUrl}\n`;
   markdown += `**Link**: ${getOrganizationViewUrl(serverUrl, result)}\n\n`;
 

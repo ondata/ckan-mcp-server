@@ -275,7 +275,7 @@ export const enrichPackageShowResult = (result: CkanPackage): CkanPackage => ({
 });
 
 export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string): string => {
-  let markdown = `# Dataset: ${result.title || result.name}\n\n`;
+  let markdown = `# Dataset: ${sanitizeInline(result.title || result.name)}\n\n`;
   markdown += `**Server**: ${serverUrl}\n`;
   markdown += `**Link**: ${getDatasetViewUrl(serverUrl, result)}\n`;
   markdown += `**Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/package_show?id=${sanitizeInline(result.id)}\n\n`;
@@ -912,7 +912,7 @@ ${hvdNote}`;
             }
             if (pkg.tags && pkg.tags.length > 0) {
               const tags = pkg.tags.slice(0, 5).map((t: CkanTag) => t.name).join(', ');
-              markdown += `- **Tags**: ${tags}${pkg.tags.length > 5 ? ', ...' : ''}\n`;
+              markdown += `- **Tags**: ${sanitizeInline(tags)}${pkg.tags.length > 5 ? ', ...' : ''}\n`;
             }
             markdown += `- **Resources**: ${pkg.num_resources || 0}\n`;
             markdown += `- **Modified**: ${formatDate(pkg.metadata_modified)}\n`;
@@ -1113,7 +1113,7 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
 
           top.forEach((dataset, index) => {
             const tags = dataset.tags.slice(0, 3).join(', ');
-            markdown += `| ${index + 1} | ${sanitizeInline(dataset.name)} | ${dataset.score} | ${sanitizeInline(dataset.title)} | ${dataset.organization || '-'} | ${tags || '-'} |\n`;
+            markdown += `| ${index + 1} | ${sanitizeInline(dataset.name)} | ${dataset.score} | ${sanitizeInline(dataset.title)} | ${sanitizeInline(dataset.organization || '-')} | ${sanitizeInline(tags || '-')} |\n`;
           });
 
           markdown += `\n### Score Breakdown\n\n`;
@@ -1357,7 +1357,7 @@ dataset's own resource URLs); set check_source_portal=true to enable it.`,
           return jsonToolResult(payload);
         }
 
-        let markdown = `# Resources: ${result.title || result.name}\n\n`;
+        let markdown = `# Resources: ${sanitizeInline(result.title || result.name)}\n\n`;
         markdown += `**Server**: ${params.server_url}\n`;
         markdown += `**Dataset**: \`${sanitizeInline(result.name)}\` (\`${sanitizeInline(result.id)}\`)\n`;
         markdown += `**Total Resources**: ${resources.length}`;

@@ -16,11 +16,11 @@ type GroupFacetItem = {
 
 function getGroupViewUrl(serverUrl: string, group: { name?: string }): string {
   const cleanServerUrl = serverUrl.replace(/\/$/, '');
-  return `${cleanServerUrl}/group/${group.name}`;
+  return `${cleanServerUrl}/group/${encodeURIComponent(group.name ?? '')}`;
 }
 
 export function formatGroupShowMarkdown(result: { id: string; name: string; title?: string; description?: string; package_count?: number; created?: string; state?: string; packages?: { title?: string; name: string }[] }, serverUrl: string): string {
-  let markdown = `# Group: ${result.title || result.name}\n\n`;
+  let markdown = `# Group: ${sanitizeInline(result.title || result.name)}\n\n`;
   markdown += `**Server**: ${serverUrl}\n`;
   markdown += `**Link**: ${getGroupViewUrl(serverUrl, result)}\n\n`;
 

@@ -87,7 +87,7 @@ export function formatAnalyzeDatasetsMarkdown(
     if (nonDatastoreResources.length > 0) {
       md += `### Other Resources (not queryable)\n\n`;
       for (const r of nonDatastoreResources) {
-        md += `- ${r.name || '(unnamed)'}${r.format ? ` (${r.format})` : ''}\n`;
+        md += `- ${sanitizeInline(r.name || '(unnamed)')}${r.format ? ` (${sanitizeInline(r.format)})` : ''}\n`;
       }
       md += '\n';
     }
