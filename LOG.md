@@ -2,6 +2,10 @@
 
 ## 2026-08-04
 
+### v0.4.116
+
+Ships the two DataStore output fixes below, plus `.greptile/rules.md`: the automated review on #43 produced one confident false positive, so the invariants a generic reviewer cannot know are now stated in the repo.
+
 ### DataStore tables no longer hide columns silently
 
 Both markdown renderers in `src/tools/datastore.ts` cut the record table at 8 columns with no notice. On the Messina electoral-lists resource (14 columns) the table stopped right before `cognome`, `nome`, `sesso` and `voti`: a model reading it saw an election dataset with no votes and no candidate names, and nothing told it anything was missing. Row truncation was already handled properly (`... and N more records`, `Total Records`); columns were not.

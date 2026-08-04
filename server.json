@@ -6,12 +6,12 @@
     "url": "https://github.com/ondata/ckan-mcp-server",
     "source": "github"
   },
-  "version": "0.4.115",
+  "version": "0.4.116",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "@aborruso/ckan-mcp-server",
-      "version": "0.4.115",
+      "version": "0.4.116",
       "transport": {
         "type": "stdio"
       }
