@@ -21,7 +21,7 @@ export function formatOrganizationShowMarkdown(result: CkanOrganization & { pack
   markdown += `- **Name**: \`${sanitizeInline(result.name)}\`\n`;
   markdown += `- **Datasets**: ${result.package_count || 0}\n`;
   markdown += `- **Created**: ${formatDate(result.created)}\n`;
-  markdown += `- **State**: ${result.state}\n\n`;
+  markdown += `- **State**: ${sanitizeInline(result.state)}\n\n`;
 
   if (result.description) {
     markdown += `## Description\n\n${wrapUntrusted(result.description)}\n\n`;
@@ -249,7 +249,7 @@ Typical workflow: ckan_organization_list → ckan_organization_show (inspect one
               markdown += `## ${sanitizeInline(org.title || org.name)}\n\n`;
               markdown += `- **ID**: \`${sanitizeInline(org.id)}\`\n`;
               markdown += `- **Name**: \`${sanitizeInline(org.name)}\`\n`;
-              if (org.description) markdown += `- **Description**: ${org.description.substring(0, 200).replace(/[\r\n]+/g, ' ')}\n`;
+              if (org.description) markdown += `- **Description**: ${sanitizeInline(org.description.substring(0, 200))}\n`;
               markdown += `- **Datasets**: ${org.package_count || 0}\n`;
               markdown += `- **Created**: ${formatDate(org.created)}\n`;
               markdown += `- **Link**: ${getOrganizationViewUrl(params.server_url, org)}\n\n`;

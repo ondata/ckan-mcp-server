@@ -224,7 +224,7 @@ export function formatCatalogStatsMarkdown(
     const sorted = Object.entries(values).sort((a, b) => b[1] - a[1]);
     md += `\n## ${label}\n\n`;
     for (const [name, count] of sorted) {
-      md += `- **${name}**: ${count}\n`;
+      md += `- **${sanitizeInline(name)}**: ${count}\n`;
     }
   }
 

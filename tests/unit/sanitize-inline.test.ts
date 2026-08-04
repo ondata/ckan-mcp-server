@@ -133,3 +133,37 @@ describe("cell truncation", () => {
     expect(row).toMatch(/\|\s*SECOND\s*\|/);
   });
 });
+
+describe("inline code spans", () => {
+  it("neutralises backticks so a value cannot escape a code span", () => {
+    expect(sanitizeInline("g1`  **injected** `x")).toBe("g1ʼ  **injected** ʼx");
+  });
+
+  it("keeps a hostile id inside its code span", async () => {
+    const { formatGroupShowMarkdown } = await import("../../src/tools/group");
+    const md = formatGroupShowMarkdown(
+      { id: "g1`  **INJECTED** `x", name: "g1", title: "Gruppo" } as any,
+      "https://portale.example"
+    );
+    const line = md.split('\n').find(l => l.includes("**ID**")) || '';
+    // Exactly two backticks: the payload stays inside the code span as literal
+    // text, so it renders as code rather than as markdown. Containment, not censorship.
+    expect((line.match(/`/g) || []).length).toBe(2);
+    expect(line.indexOf("**INJECTED**")).toBeGreaterThan(line.indexOf("`"));
+    expect(line.trimEnd().endsWith("`")).toBe(true);
+  });
+
+  it("sanitises state, extras and facet values", async () => {
+    const { formatPackageShowMarkdown } = await import("../../src/tools/package");
+    const md = formatPackageShowMarkdown(
+      {
+        id: "d1", name: "d1", title: "D", state: "active\n## Forged",
+        extras: [{ key: "k\n## Also forged", value: "v|x" }],
+        resources: [], tags: []
+      } as any,
+      "https://portale.example"
+    );
+    expect(md).not.toMatch(/^## Forged/m);
+    expect(md).not.toMatch(/^## Also forged/m);
+  });
+});

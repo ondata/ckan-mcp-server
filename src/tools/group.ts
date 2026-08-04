@@ -29,7 +29,7 @@ export function formatGroupShowMarkdown(result: { id: string; name: string; titl
   markdown += `- **Name**: \`${sanitizeInline(result.name)}\`\n`;
   markdown += `- **Datasets**: ${result.package_count || 0}\n`;
   markdown += `- **Created**: ${formatDate(result.created)}\n`;
-  markdown += `- **State**: ${result.state}\n\n`;
+  markdown += `- **State**: ${sanitizeInline(result.state)}\n\n`;
 
   if (result.description) {
     markdown += `## Description\n\n${wrapUntrusted(result.description)}\n\n`;
@@ -218,13 +218,13 @@ Typical workflow: ckan_group_list → ckan_group_show (inspect one) → ckan_pac
               markdown += `## ${sanitizeInline(group.title || group.name)}\n\n`;
               markdown += `- **ID**: \`${sanitizeInline(group.id)}\`\n`;
               markdown += `- **Name**: \`${sanitizeInline(group.name)}\`\n`;
-              if (group.description) markdown += `- **Description**: ${group.description.substring(0, 200).replace(/[\r\n]+/g, ' ')}\n`;
+              if (group.description) markdown += `- **Description**: ${sanitizeInline(group.description.substring(0, 200))}\n`;
               markdown += `- **Datasets**: ${group.package_count || 0}\n`;
               markdown += `- **Created**: ${formatDate(group.created)}\n`;
               markdown += `- **Link**: ${getGroupViewUrl(params.server_url, group)}\n\n`;
             }
           } else {
-            markdown += result.map((name: string) => `- ${name}`).join('\n');
+            markdown += result.map((name: string) => `- ${sanitizeInline(name)}`).join('\n');
           }
         }
 

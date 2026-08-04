@@ -288,7 +288,7 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
   if (result.maintainer) markdown += `- **Maintainer**: ${sanitizeInline(result.maintainer)}\n`;
   if (result.maintainer_email) markdown += `- **Maintainer Email**: ${sanitizeInline(result.maintainer_email)}\n`;
   markdown += `- **License**: ${sanitizeInline(result.license_title || result.license_id || 'Not specified')}\n`;
-  markdown += `- **State**: ${result.state}\n`;
+  markdown += `- **State**: ${sanitizeInline(result.state)}\n`;
   markdown += `- **Created**: ${formatDate(result.metadata_created)}\n`;
   if (result.issued) {
     markdown += `- **Issued**: ${formatDate(result.issued)}\n`;
@@ -301,17 +301,17 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
   // DCAT-AP fields returned natively by package_show but not otherwise surfaced.
   // holder/publisher via readDcatExtra (extras override root on aggregators); the rest read root.
   const holderName = readDcatExtra(result, "holder_name");
-  if (holderName) markdown += `- **Rights Holder (dct:rightsHolder)**: ${holderName}\n`;
+  if (holderName) markdown += `- **Rights Holder (dct:rightsHolder)**: ${sanitizeInline(holderName)}\n`;
   const publisherName = readDcatExtra(result, "publisher_name");
-  if (publisherName) markdown += `- **Publisher (dct:publisher)**: ${publisherName}\n`;
+  if (publisherName) markdown += `- **Publisher (dct:publisher)**: ${sanitizeInline(publisherName)}\n`;
   const dcatField = (key: string): string =>
     typeof result[key] === "string" ? (result[key] as string) : "";
   const frequency = dcatField("frequency");
-  if (frequency) markdown += `- **Update Frequency (dct:accrualPeriodicity)**: ${frequency}\n`;
+  if (frequency) markdown += `- **Update Frequency (dct:accrualPeriodicity)**: ${sanitizeInline(frequency)}\n`;
   const language = dcatField("language");
-  if (language) markdown += `- **Language (dct:language)**: ${language}\n`;
+  if (language) markdown += `- **Language (dct:language)**: ${sanitizeInline(language)}\n`;
   const accessRights = dcatField("access_rights");
-  if (accessRights) markdown += `- **Access Rights (dct:accessRights)**: ${accessRights}\n`;
+  if (accessRights) markdown += `- **Access Rights (dct:accessRights)**: ${sanitizeInline(accessRights)}\n`;
   markdown += `\n`;
 
   if (result.organization) {
@@ -382,7 +382,7 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
   if (result.extras && result.extras.length > 0) {
     markdown += `## Extra Fields\n\n`;
     for (const extra of result.extras) {
-      markdown += `- **${extra.key}**: ${extra.value}\n`;
+      markdown += `- **${sanitizeInline(extra.key)}**: ${sanitizeInline(extra.value)}\n`;
     }
     markdown += '\n';
   }
@@ -1375,7 +1375,7 @@ dataset's own resource URLs); set check_source_portal=true to enable it.`,
 
           // Neutralize portal-controlled names so they cannot break the table
           // structure or inject markdown (GHSA-c499).
-          const cell = (s: string) => s.replace(/[\r\n]+/g, ' ').replace(/\|/g, '\\|');
+          const cell = sanitizeInline;
           for (const r of summary) {
             const clipped = r.name.length > 40 ? r.name.substring(0, 37) + '...' : r.name;
             const ds = r.datastore_active ? 'Yes' : 'No';

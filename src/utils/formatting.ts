@@ -116,7 +116,11 @@ export function formatError(message: string, asJson: boolean): string {
 export function sanitizeInline(text: unknown): string {
   return String(text ?? '')
     .replace(/[\r\n]+/g, ' ')
-    .replace(/\|/g, '\\|');
+    .replace(/\|/g, '\\|')
+    // A backtick escapes an inline code span, so a value rendered as `${...}` could
+    // close it and emit live markdown on the same line. Same substitution
+    // `wrapUntrusted` uses for fences (U+02BC, not a backtick).
+    .replace(/`/g, 'ʼ');
 }
 
 /**
