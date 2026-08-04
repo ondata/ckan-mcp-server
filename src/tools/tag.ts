@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
-import { truncateText, addDemoFooter, formatError, jsonToolResult } from "../utils/formatting.js";
+import { truncateText, addDemoFooter, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type TagItem = {
@@ -132,7 +132,7 @@ Typical workflow: ckan_tag_list → ckan_package_search with fq="tags:tag_name" 
           markdown += `No tags found.\n`;
         } else {
           for (const tag of tags) {
-            markdown += `- **${tag.name}**: ${tag.count}\n`;
+            markdown += `- **${sanitizeInline(tag.name)}**: ${tag.count}\n`;
           }
         }
 

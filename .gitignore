@@ -88,3 +88,6 @@ __pycache__/
 
 cowork-plugin/ckan-mcp.plugin
 data/worker_events.jsonl
+
+# Local security mapping — contains a working repro, not for publication
+docs/untrusted-portal-strings-map.md
