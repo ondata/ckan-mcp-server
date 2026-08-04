@@ -8,6 +8,38 @@ import { makeCkanRequest, formatCkanError } from "../utils/http.js";
 import { truncateText, truncateJson, addDemoFooter, formatError, jsonToolResult } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
+const MAX_TABLE_COLUMNS = 8;
+
+/**
+ * CKAN internal columns. `_full_text` is only returned by `datastore_search_sql`
+ * on `SELECT *`: it repeats the whole row as one concatenated string, so it
+ * carries no new information and must not take up a table slot.
+ */
+const INTERNAL_FIELDS = ['_id', '_full_text'];
+const isInternalField = (id: string) => INTERNAL_FIELDS.includes(id);
+
+const MAX_LISTED_OMITTED_COLUMNS = 15;
+
+/**
+ * Field names come from the portal. A newline would break out of the note and
+ * could forge a blockquote the model reads as server-authored guidance.
+ */
+const sanitizeFieldName = (id: string) => id.replace(/[\r\n]+/g, ' ').replace(/\|/g, '\\|');
+
+/**
+ * Warn when the record table shows only a subset of the columns, so the model
+ * does not read a truncated table as the full set of available columns.
+ */
+function formatOmittedColumnsNote(allFields: string[], hint: string): string {
+  if (allFields.length <= MAX_TABLE_COLUMNS) return '';
+  const omitted = allFields.slice(MAX_TABLE_COLUMNS);
+  const listed = omitted.slice(0, MAX_LISTED_OMITTED_COLUMNS).map(sanitizeFieldName).join(', ');
+  const rest = omitted.length > MAX_LISTED_OMITTED_COLUMNS
+    ? ` and ${omitted.length - MAX_LISTED_OMITTED_COLUMNS} more`
+    : '';
+  return `\n> **Note**: the table above shows only the first ${MAX_TABLE_COLUMNS} of ${allFields.length} columns. Columns not shown: ${listed}${rest}. They do hold values — ${hint}\n`;
+}
+
 export function formatDatastoreSearchMarkdown(
   result: { fields?: { id: string; type: string }[]; records?: Record<string, unknown>[]; total?: number },
   serverUrl: string,
@@ -21,15 +53,16 @@ export function formatDatastoreSearchMarkdown(
   markdown += `**Total Records**: ${result.total || 0}\n`;
   markdown += `**Returned**: ${result.records ? result.records.length : 0} records\n\n`;
 
-  if (result.fields && result.fields.length > 0) {
+  const declaredFields = (result.fields || []).filter((f: CkanField) => f.id !== '_full_text');
+  if (declaredFields.length > 0) {
     markdown += `## Fields\n\n`;
-    markdown += result.fields.map((f: CkanField) => `- **${f.id}** (${f.type})`).join('\n') + '\n\n';
+    markdown += declaredFields.map((f: CkanField) => `- **${f.id}** (${f.type})`).join('\n') + '\n\n';
   }
 
   if (result.records && result.records.length > 0) {
     markdown += `## Records\n\n`;
-    const fields = result.fields ? result.fields.map((f: CkanField) => f.id).filter(id => id !== '_id') : [];
-    const displayFields = fields.slice(0, 8);
+    const fields = result.fields ? result.fields.map((f: CkanField) => f.id).filter(id => !isInternalField(id)) : [];
+    const displayFields = fields.slice(0, MAX_TABLE_COLUMNS);
     markdown += `| ${displayFields.join(' | ')} |\n`;
     markdown += `| ${displayFields.map(() => '---').join(' | ')} |\n`;
     for (const record of result.records.slice(0, 50)) {
@@ -41,6 +74,7 @@ export function formatDatastoreSearchMarkdown(
       });
       markdown += `| ${values.join(' | ')} |\n`;
     }
+    markdown += formatOmittedColumnsNote(fields, 'use the `fields` parameter to select them, or `response_format: "json"` to get every column.');
     if (result.records.length > 50) {
       markdown += `\n... and ${result.records.length - 50} more records\n`;
     }
@@ -64,21 +98,22 @@ export function formatDatastoreSqlMarkdown(
   sql: string
 ): string {
   const records = result.records || [];
-  const fieldIds = (result.fields?.map((field: CkanField) => field.id) || Object.keys(records[0] || {})).filter(id => id !== '_id');
+  const fieldIds = (result.fields?.map((field: CkanField) => field.id) || Object.keys(records[0] || {})).filter(id => !isInternalField(id));
 
   let markdown = `# DataStore SQL Results\n\n`;
   markdown += `**Server**: ${serverUrl}\n`;
   markdown += `**SQL**: \`${sql}\`\n`;
   markdown += `**Returned**: ${records.length} records\n\n`;
 
-  if (result.fields && result.fields.length > 0) {
+  const declaredFields = (result.fields || []).filter((field: CkanField) => field.id !== '_full_text');
+  if (declaredFields.length > 0) {
     markdown += `## Fields\n\n`;
-    markdown += result.fields.map((field: CkanField) => `- **${field.id}** (${field.type})`).join('\n') + '\n\n';
+    markdown += declaredFields.map((field: CkanField) => `- **${field.id}** (${field.type})`).join('\n') + '\n\n';
   }
 
   if (records.length > 0 && fieldIds.length > 0) {
     markdown += `## Records\n\n`;
-    const displayFields = fieldIds.slice(0, 8);
+    const displayFields = fieldIds.slice(0, MAX_TABLE_COLUMNS);
     markdown += `| ${displayFields.join(' | ')} |\n`;
     markdown += `| ${displayFields.map(() => '---').join(' | ')} |\n`;
     for (const record of records.slice(0, 50)) {
@@ -90,6 +125,7 @@ export function formatDatastoreSqlMarkdown(
       });
       markdown += `| ${values.join(' | ')} |\n`;
     }
+    markdown += formatOmittedColumnsNote(fieldIds, 'name them explicitly in the SELECT clause, or use `response_format: "json"` to get every column.');
     if (records.length > 50) {
       markdown += `\n... and ${records.length - 50} more records\n`;
     }
@@ -103,14 +139,13 @@ export function formatDatastoreSqlMarkdown(
 }
 
 /**
- * Compact datastore result: filter _id from fields and records.
+ * Compact datastore result: filter CKAN internal columns from fields and records.
  */
 export function compactDatastoreResult(result: any): object {
-  const fields = (result.fields || []).filter((f: CkanField) => f.id !== '_id');
-  const records = (result.records || []).map((record: Record<string, unknown>) => {
-    const { _id, ...rest } = record;
-    return rest;
-  });
+  const fields = (result.fields || []).filter((f: CkanField) => !isInternalField(f.id));
+  const records = (result.records || []).map((record: Record<string, unknown>) =>
+    Object.fromEntries(Object.entries(record).filter(([key]) => !isInternalField(key)))
+  );
   return {
     resource_id: result.resource_id || null,
     fields,
