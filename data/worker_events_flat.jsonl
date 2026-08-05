@@ -6088,3 +6088,8 @@
 {"id": "01KZ74RB71KETP12W6YD7CAK47", "timestamp": "2026-08-04T19:42:06Z", "outcome": null, "tool": "ckan_package_show", "server": "https://www.dati.gov.it/opendata", "query": "ambiente-raccolta-differenziata-7", "error": null}
 {"id": "01KZ74RB0KAMGDASZR37JVFD9M", "timestamp": "2026-08-04T19:42:06Z", "outcome": null, "tool": "ckan_package_show", "server": "https://www.dati.gov.it/opendata", "query": "ambiente-raccolta-differenziata-7", "error": null}
 {"id": "01KZ74RASB2AQNYP932BH9RRNA", "timestamp": "2026-08-04T19:42:06Z", "outcome": null, "tool": "ckan_package_show", "server": "https://www.dati.gov.it/opendata", "query": "ambiente-raccolta-differenziata-7", "error": null}
+{"id": "01KZ8PC67XEJM12TWRCG77AMM2", "timestamp": "2026-08-05T10:09:17Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.dati.gov.it/api/3", "query": "bonifica siti contaminati", "error": null}
+{"id": "01KZ8ZMV5RPCFXYRDSDG66GRX6", "timestamp": "2026-08-05T12:51:17Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "bonifica siti contaminati Piemonte", "error": null}
+{"id": "01KZ93Y72DP9WMCZBQMA9QY8QQ", "timestamp": "2026-08-05T14:06:19Z", "outcome": null, "tool": "ckan_package_search", "server": "https://dati.gov.it/opendata", "query": "siti contaminati bonifica", "error": null}
+{"id": "01KZ977M7MPY008MJW0BS9H5GW", "timestamp": "2026-08-05T15:03:53Z", "outcome": null, "tool": "ckan_status_show", "server": "https://data.noaa.gov/", "query": null, "error": null}
+{"id": "01KZ9FMHW36ZWCQKANY7KVKS4S", "timestamp": "2026-08-05T17:30:45Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Argentina", "error": null}
