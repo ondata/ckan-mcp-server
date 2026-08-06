@@ -1,5 +1,21 @@
 # LOG
 
+## 2026-08-06
+
+### v0.4.118 — pin the fetch path to the validated IP
+
+`GHSA-r8hw-3fch-r42w` reported the v0.4.108 SSRF fix as bypassable by DNS rebinding, with a PoC pointing `ckan_package_search` at `7f000001.7f000001.rbndr.us`. Reproduced: the PoC is blocked. Both halves of that label decode to 127.0.0.1, so the name never rebinds — it is a plain DNS-name-to-loopback, the case v0.4.108 already closed. Replaying it against `localtest.me` with a listener on 127.0.0.1:8054 is rejected by `createSsrfSafeLookup`, and a genuine rebinding fake-DNS (public IP first, loopback second) through the axios agent produces exactly one lookup with the connection pinned to the validated address.
+
+The class was right on the wrong path, though. `safeFetch()` — used by `sparql_query` and the MQA quality tools — validated the hostname with `assertHostnameResolvesSafe()` and then let undici resolve it a second time, which is a real TOCTOU window. `getSafeDispatcher()` now builds an `undici.Agent({ connect: { lookup: createSsrfSafeLookup(dns) } })` and `safeFetch` passes it on every hop, so the socket connects to the address that was just checked. `assertHostnameResolvesSafe()` stays as defence in depth for runtimes without a dispatcher (Workers, where the CF sandbox blocks internal egress anyway).
+
+`undici` becomes an explicit dependency: it was only present transitively through wrangler, i.e. absent in production installs. The import specifier is assembled at runtime (`["und","ici"].join("")`) because esbuild constant-folds `"undici" + ""` and would otherwise bundle all of undici into `dist/index.js` (207 KB → 969 KB) and break the browser-platform Workers build.
+
+Same trap on the other side: because the specifier is dynamic, the DXT bundle cannot contain undici either, and a `.dxt` unpacked by Claude Desktop has no `node_modules` to resolve it from — the dispatcher would have been null and the pin silently inert. `pack:dxt` now copies `node_modules/undici` into `dxt-staging/server/node_modules/` (+1.7 MB uncompressed), verified by resolving it from a copy of the staging dir outside the repo.
+
+`engines.node` moves to `>=18.17.0`, undici 6's own floor — the old `>=18.0.0` would have promised installs that cannot work.
+
+Also fixed the `serverInfo` version, hardcoded at `0.4.108` in `src/server.ts` and `src/worker.ts` while the package was at 0.4.117.
+
 ## 2026-08-04
 
 ### v0.4.117 — escaping portal-controlled strings
