@@ -435,6 +435,11 @@ function getSafeAgents(): Promise<{ httpAgent: unknown; httpsAgent: unknown } | 
   return _safeAgents;
 }
 
+type SsrfSafeLookup = ReturnType<typeof createSsrfSafeLookup>;
+type UndiciModule = {
+  Agent: new (options: { connect: { lookup: SsrfSafeLookup } }) => unknown;
+};
+
 let _safeDispatcher: Promise<unknown | null> | null = null;
 
 /**
@@ -454,7 +459,7 @@ export function getSafeDispatcher(): Promise<unknown | null> {
         // so the name is assembled at runtime and left as a live dynamic import.
         const dnsMod = (await import("node:" + "dns")) as unknown as DnsLookupModule;
         const undiciSpecifier = ["und", "ici"].join("");
-        const undiciMod = (await import(undiciSpecifier)) as any;
+        const undiciMod = (await import(undiciSpecifier)) as UndiciModule;
         return new undiciMod.Agent({ connect: { lookup: createSsrfSafeLookup(dnsMod) } });
       } catch {
         return null;

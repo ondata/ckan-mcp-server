@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest';
 import { brotliCompressSync, deflateSync, gzipSync } from 'node:zlib';
+import type { AddressInfo } from 'node:net';
 import axios from 'axios';
 import { makeCkanRequest, validateServerUrl, CkanApiError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, getSafeDispatcher, __setDnsResolverForTests } from '../../src/utils/http';
 import { __resetCacheForTests } from '../../src/utils/cache';
@@ -161,6 +162,12 @@ describe('createSsrfSafeLookup', () => {
   });
 });
 
+type LookupOptions = { all?: boolean; family?: number };
+type LookupCallback = (
+  err: NodeJS.ErrnoException | null,
+  addresses: { address: string; family: number }[]
+) => void;
+
 describe('getSafeDispatcher', () => {
   it('returns a memoized undici dispatcher on Node', async () => {
     const dispatcher: any = await getSafeDispatcher();
@@ -169,35 +176,74 @@ describe('getSafeDispatcher', () => {
     expect(await getSafeDispatcher()).toBe(dispatcher);
   });
 
-  it('blocks a fetch whose hostname resolves to loopback, even with a live listener there', async () => {
+  // A listener on loopback plus a DNS module we control: if a request ever reaches
+  // `hits`, the guard let a connection through to an internal address.
+  const withLoopbackListener = async (
+    run: (port: number, hits: () => number) => Promise<void>
+  ) => {
     const http = await import('node:http');
-    const { Agent } = await import('undici');
-
-    const server = http.createServer((_req, res) => res.end('reached'));
+    let hits = 0;
+    const server = http.createServer((_req, res) => { hits++; res.end('reached'); });
     await new Promise<void>(resolve => server.listen(0, '127.0.0.1', () => resolve()));
-    const port = (server.address() as any).port;
-
-    // DNS that would rebind: public first, loopback second. The guard rejects the
-    // loopback answer, and the connection is pinned to whatever it validated.
-    let calls = 0;
-    const rebindingDns = {
-      lookup: (_h: string, o: any, cb: any) => {
-        calls++;
-        const address = calls === 1 ? '127.0.0.1' : '93.184.216.34';
-        cb(null, o?.all ? [{ address, family: 4 }] : [{ address, family: 4 }]);
-      }
-    };
-    const dispatcher = new Agent({ connect: { lookup: createSsrfSafeLookup(rebindingDns) } });
-
+    const { port } = server.address() as AddressInfo;
     try {
-      await expect(
-        fetch(`http://rebind.example:${port}/`, { dispatcher } as any)
-      ).rejects.toThrow();
-      expect(calls).toBe(1);
+      await run(port, () => hits);
     } finally {
-      await dispatcher.close();
       await new Promise<void>(resolve => server.close(() => resolve()));
     }
+  };
+
+  const scriptedDns = (answers: string[]) => {
+    let calls = 0;
+    return {
+      calls: () => calls,
+      lookup: (_hostname: string, options: LookupOptions | undefined, callback: LookupCallback) => {
+        const address = answers[Math.min(calls, answers.length - 1)];
+        calls++;
+        callback(null, [{ address, family: 4 }]);
+      }
+    };
+  };
+
+  it('rejects a fetch whose hostname resolves to loopback, with a live listener there', async () => {
+    const { Agent } = await import('undici');
+    await withLoopbackListener(async (port, hits) => {
+      const dns = scriptedDns(['127.0.0.1']);
+      const dispatcher = new Agent({ connect: { lookup: createSsrfSafeLookup(dns) } });
+      try {
+        await expect(
+          fetch(`http://loopback.example:${port}/`, { dispatcher } as unknown as RequestInit)
+        ).rejects.toThrow();
+        expect(hits()).toBe(0);
+      } finally {
+        await dispatcher.close();
+      }
+    });
+  });
+
+  it('pins the connection to the first resolution, so rebinding cannot swap in loopback', async () => {
+    const { Agent } = await import('undici');
+    await withLoopbackListener(async (port, hits) => {
+      // First answer is public (192.0.2.1, TEST-NET-1: allowed but unroutable), every
+      // later answer is the loopback the listener sits on. A second resolution would
+      // land on the listener; pinning means there is no second resolution.
+      const dns = scriptedDns(['192.0.2.1', '127.0.0.1']);
+      const dispatcher = new Agent({
+        connect: { lookup: createSsrfSafeLookup(dns), timeout: 500 }
+      });
+      try {
+        await expect(
+          fetch(`http://rebind.example:${port}/`, {
+            dispatcher,
+            signal: AbortSignal.timeout(3000)
+          } as unknown as RequestInit)
+        ).rejects.toThrow();
+        expect(dns.calls()).toBe(1);
+        expect(hits()).toBe(0);
+      } finally {
+        await dispatcher.close();
+      }
+    });
   });
 });
 

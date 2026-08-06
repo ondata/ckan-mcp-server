@@ -12,6 +12,8 @@ The class was right on the wrong path, though. `safeFetch()` — used by `sparql
 
 Same trap on the other side: because the specifier is dynamic, the DXT bundle cannot contain undici either, and a `.dxt` unpacked by Claude Desktop has no `node_modules` to resolve it from — the dispatcher would have been null and the pin silently inert. `pack:dxt` now copies `node_modules/undici` into `dxt-staging/server/node_modules/` (+1.7 MB uncompressed), verified by resolving it from a copy of the staging dir outside the repo.
 
+`engines.node` moves to `>=18.17.0`, undici 6's own floor — the old `>=18.0.0` would have promised installs that cannot work.
+
 Also fixed the `serverInfo` version, hardcoded at `0.4.108` in `src/server.ts` and `src/worker.ts` while the package was at 0.4.117.
 
 ## 2026-08-04
