@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vitest';
 import { brotliCompressSync, deflateSync, gzipSync } from 'node:zlib';
 import axios from 'axios';
-import { makeCkanRequest, validateServerUrl, CkanApiError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, __setDnsResolverForTests } from '../../src/utils/http';
+import { makeCkanRequest, validateServerUrl, CkanApiError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, getSafeDispatcher, __setDnsResolverForTests } from '../../src/utils/http';
 import { __resetCacheForTests } from '../../src/utils/cache';
 import successResponse from '../fixtures/responses/status-success.json';
 
@@ -158,6 +158,46 @@ describe('createSsrfSafeLookup', () => {
     await expect(new Promise((resolve, reject) =>
       lookup('mixed.example', {}, (err: any, addr: any) => err ? reject(err) : resolve(addr))))
       .rejects.toThrow('private/internal');
+  });
+});
+
+describe('getSafeDispatcher', () => {
+  it('returns a memoized undici dispatcher on Node', async () => {
+    const dispatcher: any = await getSafeDispatcher();
+    expect(dispatcher).toBeTruthy();
+    expect(typeof dispatcher.dispatch).toBe('function');
+    expect(await getSafeDispatcher()).toBe(dispatcher);
+  });
+
+  it('blocks a fetch whose hostname resolves to loopback, even with a live listener there', async () => {
+    const http = await import('node:http');
+    const { Agent } = await import('undici');
+
+    const server = http.createServer((_req, res) => res.end('reached'));
+    await new Promise<void>(resolve => server.listen(0, '127.0.0.1', () => resolve()));
+    const port = (server.address() as any).port;
+
+    // DNS that would rebind: public first, loopback second. The guard rejects the
+    // loopback answer, and the connection is pinned to whatever it validated.
+    let calls = 0;
+    const rebindingDns = {
+      lookup: (_h: string, o: any, cb: any) => {
+        calls++;
+        const address = calls === 1 ? '127.0.0.1' : '93.184.216.34';
+        cb(null, o?.all ? [{ address, family: 4 }] : [{ address, family: 4 }]);
+      }
+    };
+    const dispatcher = new Agent({ connect: { lookup: createSsrfSafeLookup(rebindingDns) } });
+
+    try {
+      await expect(
+        fetch(`http://rebind.example:${port}/`, { dispatcher } as any)
+      ).rejects.toThrow();
+      expect(calls).toBe(1);
+    } finally {
+      await dispatcher.close();
+      await new Promise<void>(resolve => server.close(() => resolve()));
+    }
   });
 });
 

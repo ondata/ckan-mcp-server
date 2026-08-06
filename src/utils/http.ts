@@ -435,6 +435,35 @@ function getSafeAgents(): Promise<{ httpAgent: unknown; httpsAgent: unknown } | 
   return _safeAgents;
 }
 
+let _safeDispatcher: Promise<unknown | null> | null = null;
+
+/**
+ * Lazily build an undici Dispatcher whose connections resolve through
+ * `createSsrfSafeLookup`, so `fetch()` connects to exactly the address we validated.
+ * This is what `httpAgent`/`httpsAgent` do for the axios path: without it the fetch
+ * path validates the hostname and then lets undici resolve it a second time, leaving
+ * a TOCTOU window a DNS-rebinding record can win.
+ * Returns null off Node (Cloudflare Workers, where the CF sandbox blocks internal egress).
+ */
+export function getSafeDispatcher(): Promise<unknown | null> {
+  if (!_safeDispatcher) {
+    _safeDispatcher = (async () => {
+      try {
+        // Non-constant specifiers: esbuild constant-folds `"undici" + ""` and would
+        // bundle the whole of undici (and break the browser-platform Workers build),
+        // so the name is assembled at runtime and left as a live dynamic import.
+        const dnsMod = (await import("node:" + "dns")) as unknown as DnsLookupModule;
+        const undiciSpecifier = ["und", "ici"].join("");
+        const undiciMod = (await import(undiciSpecifier)) as any;
+        return new undiciMod.Agent({ connect: { lookup: createSsrfSafeLookup(dnsMod) } });
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return _safeDispatcher;
+}
+
 type DnsResolver = (hostname: string) => Promise<ResolvedAddress[]>;
 let _dnsResolver: DnsResolver | null = null;
 
@@ -489,6 +518,11 @@ export async function assertHostnameResolvesSafe(hostname: string): Promise<void
  * with `validateServerUrl` + `assertHostnameResolvesSafe` before it is followed,
  * closing redirect-based SSRF (e.g. a public endpoint 302-ing to 169.254.169.254).
  * The caller is expected to have validated the initial URL already.
+ *
+ * On Node every hop also goes through the SSRF-safe undici dispatcher, which pins the
+ * connection to the address it validated — so a rebinding record cannot swap in an
+ * internal IP between the check and the connect. `assertHostnameResolvesSafe` stays as
+ * defence in depth for runtimes where no dispatcher is available.
  * On Workers, `assertHostnameResolvesSafe` is a no-op (the CF sandbox blocks internal egress).
  */
 export async function safeFetch(
@@ -497,9 +531,14 @@ export async function safeFetch(
   opts: { maxHops?: number; httpsOnly?: boolean } = {}
 ): Promise<Response> {
   const maxHops = opts.maxHops ?? 3;
+  const dispatcher = await getSafeDispatcher();
   let current = url;
   for (let hop = 0; ; hop++) {
-    const response = await fetch(current, { ...init, redirect: "manual" });
+    const response = await fetch(current, {
+      ...init,
+      redirect: "manual",
+      ...(dispatcher ? { dispatcher } : {})
+    } as RequestInit);
     const status = response.status;
     const location = response.headers.get("location");
     const isRedirect =
