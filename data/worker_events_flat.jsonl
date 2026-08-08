@@ -6141,3 +6141,6 @@
 {"id": "01KZE7FKWRCMEZW4KR1YBSMEMR", "timestamp": "2026-08-07T13:44:27Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.dati.gov.it/api/3", "query": "bonifica siti contaminati", "error": null}
 {"id": "01KZEHT3TNVRDZ2QXC8A2ETNFJ", "timestamp": "2026-08-07T16:44:57Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "bonifica siti contaminati", "error": null}
 {"id": "01KZEKN5Q154C4CTSZH71W9GRV", "timestamp": "2026-08-07T17:17:12Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "siti contaminati bonifica", "error": null}
+{"id": "01KZEQNVKJMMTS7RZSXQ5MCB0X", "timestamp": "2026-08-07T18:27:29Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "bonifica siti contaminati", "error": null}
+{"id": "01KZESK9FMSY5W0EVS5RASH69B", "timestamp": "2026-08-07T19:01:02Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.dati.gov.it/api/3", "query": "siti contaminati bonifica", "error": null}
+{"id": "01KZEVM51T312KV3YX46QG0KQ9", "timestamp": "2026-08-07T19:36:27Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "siti contaminati bonifica", "error": null}
