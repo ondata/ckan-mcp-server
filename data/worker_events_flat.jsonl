@@ -6247,3 +6247,8 @@
 {"id": "01KZXM21Z79CSP9W3MC6J5730E", "timestamp": "2026-08-13T13:12:50Z", "outcome": null, "tool": "ckan_package_show", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "festivals-events", "error": null}
 {"id": "01KZXM2858EKN954A03VDDZGYC", "timestamp": "2026-08-13T13:12:57Z", "outcome": null, "tool": "ckan_package_show", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "festivals-events", "error": null}
 {"id": "01KZY4GWKRM9MZ7TKYJPGN1K0J", "timestamp": "2026-08-13T18:00:34Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": null, "error": null}
+{"id": "01KZZS6AB9C8BNAHTW9Q6EK0C5", "timestamp": "2026-08-14T09:21:02Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Pieve Vergonte", "error": null}
+{"id": "01M004SJ6ASZZVXMJT9PV52WRM", "timestamp": "2026-08-14T12:43:47Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_modified:[NOW-1DAY TO NOW]", "error": null}
+{"id": "01M004SJ2E2EZ03Q51SBE17M7B", "timestamp": "2026-08-14T12:43:47Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_created:[NOW-7DAYS TO NOW]", "error": null}
+{"id": "01M00CZTVMJ1PM92TQZPARXS4A", "timestamp": "2026-08-14T15:07:01Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Paruzzaro", "error": null}
+{"id": "01M00FB9NQT0J6RJGKC0SG18QE", "timestamp": "2026-08-14T15:48:14Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Colazza", "error": null}
