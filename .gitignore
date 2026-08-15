@@ -10,6 +10,9 @@ dist/
 build/
 *.tsbuildinfo
 
+# Cloudflare Workers local state (miniflare state + temp bundles)
+.wrangler/
+
 # IDE
 .vscode/
 .idea/
