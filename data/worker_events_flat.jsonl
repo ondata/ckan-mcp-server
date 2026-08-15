@@ -6256,3 +6256,6 @@
 {"id": "01M00RJYA22VQ2W24X8F49EW9C", "timestamp": "2026-08-14T18:29:41Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=salary", "error": null}
 {"id": "01M00RJYK0Z3T1NS1Y1M368X0X", "timestamp": "2026-08-14T18:29:42Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=United States query=salary", "error": null}
 {"id": "01M00SMYNXXRX3GF4NFD36TGAE", "timestamp": "2026-08-14T18:48:16Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Crevacuore", "error": null}
+{"id": "01M027PTT4A1PM1CMM00MDNGG7", "timestamp": "2026-08-15T08:13:12Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Suno", "error": null}
+{"id": "01M02Q3B9S0QGT1NJ2GN2R8RGW", "timestamp": "2026-08-15T12:42:11Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_modified:[NOW-1DAY TO NOW]", "error": null}
+{"id": "01M02Q3B68F3B2J1RG3T275YRH", "timestamp": "2026-08-15T12:42:11Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_created:[NOW-7DAYS TO NOW]", "error": null}
