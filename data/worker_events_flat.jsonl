@@ -6252,3 +6252,7 @@
 {"id": "01M004SJ2E2EZ03Q51SBE17M7B", "timestamp": "2026-08-14T12:43:47Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_created:[NOW-7DAYS TO NOW]", "error": null}
 {"id": "01M00CZTVMJ1PM92TQZPARXS4A", "timestamp": "2026-08-14T15:07:01Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Paruzzaro", "error": null}
 {"id": "01M00FB9NQT0J6RJGKC0SG18QE", "timestamp": "2026-08-14T15:48:14Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Colazza", "error": null}
+{"id": "01M00RJMPV3FB0MGJPYHAQ0AFZ", "timestamp": "2026-08-14T18:29:31Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "query=salaries public sector", "error": null}
+{"id": "01M00RJYA22VQ2W24X8F49EW9C", "timestamp": "2026-08-14T18:29:41Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Italy query=salary", "error": null}
+{"id": "01M00RJYK0Z3T1NS1Y1M368X0X", "timestamp": "2026-08-14T18:29:42Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=United States query=salary", "error": null}
+{"id": "01M00SMYNXXRX3GF4NFD36TGAE", "timestamp": "2026-08-14T18:48:16Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Crevacuore", "error": null}
