@@ -1,5 +1,23 @@
 # LOG
 
+## 2026-08-15
+
+### CVE requests: three rejected advisories narrowed and resubmitted
+
+GitHub issued CVE-2026-73844 (`GHSA-6f9w`), CVE-2026-73845 (`GHSA-83x6`) and CVE-2026-73846 (`GHSA-78x9`), and rejected three others under CNA rule 4.2.11 — each advisory described more than one independently fixable vulnerability. The requests originate from `GHSA-p5c9`, where the reporters (Gal3m, mrostamipoor) asked for one CVE per finding.
+
+Rather than split published advisories into new public ones, each was **narrowed** to a single defect, with the rest demoted to impact or deployment context:
+
+- `GHSA-3369` — kept the second-order SSRF (destination derived from resource `url` metadata); dropped the `Promise.all` amplification claim, which a concurrency cap fixes independently. CWE-400 removed; vector `S:U/C:L/A:L` (4.7) → `S:C/C:L/A:N` (4.0, still Medium).
+- `GHSA-v3j5` — kept the missing `Origin`/`Host` validation. The MCP spec (Basic/Transports) draws the line for us: origin validation is **MUST**, loopback binding and authentication are **SHOULD**. The latter two stay as deployment context. CWE-306 and CWE-1327 removed.
+- `GHSA-c499` — argued dependency rather than narrowing: one missing neutralization pass at the render boundary produces both the prompt injection and the content spoofing, and no patch fixes one without the other. The remediation section was rewritten as a single control (it previously listed two, which read as two defects). CWE-79 removed.
+
+Also requested the CVE for `GHSA-vqff`, which was in the reporters' list but had neither a CVE nor a rejection — the request had apparently never been submitted.
+
+API notes: `PATCH /repos/{o}/{r}/security-advisories/{ghsa}` accepts `summary`, `description`, `cwe_ids`, `cvss_vector_string` (mutually exclusive with `severity`); `POST .../{ghsa}/cve` re-requests the CVE. There is **no** comments endpoint (404, absent from the OpenAPI description) — advisory comments were posted by replying to the GitHub notification email.
+
+Worth noting for expectations: a CVE is necessary but not sufficient for Dependabot alerts. Only 2 of the repo's advisories are in the global GitHub Advisory Database; CVE-2026-61612 has had a CVE since 2026-06-22 and is still not propagated.
+
 ## 2026-08-06
 
 ### v0.4.118 — pin the fetch path to the validated IP
