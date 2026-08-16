@@ -6259,3 +6259,4 @@
 {"id": "01M027PTT4A1PM1CMM00MDNGG7", "timestamp": "2026-08-15T08:13:12Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Suno", "error": null}
 {"id": "01M02Q3B9S0QGT1NJ2GN2R8RGW", "timestamp": "2026-08-15T12:42:11Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_modified:[NOW-1DAY TO NOW]", "error": null}
 {"id": "01M02Q3B68F3B2J1RG3T275YRH", "timestamp": "2026-08-15T12:42:11Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_created:[NOW-7DAYS TO NOW]", "error": null}
+{"id": "01M04G2JB0WDHF9R7FXHT899RC", "timestamp": "2026-08-16T05:17:54Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Trino", "error": null}
