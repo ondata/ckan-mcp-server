@@ -1,5 +1,15 @@
 # LOG
 
+## 2026-08-20
+
+### CVE-2026-76811/76812/76813 issued; advisory table added to SECURITY.md
+
+GitHub issued CVEs for the three advisories still pending from the July batch: `GHSA-38f8` (CVE-2026-76811, High), `GHSA-vmrr` (CVE-2026-76812, Critical) and `GHSA-q5gv` (CVE-2026-76813, High). All three were already published and patched (0.4.110 / 0.4.111), so no action was required on the advisories themselves. The 2026-08-15 narrowing round (`GHSA-3369`, `GHSA-v3j5`, `GHSA-c499`, `GHSA-vqff`) is still without an outcome.
+
+`SECURITY.md` now carries a GHSA → CVE → fixed-in table for all thirteen published advisories, plus a supported-versions note. Until now the CVE mapping existed only scattered across LOG entries.
+
+Propagation remains the real gap. `GET /advisories?affects=@aborruso/ckan-mcp-server` still returns only two records (CVE-2026-33060, CVE-2026-53509) out of thirteen published advisories, so Dependabot has never alerted downstream users about the other eleven — including the Critical SSRF-to-cloud-metadata one. CVE-2026-61612 has had its CVE since 2026-06-22 without propagating, which argues against a plain review backlog. Support ticket drafted in `tmp/github-support-advisory-propagation.md`, not yet sent.
+
 ## 2026-08-15
 
 ### CVE requests: three rejected advisories narrowed and resubmitted
