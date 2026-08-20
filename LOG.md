@@ -8,7 +8,7 @@ GitHub issued CVEs for the three advisories still pending from the July batch: `
 
 `SECURITY.md` now carries a GHSA → CVE → fixed-in table for all thirteen published advisories, plus a supported-versions note. Until now the CVE mapping existed only scattered across LOG entries.
 
-Propagation remains the real gap. `GET /advisories?affects=@aborruso/ckan-mcp-server` still returns only two records (CVE-2026-33060, CVE-2026-53509) out of thirteen published advisories, so Dependabot has never alerted downstream users about the other eleven — including the Critical SSRF-to-cloud-metadata one. CVE-2026-61612 has had its CVE since 2026-06-22 without propagating, which argues against a plain review backlog. Support ticket drafted in `tmp/github-support-advisory-propagation.md`, not yet sent.
+Propagation remains the real gap. `GET /advisories?affects=@aborruso/ckan-mcp-server` still returns only two records (CVE-2026-33060, CVE-2026-53509) out of thirteen published advisories, so Dependabot has never alerted downstream users about the other eleven — including the Critical SSRF-to-cloud-metadata one. CVE-2026-61612 has had its CVE since 2026-06-22 without propagating, which argues against a plain review backlog. Escalated to GitHub Support as ticket **#4682889** (org `ondata`, category Repositories / repository features), 2026-08-20. The portal's AI triage confirmed the reading before letting the ticket through: the documented review window after publication is 72 hours, nothing in the docs describes a further maintainer action to force propagation, and inspecting why some advisories were promoted and others not requires Support. Draft kept in `tmp/github-support-advisory-propagation.md`.
 
 ## 2026-08-15
 
