@@ -114,6 +114,69 @@ describe('isBlockedIp', () => {
   it('allows public IPv6', () => {
     expect(isBlockedIp('2606:4700:4700::1111')).toBe(false);
   });
+
+  // GHSA-x32r-mh7g-q2rf: IPv6 ranges that embed an IPv4 address reached internal
+  // hosts because the classifier only prefix-matched a handful of spellings.
+  it('blocks IPv6 ranges embedding IPv4 (NAT64 / 6to4 / IPv4-compatible)', () => {
+    for (const ip of [
+      '64:ff9b::a9fe:a9fe',    // NAT64 well-known -> 169.254.169.254 (cloud metadata)
+      '64:ff9b::a00:1',        // NAT64 -> 10.0.0.1
+      '64:ff9b:1::a9fe:a9fe',  // NAT64 local-use -> metadata
+      '2002:7f00:1::',         // 6to4 -> 127.0.0.1
+      '2002:c0a8:101::',       // 6to4 -> 192.168.1.1
+      '::127.0.0.1',           // IPv4-compatible loopback
+      '::192.168.1.1',         // IPv4-compatible private
+      '::a9fe:a9fe',           // IPv4-compatible metadata
+      '2001::1'                // Teredo (hardening, not part of the bypass)
+    ]) {
+      expect(isBlockedIp(ip), ip).toBe(true);
+    }
+  });
+
+  it('classifies on parsed words, not on how the address is spelled', () => {
+    for (const ip of ['0064:ff9b::a9fe:a9fe', '64:FF9B:0:0:0:0:A9FE:A9FE',
+                      '64:ff9b:0000:0000:0000:0000:a9fe:a9fe', '0:0:0:0:0:0:a9fe:a9fe']) {
+      expect(isBlockedIp(ip), ip).toBe(true);
+    }
+    // public addresses survive the same spellings
+    expect(isBlockedIp('2606:4700:4700:0000:0000:0000:0000:1111')).toBe(false);
+  });
+
+  it('fails CLOSED on an unparseable IPv6 literal', () => {
+    for (const ip of ['::ffff::1', '1:2:3:4:5:6:7:8:9', 'fe80::gggg', '64:ff9b::1.2.3.999']) {
+      expect(isBlockedIp(ip), ip).toBe(true);
+    }
+  });
+
+  it('blocks the IPv4 benchmarking range 198.18.0.0/15', () => {
+    expect(isBlockedIp('198.18.0.1')).toBe(true);
+    expect(isBlockedIp('198.19.255.255')).toBe(true);
+    expect(isBlockedIp('198.17.0.1')).toBe(false);
+    expect(isBlockedIp('198.20.0.1')).toBe(false);
+  });
+});
+
+describe('GHSA-x32r-mh7g-q2rf bypass chain', () => {
+  afterEach(() => __setDnsResolverForTests(null));
+
+  it('literal guard rejects an IPv6 literal embedding cloud metadata', () => {
+    expect(() => validateServerUrl('http://[64:ff9b::a9fe:a9fe]/')).toThrow('private/internal');
+    expect(() => validateServerUrl('http://[2002:c0a8:101::]/api/3')).toThrow('private/internal');
+  });
+
+  it('DNS guard rejects a hostname whose AAAA record is a NAT64 metadata address', async () => {
+    __setDnsResolverForTests(async () => [{ address: '64:ff9b::a9fe:a9fe', family: 6 }]);
+    await expect(assertHostnameResolvesSafe('nat64.evil')).rejects.toThrow('private/internal');
+  });
+
+  it('connection-time lookup rejects the same AAAA record', async () => {
+    const lookup = createSsrfSafeLookup({
+      lookup: (_h: string, _o: any, cb: any) => cb(null, [{ address: '64:ff9b::a9fe:a9fe', family: 6 }])
+    } as any);
+    await expect(new Promise((resolve, reject) =>
+      lookup('nat64.evil', {}, (err: any, addr: any) => err ? reject(err) : resolve(addr))))
+      .rejects.toThrow('private/internal');
+  });
 });
 
 describe('assertHostnameResolvesSafe', () => {

@@ -2,6 +2,18 @@
 
 ## 2026-08-20
 
+### v0.4.119 - classify IPv6 by value, not by prefix string (GHSA-x32r-mh7g-q2rf)
+
+`0xRomSec` reported that `isBlockedIp` misses the IPv6 ranges that embed an IPv4 address: NAT64 (`64:ff9b::/96`, `64:ff9b:1::/48`), 6to4 (`2002::/16`) and IPv4-compatible (`::/96`). Verified against the real function - all eight cases in the report return `false`. `64:ff9b::a9fe:a9fe` is 169.254.169.254 written in IPv6, and the function is the single decision point for both the literal guard and the DNS-resolution guard, so the gap applied to both halves.
+
+Fixed structurally rather than by appending a fifth prefix: `parseIpv6` expands any spelling (compressed, expanded, upper-case, leading zeros, dotted-quad tail, zone id) into eight 16-bit words, and the classifier decides on values. Unparseable input fails closed. Added `2001::/32` (Teredo) and IPv4 `198.18.0.0/15` as hardening - both embed *public* addresses and open no path to RFC1918, so they sit outside the vector.
+
+The DNS half needed no change: `createSsrfSafeLookup` already passes `all: true` with `family: family || 0` and iterates every result, so an AAAA record was always inspected - it was the classifier that waved it through. Checked before writing the fix, since a `family: 4` there would have made the patch half a fix.
+
+Tests: the eight advisory cases, four non-canonical spellings of the same address, four unparseable literals, `198.18.0.0/15` boundaries, plus three guard-level regressions that exercise the actual bypass chain (literal guard, `assertHostnameResolvesSafe`, connection-time lookup) rather than the classifier alone. 495 passing. Both build targets checked - `http.ts` is shared with the Workers bundle.
+
+## 2026-08-20
+
 ### CVE-2026-76811/76812/76813 issued; advisory table added to SECURITY.md
 
 GitHub issued CVEs for the three advisories still pending from the July batch: `GHSA-38f8` (CVE-2026-76811, High), `GHSA-vmrr` (CVE-2026-76812, Critical) and `GHSA-q5gv` (CVE-2026-76813, High). All three were already published and patched (0.4.110 / 0.4.111), so no action was required on the advisories themselves. The 2026-08-15 narrowing round (`GHSA-3369`, `GHSA-v3j5`, `GHSA-c499`, `GHSA-vqff`) is still without an outcome.
