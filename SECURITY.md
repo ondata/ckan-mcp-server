@@ -24,6 +24,7 @@ with the fix released to npm before publication.
 
 | Published | Advisory | CVE | Severity | Fixed in | Issue |
 |---|---|---|---|---|---|
+| 2026-08-20 | [GHSA-x32r-mh7g-q2rf](https://github.com/ondata/ckan-mcp-server/security/advisories/GHSA-x32r-mh7g-q2rf) | requested | Medium | 0.4.119 | SSRF guard missed IPv6 ranges embedding IPv4 (NAT64 / 6to4 / IPv4-compatible) |
 | 2026-07-09 | [GHSA-vmrr-v4xp-42cx](https://github.com/ondata/ckan-mcp-server/security/advisories/GHSA-vmrr-v4xp-42cx) | CVE-2026-76812 | Critical | 0.4.110 | Unauthenticated remote SSRF to cloud metadata → IAM credential theft |
 | 2026-07-09 | [GHSA-38f8-m897-jm7w](https://github.com/ondata/ckan-mcp-server/security/advisories/GHSA-38f8-m897-jm7w) | CVE-2026-76811 | High | 0.4.110 | SSRF in `sparql_query` / fetch-based paths via unvalidated redirects and DNS rebinding |
 | 2026-07-09 | [GHSA-q5gv-wppg-53fv](https://github.com/ondata/ckan-mcp-server/security/advisories/GHSA-q5gv-wppg-53fv) | CVE-2026-76813 | High | 0.4.111 | Denial of service via unbounded response buffering and synchronous decompression |
