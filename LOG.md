@@ -12,6 +12,10 @@ The DNS half needed no change: `createSsrfSafeLookup` already passes `all: true`
 
 Tests: the eight advisory cases, four non-canonical spellings of the same address, four unparseable literals, `198.18.0.0/15` boundaries, plus three guard-level regressions that exercise the actual bypass chain (literal guard, `assertHostnameResolvesSafe`, connection-time lookup) rather than the classifier alone. 495 passing. Both build targets checked - `http.ts` is shared with the Workers bundle.
 
+Released the full round: npm 0.4.119 (CI, provenance), GitHub release with dxt/skill assets, Cloudflare deployed and verified in prod (`http://[64:ff9b::a9fe:a9fe]` rejected, normal search intact), MCP Registry 0.4.119 `isLatest=true`.
+
+API note, same class as the missing comments endpoint: **there is no `POST .../security-advisories/{ghsa}/publish`** - 404, and the OpenAPI description lists only `get`, `patch`, `cve` and `forks` for that path. Publishing an advisory is UI-only. `PATCH` (description, `patched_versions`) and `POST .../cve` do work from the API.
+
 ## 2026-08-20
 
 ### CVE-2026-76811/76812/76813 issued; advisory table added to SECURITY.md
