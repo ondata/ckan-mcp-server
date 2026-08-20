@@ -6357,3 +6357,46 @@
 {"id": "01M0ECJ87X30D73YR0A6K247ZY", "timestamp": "2026-08-20T01:28:58Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.geospatial.jp/ckan", "query": "\u6a4b\u6881", "error": null}
 {"id": "01M0ECJAXA5D36J72C22TAH38C", "timestamp": "2026-08-20T01:29:01Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.geospatial.jp/ckan", "query": "\u9053\u8def OR \u6a4b\u6881", "error": null}
 {"id": "01M0ECJY5FKEBSFP4ATJ1P35M4", "timestamp": "2026-08-20T01:29:20Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.geospatial.jp/ckan", "query": "title:\u9053\u8def OR title:\u6a4b\u6881", "error": null}
+{"id": "01M0F8237SFKDS43D7RDFZ6CBR", "timestamp": "2026-08-20T09:29:29Z", "outcome": null, "tool": "ckan_list_resources", "server": "https://data.stadt-zuerich.ch", "query": "prd_ssz_fz_pw_bestand_marke_quartier_od2003", "error": null}
+{"id": "01M0FERJJD24SJ1T8137HCB433", "timestamp": "2026-08-20T11:26:37Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://data.stadt-zuerich.ch", "query": "Bev\u00f6lkerungsentwicklung", "error": null}
+{"id": "01M0FERP1REMJN8TY9ZWXY5WHB", "timestamp": "2026-08-20T11:26:40Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://data.stadt-zuerich.ch", "query": "Bev\u00f6lkerung", "error": null}
+{"id": "01M0FES3DGR5RYYZ6ZWD9AM700", "timestamp": "2026-08-20T11:26:54Z", "outcome": null, "tool": "ckan_package_show", "server": "https://data.stadt-zuerich.ch", "query": "bev_bestand_jahr_bevdef_od3270", "error": null}
+{"id": "01M0FES7ERP5QCGA0YEH5ESTPR", "timestamp": "2026-08-20T11:26:58Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://data.stadt-zuerich.ch", "query": "Bev\u00f6lkerungsprognose Bev\u00f6lkerungswachstum Entwicklung", "error": null}
+{"id": "01M0FESAHWR2MBFG33ECQANXKM", "timestamp": "2026-08-20T11:27:01Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://data.stadt-zuerich.ch", "query": "Bev\u00f6lkerungsprognose", "error": null}
+{"id": "01M0FESEDKCD3CNMD0Q999BXQE", "timestamp": "2026-08-20T11:27:05Z", "outcome": null, "tool": "ckan_package_show", "server": "https://data.stadt-zuerich.ch", "query": "bev_bestand_jahr_quartier_od3240", "error": null}
+{"id": "01M0FESHP043X22MY1WX5KKAY2", "timestamp": "2026-08-20T11:27:08Z", "outcome": null, "tool": "ckan_package_show", "server": "https://data.stadt-zuerich.ch", "query": "bev_monat_bestand_quartier_geschl_ag_herkunft_od3250", "error": null}
+{"id": "01M0FG3XQVER7J4YFKKP5BRFWX", "timestamp": "2026-08-20T11:50:17Z", "outcome": null, "tool": "ckan_package_search", "server": "https://data.stadt-zuerich.ch", "query": null, "error": null}
+{"id": "01M0FG48H69BP79KPMN89JWBHY", "timestamp": "2026-08-20T11:50:28Z", "outcome": null, "tool": "ckan_package_show", "server": "https://data.stadt-zuerich.ch", "query": "geo_wasserrettung", "error": null}
+{"id": "01M0FG4GF6FVNQCSN8NJ135SPQ", "timestamp": "2026-08-20T11:50:36Z", "outcome": null, "tool": "ckan_package_show", "server": "https://data.stadt-zuerich.ch", "query": "bev380od3809", "error": null}
+{"id": "01M0FG4P3KRZVCJVGQZM5Y61N9", "timestamp": "2026-08-20T11:50:42Z", "outcome": null, "tool": "ckan_package_show", "server": "https://data.stadt-zuerich.ch", "query": "bau531od5312", "error": null}
+{"id": "01M0FG4RRFM75JR39TXR3CH0V5", "timestamp": "2026-08-20T11:50:45Z", "outcome": null, "tool": "ckan_package_show", "server": "https://data.stadt-zuerich.ch", "query": "bev370od3701", "error": null}
+{"id": "01M0FG4XRYE39DMK41PYW6KSY4", "timestamp": "2026-08-20T11:50:50Z", "outcome": null, "tool": "ckan_package_show", "server": "https://data.stadt-zuerich.ch", "query": "bev408od4081", "error": null}
+{"id": "01M0FG528CVK5NNVJJ1B2A6R0G", "timestamp": "2026-08-20T11:50:54Z", "outcome": null, "tool": "ckan_package_search", "server": "https://data.bs.ch", "query": null, "error": null}
+{"id": "01M0FG551DAQ0M3C3YKHAEDXRY", "timestamp": "2026-08-20T11:50:57Z", "outcome": null, "tool": "ckan_status_show", "server": "https://data.bs.ch", "query": null, "error": null}
+{"id": "01M0FG5YHF4A5HSVGX84Q8DCPT", "timestamp": "2026-08-20T11:51:23Z", "outcome": null, "tool": "ckan_status_show", "server": "https://daten.stadt.sg.ch", "query": null, "error": null}
+{"id": "01M0FG6B0BAJ4FMNRHEY0ETDAY", "timestamp": "2026-08-20T11:51:36Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Switzerland query=St. Gallen", "error": null}
+{"id": "01M0FG6JF05NAKG119W7QE7SC9", "timestamp": "2026-08-20T11:51:44Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Switzerland", "error": null}
+{"id": "01M0FG6S1PQ6KZG91WKE37WNAG", "timestamp": "2026-08-20T11:51:51Z", "outcome": null, "tool": "ckan_status_show", "server": "https://opendata.bs.ch", "query": null, "error": null}
+{"id": "01M0FG6ZH23GKW6RA8CE11NKVV", "timestamp": "2026-08-20T11:51:57Z", "outcome": null, "tool": "ckan_package_search", "server": "https://opendata.bs.ch", "query": null, "error": null}
+{"id": "01M0FG7CF8QSZ26BPCHKPN0E7T", "timestamp": "2026-08-20T11:52:10Z", "outcome": null, "tool": "ckan_status_show", "server": "https://daten.stadt.sg.ch/", "query": null, "error": null}
+{"id": "01M0FJZ9KXSFJN50MA53M26348", "timestamp": "2026-08-20T12:40:11Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Germany", "error": null}
+{"id": "01M0FJZHPZVRZM2A7JQ9J91VNC", "timestamp": "2026-08-20T12:40:19Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Switzerland", "error": null}
+{"id": "01M0FJZVRJ17B0F7PCMJER95H4", "timestamp": "2026-08-20T12:40:30Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Austria", "error": null}
+{"id": "01M0FK001BGWFV2M0A4MD6GBW8", "timestamp": "2026-08-20T12:40:34Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan.govdata.de/", "query": "Baumkataster", "error": null}
+{"id": "01M0FK04KA16AYXE8MEV8AGGG9", "timestamp": "2026-08-20T12:40:39Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.data.gv.at/katalog/", "query": "Baumkataster", "error": null}
+{"id": "01M0FK0867S67PJ6NQ2BSTTW5J", "timestamp": "2026-08-20T12:40:42Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.data.gv.at/", "query": "Baumkataster", "error": null}
+{"id": "01M0FK0E8BTD08EDQXTF0BB8A5", "timestamp": "2026-08-20T12:40:49Z", "outcome": null, "tool": "ckan_package_search", "server": "https://opendata.swiss/", "query": "Baumkataster", "error": null}
+{"id": "01M0FK0KQJKQXYX56RKNKQWXGN", "timestamp": "2026-08-20T12:40:54Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.data.gv.at/", "query": "Baumkataster", "error": null}
+{"id": "01M0FK0QMKE7SB4HKVZ8SMX87R", "timestamp": "2026-08-20T12:40:58Z", "outcome": null, "tool": "ckan_catalog_stats", "server": "https://www.data.gv.at/katalog", "query": null, "error": null}
+{"id": "01M0FK0VWP0RY8HNHWZN7QM0RK", "timestamp": "2026-08-20T12:41:03Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan.govdata.de/", "query": "Baumkataster", "error": null}
+{"id": "01M0FK4BAGR5R4RMR21TFR87VZ", "timestamp": "2026-08-20T12:42:57Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_modified:[NOW-1DAY TO NOW]", "error": null}
+{"id": "01M0FK4B6M39VSZA7PA56ZRDZR", "timestamp": "2026-08-20T12:42:57Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_created:[NOW-7DAYS TO NOW]", "error": null}
+{"id": "01M0FK4YA14B6CJKSEH11XJKTJ", "timestamp": "2026-08-20T12:43:16Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "query=opendata.swiss", "error": null}
+{"id": "01M0FK56HJD4YPZF8GYREPG6WW", "timestamp": "2026-08-20T12:43:25Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "query=z\u00fcrich", "error": null}
+{"id": "01M0FK5DZVQMJWHMW0E4QHCBAN", "timestamp": "2026-08-20T12:43:32Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "query=swiss", "error": null}
+{"id": "01M0FK5PG1JWA1WVW25D8F8GZY", "timestamp": "2026-08-20T12:43:41Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "query=bern", "error": null}
+{"id": "01M0FK5ZAZEVHEZQYXKWQGC1PN", "timestamp": "2026-08-20T12:43:50Z", "outcome": null, "tool": "ckan_catalog_stats", "server": "https://opendata.swiss/", "query": null, "error": null}
+{"id": "01M0FK659HN8Q73EVX8VND6ZTM", "timestamp": "2026-08-20T12:43:56Z", "outcome": null, "tool": "ckan_catalog_stats", "server": "https://opendata.eawag.ch/", "query": null, "error": null}
+{"id": "01M0FK7Y3NH14Y781GQKB03N11", "timestamp": "2026-08-20T12:44:54Z", "outcome": null, "tool": "ckan_catalog_stats", "server": "https://data.stadt-zuerich.ch/", "query": null, "error": null}
+{"id": "01M0FMXK38000000000000000A", "timestamp": "2026-08-20T13:14:12Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "scuole", "error": null}
+{"id": "01M0FMXJNE0000000000000001", "timestamp": "2026-08-20T13:14:12Z", "outcome": null, "tool": "ckan_status_show", "server": "http://[64:ff9b::a9fe:a9fe]", "query": null, "error": null}
