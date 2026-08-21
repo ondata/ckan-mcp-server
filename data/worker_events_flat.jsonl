@@ -6400,3 +6400,10 @@
 {"id": "01M0FK7Y3NH14Y781GQKB03N11", "timestamp": "2026-08-20T12:44:54Z", "outcome": null, "tool": "ckan_catalog_stats", "server": "https://data.stadt-zuerich.ch/", "query": null, "error": null}
 {"id": "01M0FMXK38000000000000000A", "timestamp": "2026-08-20T13:14:12Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "scuole", "error": null}
 {"id": "01M0FMXJNE0000000000000001", "timestamp": "2026-08-20T13:14:12Z", "outcome": null, "tool": "ckan_status_show", "server": "http://[64:ff9b::a9fe:a9fe]", "query": null, "error": null}
+{"id": "01M0H6VZKG0000000000000004", "timestamp": "2026-08-21T03:47:09Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Finland", "error": null}
+{"id": "01M0H6W5DA000000000000000D", "timestamp": "2026-08-21T03:47:14Z", "outcome": null, "tool": "ckan_status_show", "server": "https://www.avoindata.fi/data/", "query": null, "error": null}
+{"id": "01M0H6WB0Q000000000000000D", "timestamp": "2026-08-21T03:47:20Z", "outcome": null, "tool": "ckan_catalog_stats", "server": "https://www.avoindata.fi/data/", "query": null, "error": null}
+{"id": "01M0H6WFTZ000000000000000D", "timestamp": "2026-08-21T03:47:25Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://www.avoindata.fi/data/", "query": "liikenne liikennem\u00e4\u00e4r\u00e4 tie raideliikenne tavaraliikenne", "error": null}
+{"id": "01M0H6WMBY000000000000000D", "timestamp": "2026-08-21T03:47:30Z", "outcome": null, "tool": "ckan_package_show", "server": "https://www.avoindata.fi/data/", "query": "1d612bf9-c265-4a61-aebb-1a12fca0aa6c", "error": null}
+{"id": "01M0H6XWC00000000000000066", "timestamp": "2026-08-21T03:48:11Z", "outcome": null, "tool": "ckan_analyze_datasets", "server": "https://www.avoindata.fi/data/", "query": "ostolaskut", "error": null}
+{"id": "01M0H738GZ000000000000000D", "timestamp": "2026-08-21T03:51:07Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://www.avoindata.fi/data/", "query": "avoimet ty\u00f6paikat ty\u00f6paikkailmoitukset ty\u00f6llisyys rekrytointi", "error": null}
