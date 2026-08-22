@@ -6609,3 +6609,8 @@
 {"id": "01M0KG47490000000000000004", "timestamp": "2026-08-22T01:07:24Z", "outcome": null, "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
 {"id": "01M0KG4BAZ0000000000000004", "timestamp": "2026-08-22T01:07:29Z", "outcome": null, "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
 {"id": "01M0KG4FRT0000000000000004", "timestamp": "2026-08-22T01:07:33Z", "outcome": null, "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
+{"id": "01M0M2A3XC000000000000000A", "timestamp": "2026-08-22T06:25:12Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Novara", "error": null}
+{"id": "01M0MQRSF3000000000000000W", "timestamp": "2026-08-22T12:40:13Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_created:[NOW-7DAYS TO NOW]", "error": null}
+{"id": "01M0MQRT10000000000000000W", "timestamp": "2026-08-22T12:40:14Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_modified:[NOW-1DAY TO NOW]", "error": null}
+{"id": "01M0MQTNBD000000000000000A", "timestamp": "2026-08-22T12:41:14Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Cavagli\u00e0", "error": null}
+{"id": "01M0N1XGCK000000000000000A", "timestamp": "2026-08-22T15:37:33Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Vercelli", "error": null}
