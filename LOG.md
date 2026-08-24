@@ -1,5 +1,17 @@
 # LOG
 
+## 2026-08-24
+
+### Support #4682889: GitHub answers about CVEs, the question was about advisories
+
+First reply from GitHub Support (Tempy). It attributes the delay to an industry-wide surge in CVE publication and records being processed in order of arrival - which answers a question the ticket did not ask. The useful part is a statement that undercuts that very explanation:
+
+> The associated advisory in the GitHub Advisory Database is published independently of the CVE record, and Dependabot alerts are driven from the advisory - not the CVE assignment.
+
+If alerts are driven from the advisory, the CVE backlog cannot explain twelve published advisories being absent from the database. Replied restating the scope, with a new data point: `GHSA-x32r`, published 2026-08-20, is at its third working day and still not in the database either - so this is not confined to the older records.
+
+State unchanged: 14 published advisories, 2 in the global database, 13 carrying a CVE. Linked from the reply: "Inside the Advisory Database and what happens when vulnerability volume breaks records", which suggests the bottleneck is database curation rather than CVE issuance. If that is the answer, "queued, and the queue is long" would be enough - and is worth asking for explicitly.
+
 ## 2026-08-20
 
 ### CVEs issued for the four narrowed advisories
