@@ -7381,3 +7381,4 @@
 {"id": "01M0Y016ZE0000000000000004", "timestamp": "2026-08-26T02:57:48Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=AR", "error": null}
 {"id": "01M0Y01AQ5000000000000000A", "timestamp": "2026-08-26T02:57:51Z", "outcome": null, "tool": "ckan_organization_list", "server": "https://data.buenosaires.gob.ar", "query": null, "error": null}
 {"id": "01M0Y03GP70000000000000004", "timestamp": "2026-08-26T02:59:03Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=AR", "error": null}
+{"id": "01M0Z209RB000000000000000W", "timestamp": "2026-08-26T12:51:29Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_created:[NOW-7DAYS TO NOW]", "error": null}
