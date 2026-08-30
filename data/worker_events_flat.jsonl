@@ -7422,3 +7422,5 @@
 {"id": "01M16RV6MA000000000000000W", "timestamp": "2026-08-29T12:45:20Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_modified:[NOW-1DAY TO NOW]", "error": null}
 {"id": "01M16RV6BS000000000000000W", "timestamp": "2026-08-29T12:45:20Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_created:[NOW-7DAYS TO NOW]", "error": null}
 {"id": "01M177DH7K000000000000000A", "timestamp": "2026-08-29T17:00:01Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Cossato", "error": null}
+{"id": "01M17FVBJ5000000000000000A", "timestamp": "2026-08-29T19:27:23Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Campiglia Cervo", "error": null}
+{"id": "01M18GYV2T000000000000000A", "timestamp": "2026-08-30T05:06:00Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Verrone", "error": null}
