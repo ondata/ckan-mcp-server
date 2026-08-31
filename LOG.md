@@ -1,5 +1,15 @@
 # LOG
 
+## 2026-08-31
+
+### Support #4682889 answered: the Advisory Database queue reaches back to June 2026
+
+Second reply from Tempy (25 August, seen on the portal - the notification was in the inbox but the question was already answered before I looked): the advisory curation team confirmed that publication of repository advisories to the Global Advisory Database **is queued**, reviewed manually, and that "the advisory publication queue stretches back to June 2026", with work under way to reduce it.
+
+So nothing is wrong with the records. The pattern we measured fits the explanation exactly: the only two advisories in the global database are the oldest ones (March and May), and CVE-2026-61612 (June) sits right at the edge of the backlog. Nothing on our side accelerates this, and there is no action left - the ticket auto-closed after seven days and is best left closed.
+
+Worth keeping: **Dependabot alerts are driven from the advisory in the database, not from the CVE assignment** (Support, 24 August). The thirteen CVEs this repository now holds are a public reference, not downstream protection - that arrives only when the advisory clears the queue.
+
 ## 2026-08-24
 
 ### Support #4682889: GitHub answers about CVEs, the question was about advisories
