@@ -7444,3 +7444,4 @@
 {"id": "01M1A56PZT000000000000000A", "timestamp": "2026-08-30T20:19:04Z", "outcome": null, "tool": "ckan_list_resources", "server": "https://www.dati.gov.it/opendata", "query": "7e04318b-0176-4c99-bedc-e48a31598a55", "error": null}
 {"id": "01M1C4G2F4000000000000000A", "timestamp": "2026-08-31T14:45:11Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Biella", "error": null}
 {"id": "01M1CZ5KJN000000000000000A", "timestamp": "2026-08-31T22:31:19Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Cavagli\u00e0", "error": null}
+{"id": "01M1EVRTDC000000000000000A", "timestamp": "2026-09-01T16:10:24Z", "outcome": null, "tool": "ckan_catalog_stats", "server": "https://open.canada.ca/data", "query": null, "error": null}
