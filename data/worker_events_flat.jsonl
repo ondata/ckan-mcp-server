@@ -7445,3 +7445,9 @@
 {"id": "01M1C4G2F4000000000000000A", "timestamp": "2026-08-31T14:45:11Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Biella", "error": null}
 {"id": "01M1CZ5KJN000000000000000A", "timestamp": "2026-08-31T22:31:19Z", "outcome": null, "tool": "ckan_find_relevant_datasets", "server": "https://dati.gov.it/opendata", "query": "Cavagli\u00e0", "error": null}
 {"id": "01M1EVRTDC000000000000000A", "timestamp": "2026-09-01T16:10:24Z", "outcome": null, "tool": "ckan_catalog_stats", "server": "https://open.canada.ca/data", "query": null, "error": null}
+{"id": "01M1F3Z70D000000000000000A", "timestamp": "2026-09-01T18:33:42Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "bilanci comunali", "error": null}
+{"id": "01M1F3ZZ500000000000000004", "timestamp": "2026-09-01T18:34:06Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Italy", "error": null}
+{"id": "01M1F3ZZS9000000000000000A", "timestamp": "2026-09-01T18:34:07Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.dati.gov.it/opendata", "query": "appalti pubblici", "error": null}
+{"id": "01M1F47FBV0000000000000004", "timestamp": "2026-09-01T18:38:12Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Italy", "error": null}
+{"id": "01M1F47RB4000000000000000W", "timestamp": "2026-09-01T18:38:22Z", "outcome": null, "tool": "ckan_package_search", "server": "https://dati.toscana.it/", "query": "bilancio", "error": null}
+{"id": "01M1F47ZMC000000000000000A", "timestamp": "2026-09-01T18:38:29Z", "outcome": null, "tool": "ckan_package_search", "server": "https://www.dati.gov.it/", "query": "appalti", "error": null}
