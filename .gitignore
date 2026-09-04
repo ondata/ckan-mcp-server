@@ -94,3 +94,5 @@ data/worker_events.jsonl
 
 # Local security mapping — contains a working repro, not for publication
 docs/untrusted-portal-strings-map.md
+.firecrawl/
+docs/internal/
