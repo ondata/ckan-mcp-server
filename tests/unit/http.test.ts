@@ -442,7 +442,7 @@ describe('makeCkanRequest', () => {
   it("disables environment proxies so the SSRF-safe lookup pins the real target", async () => {
     vi.mocked(axios.get).mockResolvedValue({ data: successResponse });
 
-    await makeCkanRequest("http://demo.ckan.org", "ckan_status_show");
+    await makeCkanRequest("https://www.dati.gov.it/opendata", "ckan_status_show");
 
     const axiosCall = vi.mocked(axios.get).mock.calls[0];
     expect(axiosCall[1].proxy).toBe(false);
