@@ -7798,3 +7798,4 @@
 {"id": "01M1M4CPF7000000000000000S", "timestamp": "2026-09-03T17:17:16Z", "outcome": null, "tool": null, "server": null, "query": null, "error": "Worker exceeded CPU time limit."}
 {"id": "01M1M4JRK80000000000000004", "timestamp": "2026-09-03T17:20:34Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Canada query=RCMP", "error": null}
 {"id": "01M1M4JY280000000000000004", "timestamp": "2026-09-03T17:20:40Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Canada", "error": null}
+{"id": "01M1P6JGRT000000000000000W", "timestamp": "2026-09-04T12:33:52Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_created:[NOW-7DAYS TO NOW]", "error": null}
