@@ -330,7 +330,9 @@ export function isBlockedIp(ip: string): boolean {
       w[0] === 0x2002 ||                           // 2002::/16 6to4
       (w[0] === 0x2001 && w[1] === 0x0000) ||      // 2001::/32 Teredo
       (w[0] & 0xfe00) === 0xfc00 ||                // fc00::/7 unique local
-      (w[0] & 0xffc0) === 0xfe80                   // fe80::/10 link-local
+      (w[0] & 0xffc0) === 0xfe80 ||                // fe80::/10 link-local
+      (w[0] & 0xffc0) === 0xfec0 ||                // fec0::/10 site-local (deprecated)
+      (w[0] & 0xff00) === 0xff00                   // ff00::/8 multicast
     );
   }
 
@@ -348,7 +350,7 @@ export function isBlockedIp(ip: string): boolean {
     (o1 === 172 && o2 >= 16 && o2 <= 31) ||  // 172.16.0.0/12 private
     (o1 === 192 && o2 === 168) ||            // 192.168.0.0/16 private
     (o1 === 198 && (o2 === 18 || o2 === 19)) || // 198.18.0.0/15 benchmarking
-    o1 === 255                               // broadcast
+    o1 >= 224                                // 224.0.0.0/4 multicast, 240.0.0.0/4 reserved, broadcast
   );
 }
 
@@ -713,6 +715,9 @@ export async function makeCkanRequest<T>(
         timeout: 30000,
         responseType: "arraybuffer",
         maxRedirects: 5,
+        // Never route through HTTP_PROXY/HTTPS_PROXY: a proxy would connect to the
+        // target itself, bypassing the SSRF-safe lookup pinned in the agents below.
+        proxy: false,
         maxContentLength: MAX_RESPONSE_BYTES,
         maxBodyLength: MAX_RESPONSE_BYTES,
         ...(safeAgents
