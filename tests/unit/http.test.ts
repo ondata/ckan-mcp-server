@@ -154,6 +154,13 @@ describe('isBlockedIp', () => {
     expect(isBlockedIp('198.17.0.1')).toBe(false);
     expect(isBlockedIp('198.20.0.1')).toBe(false);
   });
+
+  it("blocks multicast, reserved and site-local ranges", () => {
+    for (const ip of ["224.0.0.1", "239.255.255.255", "240.0.0.1", "255.255.255.255", "ff00::1", "ff02::1", "fec0::1", "feff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"]) {
+      expect(isBlockedIp(ip), ip).toBe(true);
+    }
+    expect(isBlockedIp("223.255.255.254")).toBe(false);
+  });
 });
 
 describe('GHSA-x32r-mh7g-q2rf bypass chain', () => {
@@ -430,6 +437,15 @@ describe('makeCkanRequest', () => {
     expect(axiosCall[1].headers['User-Agent']).toBe(
       'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     );
+  });
+
+  it("disables environment proxies so the SSRF-safe lookup pins the real target", async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: successResponse });
+
+    await makeCkanRequest("https://www.dati.gov.it/opendata", "ckan_status_show");
+
+    const axiosCall = vi.mocked(axios.get).mock.calls[0];
+    expect(axiosCall[1].proxy).toBe(false);
   });
 
   it('throws error when success=false in response', async () => {

@@ -1,5 +1,14 @@
 # LOG
 
+## 2026-09-04
+
+### SSRF guard aligned with datagouv-mcp v1.0.0
+
+Compared our `isBlockedIp` and request chain against the SSRF hardening shipped in [datagouv-mcp v1.0.0](https://github.com/datagouv/datagouv-mcp/releases/tag/v1.0.0) (PR #126, external report). Connect-time pinning, redirect re-checks and IPv4-mapped/6to4/NAT64 unwrapping were already in place; their specific vector (fetching producer-supplied URLs from catalog metadata) does not apply here. Two gaps closed:
+
+- `proxy: false` on the axios path: with `HTTP_PROXY`/`HTTPS_PROXY` set, axios connected to the proxy and the SSRF-safe lookup validated only the proxy's IP, not the target's.
+- `isBlockedIp` now also rejects 224.0.0.0/4 (multicast), 240.0.0.0/4 (reserved), ff00::/8 (IPv6 multicast) and fec0::/10 (site-local). Running their 37 test cases against our function surfaced exactly these.
+
 ## 2026-08-31
 
 ### Support #4682889 answered: the Advisory Database queue reaches back to June 2026
