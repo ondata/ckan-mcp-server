@@ -2,6 +2,10 @@
 
 ## 2026-09-05
 
+### v0.4.122 - Solr parser fix
+
+Ships #534: the `text:(...)` wrapper is reserved for the queries dismax cannot serve, the escaping preserves unary operators and balanced grouping, and the parser probe measures two terms taken from the catalog on every portal. `force_text_field` is gone from `portals.json`.
+
 ### Solr: wrap only boolean queries, and measure every portal instead of storing a verdict
 
 The usage review surfaced an LLM client reformulating the same request against
