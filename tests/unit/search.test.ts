@@ -313,8 +313,24 @@ describe('escapeForTextWrapping', () => {
     expect(escapeForTextWrapping('ambiente - rifiuti')).toBe('ambiente \\- rifiuti');
   });
 
+  it('keeps balanced grouping parentheses', () => {
+    // `(aria OR "qualità dell'aria") AND Milano`, a real query from the telemetry:
+    // dismax returns 0, escaped parentheses 51, preserved ones 59.
+    expect(escapeForTextWrapping('(aria OR acqua) AND Milano')).toBe('(aria OR acqua) AND Milano');
+  });
+
+  it('treats a group opener as a term boundary', () => {
+    expect(escapeForTextWrapping('aria OR (-rifiuti)')).toBe('aria OR (-rifiuti)');
+  });
+
+  it('escapes unbalanced parentheses: stray input must not become a syntax error', () => {
+    expect(escapeForTextWrapping('foo (bar')).toBe('foo \\(bar');
+    expect(escapeForTextWrapping('foo bar)')).toBe('foo bar\\)');
+    expect(escapeForTextWrapping('foo )bar( baz')).toBe('foo \\)bar\\( baz');
+  });
+
   it('escapes every other special character as before', () => {
-    expect(escapeForTextWrapping('foo (bar):baz')).toBe(escapeSolrQuery('foo (bar):baz'));
+    expect(escapeForTextWrapping('foo bar:baz')).toBe(escapeSolrQuery('foo bar:baz'));
   });
 
   it('wraps a mixed query without losing the exclusion', () => {

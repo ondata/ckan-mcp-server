@@ -70,24 +70,46 @@ export function escapeSolrQuery(query: string): string {
   return query.replace(SOLR_SPECIAL_CHARS, "\\$&");
 }
 
+/** Parentheses that pair up can be trusted as grouping rather than stray input. */
+function hasBalancedParens(query: string): boolean {
+  let depth = 0;
+  for (const char of query) {
+    if (char === "(") depth++;
+    else if (char === ")" && --depth < 0) return false;
+  }
+  return depth === 0;
+}
+
 /**
- * Escape for `text:(...)` wrapping, leaving a `+`/`-`/`!` in operator position alone.
+ * Escape for `text:(...)` wrapping, keeping the syntax the caller actually meant.
  *
- * Escaping those inverts the caller's intent: on dati.gov.it `ambiente` returns 8047
- * and `ambiente -rifiuti` returns 7649, but `text:(ambiente \-rifiuti)` returns 398 —
- * exactly the 398 the caller asked to leave out. Unescaped, `text:(ambiente -rifiuti)`
- * returns 7649, the same answer dismax gives.
+ * A `+`/`-`/`!` in operator position stays: escaping it inverts the caller's intent.
+ * On dati.gov.it `ambiente` returns 8047 and `ambiente -rifiuti` returns 7649, but
+ * `text:(ambiente \-rifiuti)` returns 398 — exactly the 398 the caller asked to leave
+ * out. Unescaped, `text:(ambiente -rifiuti)` returns 7649, the same answer dismax
+ * gives, which is what lets a mixed query keep both halves: `text:(aria OR acqua
+ * -rifiuti)` returns 1349 against 1389 for the disjunction alone.
  *
- * Which is what lets a mixed query keep both halves: `text:(aria OR acqua -rifiuti)`
- * returns 1349 against 1389 for the disjunction alone, so the OR is honoured and the
- * exclusion applied. dismax gives 21 for the same disjunction, having swallowed the OR.
+ * Balanced parentheses stay too, since escaping turns grouping into literal tokens.
+ * On `(aria OR "qualità dell'aria") AND Milano`, a real query from the telemetry:
+ * dismax returns 0, escaped parentheses return 51, and preserved ones 59. Unbalanced
+ * parentheses are escaped as before — stray input must not become a syntax error.
  */
 export function escapeForTextWrapping(query: string): string {
+  const keepGroups = hasBalancedParens(query);
+
   return query.replace(
     SOLR_SPECIAL_CHARS,
     (char, offset: number, whole: string) => {
+      if (keepGroups && (char === "(" || char === ")")) return char;
+
       const isUnary = char === "+" || char === "-" || char === "!";
-      const atTermStart = offset === 0 || /\s/.test(whole[offset - 1]!);
+      const previous = offset === 0 ? "" : whole[offset - 1]!;
+      // A group opener is a term boundary as much as a space is, but only when the
+      // parenthesis itself survives: after an escaped one the operator would bind to
+      // the backslash.
+      const atTermStart =
+        offset === 0 || /\s/.test(previous) || (keepGroups && previous === "(");
       const followedByTerm = offset + 1 < whole.length && !/\s/.test(whole[offset + 1]!);
       return isUnary && atTermStart && followedByTerm ? char : `\\${char}`;
     }
