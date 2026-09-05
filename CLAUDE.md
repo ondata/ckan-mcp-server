@@ -459,7 +459,7 @@ npm cannot resolve relative paths from the tarball.
 
 When releasing a new version:
 
-1. **Update version**: Edit the version field in `package.json`, `manifest.json` **and `server.json`** (in `server.json` there are **two** fields: top-level `version` and `packages[0].version` — both must match)
+1. **Update version**: Edit the version field in `package.json`, `package-lock.json`, `manifest.json`, **`server.json`** (in `server.json` there are **two** fields: top-level `version` and `packages[0].version` — both must match), **`src/server.ts`** (MCP server version) and **`src/worker.ts`** (`/health` response). The two source files are easy to forget: v0.4.119 shipped with them still at 0.4.118. Check with `grep -rn "<old version>" package.json manifest.json server.json src/server.ts src/worker.ts` — it must return nothing
 2. **Update LOG.md**: Add entry with date and changes
 3. **Commit changes**: `git add . && git commit -m "..."`
 4. **Push to GitHub**: `git push origin main`

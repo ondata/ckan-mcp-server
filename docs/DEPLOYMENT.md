@@ -460,6 +460,7 @@ Update the version in **all** of these files — missing any one causes version 
 - `package.json`
 - `package-lock.json`
 - `manifest.json` (DXT packaging)
+- `server.json` (MCP Registry entry — **two** fields: top-level `version` and `packages[0].version`)
 - `src/server.ts` (MCP server name/version)
 - `src/worker.ts` (health endpoint — `version` field + `tools` count)
 
@@ -470,17 +471,10 @@ Update the version in **all** of these files — missing any one causes version 
 
 ```bash
 OLD=0.4.93 NEW=0.4.94
-sed -i "s/\"version\": \"$OLD\"/\"version\": \"$NEW\"/g" package.json package-lock.json manifest.json
+sed -i "s/\"version\": \"$OLD\"/\"version\": \"$NEW\"/g" package.json package-lock.json manifest.json server.json
 sed -i "s/version: \"$OLD\"/version: \"$NEW\"/" src/server.ts
 sed -i "s/version: '$OLD'/version: '$NEW'/" src/worker.ts
-```
-
-Edit `package.json` and bump version:
-
-```json
-{
-  "version": "0.5.0"
-}
+grep -rn "$OLD" package.json manifest.json server.json src/server.ts src/worker.ts  # must print nothing
 ```
 
 ### Step 2: Update Changelog
@@ -541,6 +535,12 @@ git push origin v0.5.0
 
 Verify: Tag appears in https://github.com/ondata/ckan-mcp-server/tags
 
+**Pushing the tag triggers the npm publish** (`.github/workflows/release.yml`: checks the tag matches `package.json`, builds, tests, `npm publish --provenance`). Watch it:
+
+```bash
+gh run watch $(gh run list --workflow=release.yml --limit 1 --json databaseId -q '.[0].databaseId')
+```
+
 ### Step 7: Create GitHub Release
 
 ```bash
@@ -568,10 +568,11 @@ Verify: Release appears as "Latest" at https://github.com/ondata/ckan-mcp-server
 
 ```bash
 npm run pack:dxt
-gh release upload v0.5.0 ckan-mcp-server.dxt
+npm run pack:skill
+gh release upload v0.5.0 ckan-mcp-server.dxt tmp/ckan-mcp.skill
 ```
 
-Verify: `ckan-mcp-server.dxt` appears as a release asset on the GitHub releases page.
+Verify: `ckan-mcp-server.dxt` and `ckan-mcp.skill` appear as release assets on the GitHub releases page.
 
 **Important**: Keep GitHub releases in sync with npm. Do not leave GitHub behind npmjs.
 
@@ -588,20 +589,27 @@ If npm is ahead, create the missing GitHub release(s) from existing tags:
 gh release create v0.X.Y --generate-notes
 ```
 
-### Step 8: Publish to npm
+### Step 8: Verify npm and publish to the MCP Registry
 
-```bash
-NPM_CONFIG_CACHE=/tmp/npm-cache npm publish
-```
-
-> **Warning**: Never pipe `npm publish` into `grep` or any filter before chaining with `&&`.
-> The pipe transfers `grep`'s exit code (1 if no match), not npm's — causing subsequent commands to be silently skipped.
-> Always run `npm publish` alone, then run the next step separately.
+npm is published by CI when the tag is pushed (Step 6). **Do not run `npm publish` by hand**: the two paths collide and the loser gets `EPUBLISHCONFLICT`.
 
 Verify:
-- Check https://www.npmjs.com/package/@aborruso/ckan-mcp-server
-- Version updated
-- Package installable: `npm install @aborruso/ckan-mcp-server`
+
+```bash
+npm view @aborruso/ckan-mcp-server version
+npm view @aborruso/ckan-mcp-server@0.5.0 dist.attestations   # provenance present
+```
+
+Then publish the same version to the MCP Registry — only **after** npm is live, the registry validates that the npm version exists:
+
+```bash
+mcp-publisher login github   # device flow, opens a browser; needed when the token has expired
+mcp-publisher publish
+curl -s "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.aborruso/ckan-mcp-server" | \
+  jq -r '.servers[] | select(.server.name|test("aborruso")) | "\(.server.version) | latest \(._meta["io.modelcontextprotocol.registry/official"].isLatest)"'
+```
+
+`npm publish` does not update the registry: skipping this step pins registry installs to the previous version.
 
 ### Step 9: Deploy to Cloudflare Workers
 
@@ -630,7 +638,7 @@ Use this checklist to ensure nothing is missed:
 - [ ] Local testing complete: `npm run dev:worker`
 
 ### Version Update
-- [ ] Version bumped in `package.json`, `manifest.json`, `src/server.ts`, `src/worker.ts`
+- [ ] Version bumped in `package.json`, `package-lock.json`, `manifest.json`, `server.json` (two fields), `src/server.ts`, `src/worker.ts`
 - [ ] Tool count updated in `src/worker.ts` health endpoint (if tools added/removed)
 - [ ] `LOG.md` updated with changes
 - [ ] `CLAUDE.md` updated if architecture changed
@@ -648,8 +656,9 @@ Use this checklist to ensure nothing is missed:
 
 ### Publishing
 - [ ] GitHub Release created with notes
-- [ ] DXT built and uploaded: `npm run pack:dxt && gh release upload vX.Y.Z ckan-mcp-server.dxt`
-- [ ] npm package published (check npmjs.com)
+- [ ] DXT + skill built and uploaded: `npm run pack:dxt && npm run pack:skill && gh release upload vX.Y.Z ckan-mcp-server.dxt tmp/ckan-mcp.skill`
+- [ ] npm published by CI on tag push (`gh run watch`, then `npm view ... dist.attestations`)
+- [ ] MCP Registry published (`mcp-publisher publish`, verify `isLatest=true`)
 - [ ] GitHub release not behind npm (verify `gh release list` + `npm view @aborruso/ckan-mcp-server version`)
 - [ ] Cloudflare Workers deployed (if code changed)
 
@@ -695,14 +704,14 @@ Not every change requires publishing to all platforms:
 
 ## Common Issues
 
-### "npm publish" fails with 403
+### Release workflow fails or npm shows the old version
 
-**Problem**: Already published this version
+**Problem**: The tag does not match `package.json`, or `npm publish` was also run by hand (`EPUBLISHCONFLICT`)
 
 **Solution**:
 1. Check current npm version: `npm view @aborruso/ckan-mcp-server version`
-2. Bump version in package.json
-3. Try again
+2. Check the run: `gh run list --workflow=release.yml --limit 1`
+3. If the version was never published, fix the mismatch, bump if needed, and push a new tag
 
 ### npm cache EACCES in sandboxed environments
 
