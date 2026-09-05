@@ -1,18 +1,69 @@
 # ckan-search Specification
 
 ## Purpose
-TBD - created by archiving change update-search-parser-config. Update Purpose after archive.
-## Requirements
-### Requirement: Package search parser override
-The system SHALL support a per-portal default and a per-request override to force package search queries through the `text` field when needed, and SHALL escape Solr/Lucene special characters when wrapping queries in `text:(...)`.
+How this server turns a caller's query into a CKAN `package_search` request: which Solr
+parser it reaches, how the query is escaped, and how results are ranked.
 
-#### Scenario: Portal default applies
-- **WHEN** a portal is configured to force the text-field parser
-- **THEN** `ckan_package_search` uses `text:(...)` for non-fielded queries by default with escaped query content
+## Requirements
+### Requirement: Solr parser selection
+
+Every tool that builds a Solr query for `package_search` SHALL resolve the parser through
+`resolveSearchQuery`, and SHALL use the same portal probe when the query may need wrapping.
+This is a property of the query-building path, not of one tool: today the path is shared by
+`ckan_package_search` and `ckan_find_relevant_datasets`, any tool added later belongs on
+that list, and a change touching the parser SHALL be verified against every tool on it.
+
+Background: CKAN sends a colon-free query to Solr's dismax parser with `q.op=AND`,
+`mm='2<-1 5<80%'` and `qf='name^4 title^4 tags^2 groups^2 text'`. dismax has no boolean
+syntax, so `A OR B` collapses into `A AND B`; a colon takes the query off dismax, which is
+what `text:(...)` exploits. The same switch discards the `qf` boosts and ANDs every term on
+one field, so the wrapper helps a boolean query and harms every other shape.
+
+#### Scenario: Boolean query on a portal that ignores booleans
+- **WHEN** a query carries `AND`, `OR` or `NOT`, or punctuation inside a word, and the
+  portal probe finds the default parser does not honour a disjunction
+- **THEN** the query is wrapped in `text:(...)` with its content escaped
+- **AND** the wrapper is applied identically by `ckan_package_search` and
+  `ckan_find_relevant_datasets`
+
+#### Scenario: Plain keyword query
+- **WHEN** a query carries no boolean operator, which is the shape an LLM client generates
+  from a user's request
+- **THEN** the query reaches the portal's own parser unwrapped, keeping the `qf` boosts
+  and `mm`, and no probe is issued
+
+#### Scenario: Unary operator
+- **WHEN** a query carries a `+`, `-` or `!` in operator position
+- **THEN** the character survives the escaping, because dismax honours it natively and
+  escaping it inverts the caller's intent
 
 #### Scenario: Request override applies
 - **WHEN** a client explicitly requests the text-field parser
-- **THEN** `ckan_package_search` uses `text:(...)` regardless of portal defaults with escaped query content
+- **THEN** the wrapper is applied regardless of what the probe found
+
+#### Scenario: Portal where the wrapper does not work
+- **WHEN** the probe finds the wrapped form returns fewer results than the plain one
+- **THEN** no wrapping is applied on that portal, and the verdict is cached only if it was
+  actually measured
+
+### Requirement: Relevance ranking
+
+`ckan_find_relevant_datasets` ranks locally over the candidates `package_search` returns
+first, so its answer depends on both the recall of the query and the size of the candidate
+window. The tool SHALL score a field by the share of query terms it carries, SHALL match
+terms on Unicode word boundaries, and SHALL score at least 50 candidates whatever the
+requested limit.
+
+#### Scenario: Field scoring
+- **WHEN** a field contains some of the query's terms
+- **THEN** it scores in proportion to the share it carries, never the full weight for a
+  single term
+
+#### Scenario: Non-English text
+- **WHEN** a query term ends in an accented letter, or is a stopword of the catalog's
+  language
+- **THEN** term matching respects Unicode word boundaries, and the stopword does not
+  contribute to any field's score
 
 ### Requirement: List Dataset Resources
 

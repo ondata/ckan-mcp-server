@@ -7,6 +7,7 @@ import { ResponseFormat, ResponseFormatSchema, CkanOrganization } from "../types
 import { makeCkanRequest, formatCkanError, CkanApiError } from "../utils/http.js";
 import { truncateText, formatDate, addDemoFooter, wrapUntrusted, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
 import { getOrganizationViewUrl } from "../utils/url-generator.js";
+import { stripAccents } from "../utils/search.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type OrgFacetItem = { name: string; display_name?: string; count: number };
@@ -374,8 +375,11 @@ Typical workflow: ckan_organization_search → ckan_organization_show (get detai
     },
     async (params) => {
       try {
-        // Build Solr query with wildcards (lowercase: Solr org names are always lowercase)
-        const query = `organization:*${params.pattern.toLowerCase()}*`;
+        // Build Solr query with wildcards. A wildcard term bypasses Solr's analysis
+        // chain, so the pattern has to be pre-normalised the way CKAN builds the name
+        // slug: lowercase and without accents. Otherwise `città` finds nothing while
+        // `citta` finds 135 organizations, `citta-metropolitana-di-*` among them.
+        const query = `organization:*${stripAccents(params.pattern.toLowerCase())}*`;
 
         // Search using package_search with faceting
         const result = await makeCkanRequest<any>(

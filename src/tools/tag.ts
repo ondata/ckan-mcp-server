@@ -7,6 +7,7 @@ import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
 import { truncateText, addDemoFooter, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { stripAccents } from "../utils/search.js";
 
 type TagItem = {
   name: string;
@@ -91,7 +92,12 @@ Typical workflow: ckan_tag_list → ckan_package_search with fq="tags:tag_name" 
           q: params.q,
           rows: 0,
           'facet.field': JSON.stringify(['tags']),
-          'facet.limit': params.limit
+          // With a tag_query the filter runs on what the facet returned, so asking for
+          // only `limit` tags makes it search the most frequent ones alone: on
+          // dati.gov.it 53 tags contain "citta" and none is in the top 100, so the
+          // filter answered "no tags" while they existed. Widen the facet, then apply
+          // the caller's limit to the filtered list.
+          'facet.limit': params.tag_query ? Math.max(params.limit, 1000) : params.limit
         };
 
         if (params.fq) apiParams.fq = params.fq;
@@ -105,8 +111,13 @@ Typical workflow: ckan_tag_list → ckan_package_search with fq="tags:tag_name" 
         let tags = normalizeTagFacets(result);
 
         if (params.tag_query) {
-          const needle = params.tag_query.toLowerCase();
-          tags = tags.filter(tag => tag.name.toLowerCase().includes(needle));
+          // Both sides accent-folded: CKAN builds tag names as slugs, so `città`
+          // would never match `citta-metropolitana` — while portals that do keep
+          // accented tags still match either spelling.
+          const needle = stripAccents(params.tag_query.toLowerCase());
+          tags = tags
+            .filter(tag => stripAccents(tag.name.toLowerCase()).includes(needle))
+            .slice(0, params.limit);
         }
 
         tags = tags

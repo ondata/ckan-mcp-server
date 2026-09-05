@@ -1166,10 +1166,20 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
         // when a search returned a handful of results, not enough now that it returns
         // hundreds.
         const rows = Math.min(Math.max(params.limit * 5, 50), 100);
+
+        // Same probe as ckan_package_search: without it this tool sends a boolean
+        // query to the parser that ignores booleans. On dati.comune.milano.it
+        // `aria OR acqua` returned 0 here against 87 there.
+        let parserOverride = params.query_parser;
+        if (!parserOverride && mayNeedTextWrapping(params.query)) {
+          const needsText = await probePortalParser(params.server_url);
+          if (needsText) parserOverride = "text";
+        }
+
         const { effectiveQuery } = resolveSearchQuery(
           params.server_url,
           params.query,
-          params.query_parser
+          parserOverride
         );
 
         const searchResult = await makeCkanRequest<any>(

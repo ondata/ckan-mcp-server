@@ -24,6 +24,26 @@ The wrapping fix did not cause this; it removed the cover. Three defects, all ol
   "qualità dell'aria". On a catalog that is mostly not in English this silently sank
   every accented query. Replaced with Unicode lookarounds.
 
+Looking for more of the same family turned up three more, all cases of a local filter
+running over a truncated or wrongly-normalised set:
+
+- `ckan_find_relevant_datasets` never called the parser probe. `portals.json` used to
+  cover it; removing `force_text_field` left it sending boolean queries to the parser that
+  ignores them. On dati.comune.milano.it `aria OR acqua` returned 0 there against 87 from
+  `ckan_package_search`. Same probe now applies to both.
+- `ckan_organization_search` builds a Solr wildcard, which bypasses the analysis chain, so
+  the pattern must be pre-normalised the way CKAN builds a name slug. It lowercased but did
+  not fold accents: `città` returned 0 while `citta` matched 135 datasets.
+- `ckan_tag_list` applied `tag_query` after faceting, with `facet.limit` set to the
+  caller's `limit`. On dati.gov.it 53 tags contain "citta" and none is in the top 100, so
+  the filter answered "no tags" while they existed. The facet is now widened when a filter
+  is given.
+
+`openspec/specs/ckan-search/spec.md` described the parser as a property of
+`ckan_package_search` alone, which is what let the second caller go unnoticed — and after
+yesterday it was also wrong, still describing the per-portal default that was removed.
+Rewritten as a property of the query-building path, naming every tool that shares it.
+
 Also raised the candidate window to at least 50: the local ranking only sees what Solr
 returns first, and `limit: 3` shrank it to 15 — enough when a search returned a handful
 of results, not enough now.
