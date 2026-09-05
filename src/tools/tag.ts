@@ -6,8 +6,8 @@ import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
 import { truncateText, addDemoFooter, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { stripAccents } from "../utils/search.js";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type TagItem = {
   name: string;
@@ -125,12 +125,16 @@ Typical workflow: ckan_tag_list → ckan_package_search with fq="tags:tag_name" 
           // dati.gov.it that is 14138 tags and 1.4 MB, against ~50 KB for the
           // bounded window above.
           if (tags.length < params.limit) {
+            // No catch here on purpose: if the exhaustive request fails, returning
+            // the bounded set would answer "these are the matching tags" while
+            // hiding the ones it never looked at. The error goes to the tool's
+            // normal path instead, and the caller can narrow with `fq` or `q`.
             const wide = await makeCkanRequest<any>(
               params.server_url,
               'package_search',
               { ...apiParams, 'facet.limit': -1 }
-            ).catch(() => null);
-            if (wide) tags = matching(normalizeTagFacets(wide));
+            );
+            tags = matching(normalizeTagFacets(wide));
           }
 
           // Solr sorts by count only while facet.limit is positive: asked for -1 it
