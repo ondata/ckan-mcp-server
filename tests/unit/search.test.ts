@@ -273,10 +273,27 @@ describe('hasExplicitBooleanOperator', () => {
     expect(hasExplicitBooleanOperator(query as string)).toBe(expected);
   });
 
-  it('treats a hyphenated term as an operator, which is what the portal does', () => {
-    // plain e-government returns 58919 of ~65000 datasets: the portal reads the
-    // hyphen as NOT. The wrapper gives 278 instead.
+  it('wraps intra-word punctuation, which dismax misreads as an operator', () => {
+    // plain `e-government` returns 58919 of ~65000 datasets — the portal reads the
+    // hyphen as NOT — against 278 for the escaped literal. `COVID-19`: 9963 vs 69.
     expect(hasExplicitBooleanOperator('e-government')).toBe(true);
+    expect(hasExplicitBooleanOperator('COVID-19')).toBe(true);
+  });
+
+  it('leaves a real unary operator alone: wrapping inverts it', () => {
+    // dati.gov.it: `ambiente` 8047, `ambiente -rifiuti` 7649 unwrapped and 398
+    // wrapped — and 8047 - 7649 = 398, exactly the set the caller excluded.
+    // dismax honours +/-/! natively, so these queries must reach it untouched.
+    expect(hasExplicitBooleanOperator('ambiente -rifiuti')).toBe(false);
+    expect(hasExplicitBooleanOperator('+ambiente +rifiuti')).toBe(false);
+    expect(hasExplicitBooleanOperator('ambiente !rifiuti')).toBe(false);
+    expect(mayNeedTextWrapping('ambiente -rifiuti')).toBe(false);
+  });
+
+  it('prefers a typed exclusion over the OR fix when both are present', () => {
+    // Neither form serves both: wrapping restores OR but destroys the exclusion.
+    // The exclusion was typed explicitly and the portal can honour it, so it wins.
+    expect(hasExplicitBooleanOperator('aria OR acqua -rifiuti')).toBe(false);
   });
 });
 

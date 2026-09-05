@@ -18,6 +18,9 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
  */
 const _portalParserCache = new Map<string, boolean>();
 
+/** Terms safe to drop into a probe query verbatim: no Solr syntax. */
+const LITERAL_TERM = /^[\p{L}\p{N}_]+$/u;
+
 /**
  * Pick two terms that actually occur in this catalog, for the parser probe below.
  *
@@ -45,7 +48,10 @@ async function pickProbeTerms(serverUrl: string): Promise<[string, string] | nul
   const items: Array<{ name?: string; count?: number }> =
     facetRes?.search_facets?.tags?.items ?? [];
   const usable = items
-    .filter(i => typeof i.name === 'string' && !/\s/.test(i.name))
+    // Letters, digits and underscore only: a tag like `open-data` or one carrying a
+    // colon would be read as Solr syntax and skew the very query that measures the
+    // parser. Unescaped is the point — the probe must look like an ordinary search.
+    .filter(i => typeof i.name === 'string' && LITERAL_TERM.test(i.name))
     .filter(i => (i.count ?? 0) >= total * 0.005 && (i.count ?? 0) <= total * 0.3)
     .sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
   if (usable.length >= 2) return [usable[0].name!, usable[1].name!];
@@ -55,12 +61,25 @@ async function pickProbeTerms(serverUrl: string): Promise<[string, string] | nul
     rows: 25
   }).catch(() => null);
   const titles: string[] = (sampleRes?.results ?? []).map((r: any) => r?.title ?? '');
+  const words = titles.map(t => new Set(t.toLowerCase().split(/[^\p{L}\p{N}_]+/u).filter(w => w.length > 4)));
   const freq = new Map<string, number>();
-  for (const word of titles.join(' ').toLowerCase().split(/[^\p{L}]+/u)) {
-    if (word.length > 4) freq.set(word, (freq.get(word) ?? 0) + 1);
-  }
-  const top = [...freq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2);
-  return top.length === 2 ? [top[0][0], top[1][0]] : null;
+  for (const set of words) for (const w of set) freq.set(w, (freq.get(w) ?? 0) + 1);
+
+  const ranked = [...freq.entries()]
+    .filter(([w]) => LITERAL_TERM.test(w))
+    .sort((a, b) => b[1] - a[1]);
+  const first = ranked[0]?.[0];
+  if (!first) return null;
+
+  // The second term must not be a synonym of the first: if the two always occur in
+  // the same titles, `A OR B` equals `A` even when the portal honours OR, and the
+  // probe would cache a false negative. Prefer the most frequent word that appears
+  // somewhere the first one does not.
+  const independent = ranked
+    .slice(1)
+    .find(([w]) => words.some(set => set.has(w) && !set.has(first)));
+  const second = independent?.[0] ?? ranked[1]?.[0];
+  return second ? [first, second] : null;
 }
 
 /**
@@ -83,10 +102,12 @@ async function probePortalParser(serverUrl: string): Promise<boolean> {
   const key = serverUrl.replace(/\/$/, '').toLowerCase();
   if (_portalParserCache.has(key)) return _portalParserCache.get(key)!;
 
-  let needsText = false;
   const terms = await pickProbeTerms(serverUrl).catch(() => null);
+  if (!terms) return false;   // could not measure: do not wrap, and do not remember
 
-  if (terms) {
+  let needsText = false;
+  let measured = false;
+  {
     const [a, b] = terms;
     const count = async (q: string): Promise<number | null> => {
       const res = await makeCkanRequest<any>(serverUrl, 'package_search', { q, rows: 0 })
@@ -103,10 +124,14 @@ async function probePortalParser(serverUrl: string): Promise<boolean> {
     if (ca !== null && cb !== null && cOr !== null && cText !== null) {
       const booleanIgnored = cOr < Math.max(ca, cb);
       needsText = booleanIgnored && cText > cOr;
+      measured = true;
     }
   }
 
-  _portalParserCache.set(key, needsText);
+  // A portal that timed out or errored must not be written off for the whole
+  // session: an unmeasured verdict is never cached, so the next boolean query on
+  // that portal tries again.
+  if (measured) _portalParserCache.set(key, needsText);
   return needsText;
 }
 
@@ -884,7 +909,10 @@ Typical workflow: ckan_status_show (check locale) → ckan_package_search (query
           const { effectiveQuery: strippedEffective } = resolveSearchQuery(
             params.server_url,
             strippedQuery,
-            params.query_parser
+            // parserOverride, not params.query_parser: the probe's verdict must
+            // survive the retry, or an accented boolean query is re-sent to the
+            // parser that ignores booleans.
+            parserOverride
           );
           const fallbackResult = await makeCkanRequest<any>(
             params.server_url,

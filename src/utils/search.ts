@@ -5,6 +5,12 @@ export type QueryParserOverride = "default" | "text" | undefined;
 const DEFAULT_SEARCH_QUERY = "*:*";
 const FIELD_QUERY_PATTERN = /\b[a-zA-Z_][\w-]*:/;
 const EXPLICIT_BOOL_PATTERN = /\b(AND|OR|NOT)\b|[+\-!]/;
+/** AND/OR/NOT: dismax has no syntax for these and swallows them. */
+const BOOL_KEYWORD_PATTERN = /\b(AND|OR|NOT)\b/;
+/** `+`/`-`/`!` in operator position — dismax honours these natively. */
+const UNARY_OPERATOR_PATTERN = /(^|\s)[+\-!]\S/;
+/** The same characters inside a word: `e-government`, `COVID-19`. */
+const INTRAWORD_PUNCT_PATTERN = /\S[+\-!]\S/;
 const SOLR_SPECIAL_CHARS = /[+\-!(){}[\]^~*?:\\/|&]/g;
 
 function isFieldedQuery(query: string): boolean {
@@ -33,7 +39,22 @@ function isFieldedQuery(query: string): boolean {
  * helped none and hurt 10, six of them down to zero results.
  */
 export function hasExplicitBooleanOperator(query: string): boolean {
-  return EXPLICIT_BOOL_PATTERN.test(query.trim());
+  const trimmed = query.trim();
+
+  // A `+`/`-`/`!` in operator position is the one thing dismax does handle, and
+  // wrapping would destroy it: `escapeSolrQuery` escapes the character, so
+  // `ambiente -rifiuti` becomes `text:(ambiente \-rifiuti)` and stops excluding —
+  // it starts requiring. Measured on dati.gov.it: `ambiente` 8047, `ambiente
+  // -rifiuti` 7649 unwrapped, 398 wrapped, and 8047 - 7649 = 398, i.e. exactly the
+  // set the caller asked to leave out. So leave these queries alone, keywords or not.
+  if (UNARY_OPERATOR_PATTERN.test(trimmed)) return false;
+
+  if (BOOL_KEYWORD_PATTERN.test(trimmed)) return true;
+
+  // The same characters inside a word are not operators to the caller but are to
+  // dismax, which reads `e-government` as `e` NOT `government`: 58919 of ~65000
+  // datasets, against 278 for the escaped literal. `COVID-19`: 9963 against 69.
+  return INTRAWORD_PUNCT_PATTERN.test(trimmed);
 }
 
 /**
