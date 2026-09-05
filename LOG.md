@@ -1,5 +1,15 @@
 # LOG
 
+## 2026-09-05
+
+### v0.4.120 - SSRF hardening release + dependency audit
+
+Releases PR #531 (env-proxy refusal, multicast/reserved/site-local ranges, see 2026-09-04 entry). Also:
+
+- `npm audit fix`: axios 1.13.2 -> 1.20.0 (29 open advisories, including NO_PROXY/SSRF bypasses), follow-redirects -> 1.16.0, wrangler -> 4.129.0, vitest -> 4.1.11. Remaining findings (body-parser, express, qs) need express 5, a major: left for a dedicated change.
+- `src/server.ts` and `src/worker.ts` were still at 0.4.118: the 0.4.119 bump skipped them because CLAUDE.md's release step lists only the three JSON files. Fixed here.
+- Verified: build, worker build, 497 tests, real HTTP e2e (search on dati.gov.it, datastore on Messina, `169.254.169.254` still refused).
+
 ## 2026-09-04
 
 ### SSRF guard aligned with datagouv-mcp v1.0.0
