@@ -2,6 +2,52 @@
 
 ## 2026-09-05
 
+### Solr: wrap only boolean queries, and measure every portal instead of storing a verdict
+
+The usage review surfaced an LLM client reformulating the same request against
+`www.dati.gov.it/opendata` for three hours on 29 July. The data was there from the first
+attempt: `bonifica siti contaminati Piemonte` returns 22 datasets on that portal, the
+Piedmont contaminated-sites registry first. Our `text:(...)` rewrite was returning 5.
+
+`package_search` hands a colon-free query to Solr's dismax parser with `q.op=AND`,
+`mm='2<-1 5<80%'` and `qf='name^4 title^4 tags^2 groups^2 text'` (`ckan/lib/search/query.py`).
+dismax has no boolean syntax, so `A OR B` collapses into `A AND B`: on dati.gov.it
+`aria OR Milano` returns 59, exactly what `aria AND Milano` returns. A colon takes the query
+off dismax, which is what the wrapper exploits — the wrapped form returns 3421. The same
+switch is why it hurts everything else: it drops the `qf` boosts that rank titles and tags
+first, searches the catch-all `text` field alone, and ANDs every term instead of applying
+`mm`. This is CKAN's own default, not a per-portal defect, which is why the same pattern
+showed up on Milano, Toscana, Sicilia, Ucraina and open.canada.ca.
+
+Measured on dati.gov.it: `defibrillatori Comune di Lecce` 678 -> 1, `qualità aria Milano`
+650 -> 51, `musei roma arte opere catalogo` 9 -> 0 — the second most repeated query of the
+semester, answered with an empty page while nine datasets existed. On 40 real queries from
+telemetry the separation is clean: with a boolean operator the wrapper helped 8 times and
+hurt none; without one it helped none and hurt 10, six of them down to zero.
+
+So the wrapper now applies only to queries carrying a boolean operator. The shape that an
+LLM client generates from a user's request — a run of keywords, no operators — is left to
+the portal's own parser, boosts and `mm` included.
+
+`probePortalParser` was rewritten and now runs for every portal, configured ones included;
+`force_text_field` is gone from `portals.json` (8 entries) so there is one source of truth.
+The old probe asked `data OR dati`, two words common enough to saturate: on Milano `data`
+alone and `data OR dati` both return 2564, so it read the portal as healthy while
+`aria OR acqua` returned 0 against 54 and 33 for the single terms. It now picks two terms
+from the catalog itself — single-word tag facets between 0.5% and 30%, falling back to
+frequent title words — and compares `A`, `B`, `A OR B`, `text:(A OR B)`. An OR returning
+fewer hits than either operand is not being honoured, and the wrapper is the answer only if
+the wrapped form returns more. `data.stadt-zuerich.ch`, where the `text` field returns 0 for
+every query, is correctly left alone.
+
+Cost: a plain query pays nothing, since nothing but a boolean query can be wrapped. The
+probe costs 5 extra `rows=0` calls the first time a boolean query reaches a portal in a
+session, then nothing.
+
+Verified e2e against live portals: dati.gov.it 5 -> 22 and 0 -> 9 on the two queries from
+the telemetry, Milano `aria OR acqua` 0 -> 87, Zurich unchanged at 10 and 172. 516 tests
+pass, 18 added.
+
 ### v0.4.121 - clearer 404 on datastore_search_sql
 
 Patch release for the fix in #532: a 404 on `datastore_search_sql` now says the portal does not expose the SQL endpoint, instead of sending the caller to `ckan_package_show` for a resource_id that was already valid. Also ships the telemetry pipeline fixes and the DEPLOYMENT.md/CLAUDE.md realignment from earlier today.

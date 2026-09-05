@@ -11,9 +11,6 @@
         "https://dati.gov.it",
         "https://www.dati.gov.it"
       ],
-      "search": {
-        "force_text_field": true
-      },
       "hvd": {
         "category_field": "hvd_category"
       },
@@ -30,10 +27,7 @@
       "api_url": "https://dati.arpae.it",
       "api_url_aliases": [
         "http://dati.arpae.it"
-      ],
-      "search": {
-        "force_text_field": true
-      }
+      ]
     },
     {
       "id": "anac-opendata",
@@ -55,9 +49,6 @@
         "http://www.data.gov.uk"
       ],
       "api_path": "/api/action",
-      "search": {
-        "force_text_field": true
-      },
       "dataset_view_url": "https://www.data.gov.uk/dataset/{id}/{name}",
       "organization_view_url": "https://www.data.gov.uk/organization/{name}"
     },
@@ -67,10 +58,7 @@
       "api_url": "https://catalog.data.gov",
       "api_url_aliases": [
         "http://catalog.data.gov"
-      ],
-      "search": {
-        "force_text_field": true
-      }
+      ]
     },
     {
       "id": "open-canada",
@@ -80,10 +68,7 @@
         "http://open.canada.ca/data",
         "https://open.canada.ca",
         "http://open.canada.ca"
-      ],
-      "search": {
-        "force_text_field": true
-      }
+      ]
     },
     {
       "id": "data-gov-au",
@@ -126,10 +111,7 @@
       "api_url": "https://data.gov.ua",
       "api_url_aliases": [
         "http://data.gov.ua"
-      ],
-      "search": {
-        "force_text_field": false
-      }
+      ]
     },
     {
       "id": "dati-regione-sicilia",
@@ -137,10 +119,7 @@
       "api_url": "https://dati.regione.sicilia.it",
       "api_url_aliases": [
         "http://dati.regione.sicilia.it"
-      ],
-      "search": {
-        "force_text_field": false
-      }
+      ]
     },
     {
       "id": "bdap-rgs-mef",
@@ -169,9 +148,6 @@
   ],
   "defaults": {
     "dataset_view_url": "{server_url}/dataset/{name}",
-    "organization_view_url": "{server_url}/organization/{name}",
-    "search": {
-      "force_text_field": false
-    }
+    "organization_view_url": "{server_url}/organization/{name}"
   }
 }

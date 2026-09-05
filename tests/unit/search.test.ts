@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveSearchQuery, escapeSolrQuery, convertDateMathForUnsupportedFields, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from '../../src/utils/search';
+import { resolveSearchQuery, escapeSolrQuery, escapeForTextWrapping, convertDateMathForUnsupportedFields, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery, hasExplicitBooleanOperator, mayNeedTextWrapping } from '../../src/utils/search';
 
 describe('resolveSearchQuery', () => {
   it('keeps query unchanged for non-configured portals', () => {
@@ -13,11 +13,11 @@ describe('resolveSearchQuery', () => {
     expect(result.forcedTextField).toBe(false);
   });
 
-  it('forces text field for configured portals on non-fielded queries', () => {
+  it('wraps a boolean query when the probe asked for the text parser', () => {
     const result = resolveSearchQuery(
       'https://www.dati.gov.it/opendata',
       'hotel OR alberghi',
-      undefined
+      'text'
     );
 
     expect(result.effectiveQuery).toBe('text:(hotel OR alberghi)');
@@ -83,21 +83,25 @@ describe('resolveSearchQuery', () => {
     const escaped = escapeSolrQuery('foo") (bar):baz\\qux');
     expect(escaped).toBe('foo"\\) \\(bar\\)\\:baz\\\\qux');
 
+    // The wrapping only applies to boolean queries now, so the escaping path is
+    // exercised through one.
     const result = resolveSearchQuery(
       'https://www.dati.gov.it/opendata',
-      'foo") (bar):baz\\qux',
-      undefined
+      'foo") (bar):baz\\qux OR altro',
+      'text'
     );
 
-    expect(result.effectiveQuery).toBe('text:(foo"\\) \\(bar\\)\\:baz\\\\qux)');
     expect(result.forcedTextField).toBe(true);
+    expect(result.effectiveQuery).toContain('text:(');
+    expect(result.effectiveQuery).toContain('OR altro');
+    expect(result.effectiveQuery).toContain('\\(bar');
   });
 
   it('preserves quoted phrases inside text:() wrapping', () => {
     const result = resolveSearchQuery(
       'https://www.dati.gov.it/opendata',
       'SIC OR PAI OR "aree protette" OR "rischio idrogeologico"',
-      undefined
+      'text'
     );
 
     expect(result.effectiveQuery).toBe('text:(SIC OR PAI OR "aree protette" OR "rischio idrogeologico")');
@@ -249,5 +253,163 @@ describe('buildOrQuery', () => {
 
   it('handles extra whitespace', () => {
     expect(buildOrQuery('  crime   homicide  ')).toBe('crime OR homicide');
+  });
+});
+
+describe('hasExplicitBooleanOperator', () => {
+  // The shapes below were measured against live portals on 2026-09-05. Counts are
+  // dati.gov.it, plain vs text:(...): the wrapper must reach only the boolean ones.
+  it.each([
+    ['ambiente', false],                              // 8047 / 8047
+    ['qualità aria', false],                          // 366 / 366
+    ['qualità aria Milano', false],                   // 650 / 51
+    ['defibrillatori Comune di Lecce', false],        // 678 / 1
+    ['musei roma arte opere catalogo', false],        // 9 / 0
+    ['"qualità dell\'aria"', false],                  // 318 / 318
+    ['aria OR Milano', true],                         // 59 / 3421
+    ['aria AND Milano', true],                        // 59 / 59
+    ['bandiera blu OR bandiere blu OR spiagge', true] // 0 / 7
+  ])('%s -> %s', (query, expected) => {
+    expect(hasExplicitBooleanOperator(query as string)).toBe(expected);
+  });
+
+  it('wraps intra-word punctuation, which dismax misreads as an operator', () => {
+    // plain `e-government` returns 58919 of ~65000 datasets — the portal reads the
+    // hyphen as NOT — against 278 for the escaped literal. `COVID-19`: 9963 vs 69.
+    expect(hasExplicitBooleanOperator('e-government')).toBe(true);
+    expect(hasExplicitBooleanOperator('COVID-19')).toBe(true);
+  });
+
+  it('does not probe for a unary operator alone: dismax already honours it', () => {
+    // dati.gov.it: `ambiente` 8047, `ambiente -rifiuti` 7649 — the exclusion works,
+    // so there is nothing to repair and no reason to pay for a probe.
+    expect(hasExplicitBooleanOperator('ambiente -rifiuti')).toBe(false);
+    expect(hasExplicitBooleanOperator('+ambiente +rifiuti')).toBe(false);
+    expect(hasExplicitBooleanOperator('ambiente !rifiuti')).toBe(false);
+    expect(mayNeedTextWrapping('ambiente -rifiuti')).toBe(false);
+  });
+
+  it('keeps both halves of a mixed query', () => {
+    // `text:(aria OR acqua -rifiuti)` returns 1349 against 1389 for the disjunction
+    // alone: the OR is honoured and the exclusion applied. dismax returns 21.
+    expect(hasExplicitBooleanOperator('aria OR acqua -rifiuti')).toBe(true);
+  });
+});
+
+describe('escapeForTextWrapping', () => {
+  it('leaves a unary operator in operator position intact', () => {
+    // Escaping it inverts the query: text:(ambiente \-rifiuti) returns 398, exactly
+    // the set the caller excluded, against 7649 for the unescaped form.
+    expect(escapeForTextWrapping('ambiente -rifiuti')).toBe('ambiente -rifiuti');
+    expect(escapeForTextWrapping('+ambiente -rifiuti')).toBe('+ambiente -rifiuti');
+  });
+
+  it('still escapes the same characters inside a word', () => {
+    expect(escapeForTextWrapping('e-government')).toBe('e\\-government');
+    expect(escapeForTextWrapping('COVID-19')).toBe('COVID\\-19');
+  });
+
+  it('escapes a dangling operator, which is not one', () => {
+    expect(escapeForTextWrapping('ambiente - rifiuti')).toBe('ambiente \\- rifiuti');
+  });
+
+  it('keeps balanced grouping parentheses', () => {
+    // `(aria OR "qualità dell'aria") AND Milano`, a real query from the telemetry:
+    // dismax returns 0, escaped parentheses 51, preserved ones 59.
+    expect(escapeForTextWrapping('(aria OR acqua) AND Milano')).toBe('(aria OR acqua) AND Milano');
+  });
+
+  it('treats a group opener as a term boundary', () => {
+    expect(escapeForTextWrapping('aria OR (-rifiuti)')).toBe('aria OR (-rifiuti)');
+  });
+
+  it('leaves a parenthesis the caller escaped as a literal', () => {
+    // Promoting it to grouping would change the query the caller wrote, and the
+    // doubled backslash would leave a stray character behind.
+    expect(escapeForTextWrapping('foo OR \\(bar\\)')).toBe('foo OR \\\\\\(bar\\\\\\)');
+  });
+
+  it('escapes unbalanced parentheses: stray input must not become a syntax error', () => {
+    expect(escapeForTextWrapping('foo (bar')).toBe('foo \\(bar');
+    expect(escapeForTextWrapping('foo bar)')).toBe('foo bar\\)');
+    expect(escapeForTextWrapping('foo )bar( baz')).toBe('foo \\)bar\\( baz');
+  });
+
+  it('escapes every other special character as before', () => {
+    expect(escapeForTextWrapping('foo bar:baz')).toBe(escapeSolrQuery('foo bar:baz'));
+  });
+
+  it('wraps a mixed query without losing the exclusion', () => {
+    const result = resolveSearchQuery(
+      'https://www.dati.gov.it/opendata',
+      'aria OR acqua -rifiuti',
+      'text'
+    );
+    expect(result.effectiveQuery).toBe('text:(aria OR acqua -rifiuti)');
+  });
+});
+
+describe('mayNeedTextWrapping', () => {
+  it('is false for the match-all query, so it never triggers a probe', () => {
+    expect(mayNeedTextWrapping('*:*')).toBe(false);
+  });
+
+  it('is false for a fielded query: the colon already leaves dismax', () => {
+    expect(mayNeedTextWrapping('title:(aria OR acqua)')).toBe(false);
+    expect(mayNeedTextWrapping('metadata_created:[NOW-7DAYS TO NOW]')).toBe(false);
+  });
+
+  it('is false for plain keyword queries, the common LLM-generated shape', () => {
+    expect(mayNeedTextWrapping('bonifica siti contaminati Piemonte')).toBe(false);
+    expect(mayNeedTextWrapping('ANAC bandi gara appalti OCDS anticorruzione')).toBe(false);
+  });
+
+  it('is true only when a boolean operator can actually be honoured', () => {
+    expect(mayNeedTextWrapping('aria OR acqua')).toBe(true);
+  });
+});
+
+describe('resolveSearchQuery — boolean-only wrapping', () => {
+  it('leaves a plain multi-term query to the portal parser', () => {
+    // The regression this guards: 678 results collapsed to 1. Two layers keep it
+    // away: mayNeedTextWrapping stops the probe from ever asking for the wrapper on
+    // this shape, and with no override nothing wraps.
+    expect(mayNeedTextWrapping('defibrillatori Comune di Lecce')).toBe(false);
+
+    const result = resolveSearchQuery(
+      'https://www.dati.gov.it/opendata',
+      'defibrillatori Comune di Lecce',
+      undefined
+    );
+    expect(result.forcedTextField).toBe(false);
+    expect(result.effectiveQuery).toBe('defibrillatori Comune di Lecce');
+  });
+
+  it('honours an explicit query_parser: "text" from the caller, whatever the shape', () => {
+    const result = resolveSearchQuery(
+      'https://www.dati.gov.it/opendata',
+      'defibrillatori Comune di Lecce',
+      'text'
+    );
+    expect(result.forcedTextField).toBe(true);
+  });
+
+  it('still wraps when the query carries OR', () => {
+    const result = resolveSearchQuery(
+      'https://www.dati.gov.it/opendata',
+      'bandiera blu OR spiagge',
+      'text'
+    );
+    expect(result.forcedTextField).toBe(true);
+    expect(result.effectiveQuery).toBe('text:(bandiera blu OR spiagge)');
+  });
+
+  it('never wraps when the caller asked for the default parser', () => {
+    const result = resolveSearchQuery(
+      'https://www.dati.gov.it/opendata',
+      'aria OR acqua',
+      'default'
+    );
+    expect(result.forcedTextField).toBe(false);
   });
 });
