@@ -2,6 +2,10 @@
 
 ## 2026-09-05
 
+### v0.4.121 - clearer 404 on datastore_search_sql
+
+Patch release for the fix in #532: a 404 on `datastore_search_sql` now says the portal does not expose the SQL endpoint, instead of sending the caller to `ckan_package_show` for a resource_id that was already valid. Also ships the telemetry pipeline fixes and the DEPLOYMENT.md/CLAUDE.md realignment from earlier today.
+
 ### DEPLOYMENT.md and CLAUDE.md realigned with the actual deployment
 
 Six things the deployment guide got wrong, all verified against the live system:
