@@ -323,6 +323,12 @@ describe('escapeForTextWrapping', () => {
     expect(escapeForTextWrapping('aria OR (-rifiuti)')).toBe('aria OR (-rifiuti)');
   });
 
+  it('leaves a parenthesis the caller escaped as a literal', () => {
+    // Promoting it to grouping would change the query the caller wrote, and the
+    // doubled backslash would leave a stray character behind.
+    expect(escapeForTextWrapping('foo OR \\(bar\\)')).toBe('foo OR \\\\\\(bar\\\\\\)');
+  });
+
   it('escapes unbalanced parentheses: stray input must not become a syntax error', () => {
     expect(escapeForTextWrapping('foo (bar')).toBe('foo \\(bar');
     expect(escapeForTextWrapping('foo bar)')).toBe('foo bar\\)');

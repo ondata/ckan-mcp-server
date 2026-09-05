@@ -70,12 +70,23 @@ export function escapeSolrQuery(query: string): string {
   return query.replace(SOLR_SPECIAL_CHARS, "\\$&");
 }
 
-/** Parentheses that pair up can be trusted as grouping rather than stray input. */
+/** True when the parenthesis at `offset` was escaped by the caller, so it is a literal. */
+function isEscaped(query: string, offset: number): boolean {
+  let backslashes = 0;
+  for (let i = offset - 1; i >= 0 && query[i] === "\\"; i--) backslashes++;
+  return backslashes % 2 === 1;
+}
+
+/**
+ * Parentheses that pair up can be trusted as grouping rather than stray input.
+ * Escaped ones are the caller asking for the character itself and do not count.
+ */
 function hasBalancedParens(query: string): boolean {
   let depth = 0;
-  for (const char of query) {
-    if (char === "(") depth++;
-    else if (char === ")" && --depth < 0) return false;
+  for (let i = 0; i < query.length; i++) {
+    if (isEscaped(query, i)) continue;
+    if (query[i] === "(") depth++;
+    else if (query[i] === ")" && --depth < 0) return false;
   }
   return depth === 0;
 }
@@ -93,7 +104,8 @@ function hasBalancedParens(query: string): boolean {
  * Balanced parentheses stay too, since escaping turns grouping into literal tokens.
  * On `(aria OR "qualità dell'aria") AND Milano`, a real query from the telemetry:
  * dismax returns 0, escaped parentheses return 51, and preserved ones 59. Unbalanced
- * parentheses are escaped as before — stray input must not become a syntax error.
+ * parentheses are escaped as before — stray input must not become a syntax error, and
+ * a parenthesis the caller escaped is a literal, not a group.
  */
 export function escapeForTextWrapping(query: string): string {
   const keepGroups = hasBalancedParens(query);
@@ -101,7 +113,9 @@ export function escapeForTextWrapping(query: string): string {
   return query.replace(
     SOLR_SPECIAL_CHARS,
     (char, offset: number, whole: string) => {
-      if (keepGroups && (char === "(" || char === ")")) return char;
+      if (keepGroups && (char === "(" || char === ")") && !isEscaped(whole, offset)) {
+        return char;
+      }
 
       const isUnary = char === "+" || char === "-" || char === "!";
       const previous = offset === 0 ? "" : whole[offset - 1]!;
