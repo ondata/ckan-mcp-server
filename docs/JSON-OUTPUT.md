@@ -39,6 +39,7 @@ Error paths respect the requested format too: with `response_format: "json"` a f
 | Field | Type | Notes |
 |-------|------|-------|
 | `count` | number | Total matching datasets |
+| `effective_query` | string | Present **only when the server rewrote the query** — the caller sent `aria OR acqua` and Solr received `text:(aria OR acqua)`. Absent when the query ran unchanged, which is the common case. The Markdown format has always shown this as **Effective Query**. |
 | `results[].id` | string | Dataset UUID |
 | `results[].name` | string | Machine-readable slug |
 | `results[].title` | string | Human-readable title (falls back to name) |

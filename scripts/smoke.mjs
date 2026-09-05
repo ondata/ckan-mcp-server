@@ -1,0 +1,173 @@
+#!/usr/bin/env node
+/**
+ * Pre-release gate: known-answer search queries against live portals.
+ *
+ * Every case asserts which dataset must come back, not how many. That distinction is
+ * the reason this file exists: v0.4.122 shipped with counts verified and ranking
+ * broken, because "22 results" and "the right dataset first" are different claims.
+ *
+ *   npm run smoke            all cases
+ *   npm run smoke -- lecce   only cases whose name matches
+ *
+ * Exits non-zero on the first failed assertion, so it can gate a release.
+ */
+
+import { readFileSync } from "node:fs";
+import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const PORT = Number(process.env.SMOKE_PORT ?? 3099);
+const FILTER = process.argv[2]?.toLowerCase();
+
+const { cases } = JSON.parse(readFileSync(join(ROOT, "tests/smoke/cases.json"), "utf8"));
+const selected = FILTER ? cases.filter((c) => c.name.toLowerCase().includes(FILTER)) : cases;
+const domains = [...new Set(selected.map((c) => new URL(c.server).hostname))].join(",");
+
+const server = spawn("node", [join(ROOT, "dist/index.js")], {
+  env: { ...process.env, TRANSPORT: "http", PORT: String(PORT), CKAN_ALLOWED_DOMAINS: domains },
+  stdio: ["ignore", "ignore", "pipe"]
+});
+
+// A setup problem must look like a setup problem: without this, a missing build or an
+// occupied port surfaces as twelve cases failing with `fetch failed`, which reads like a
+// broken server rather than a runner that never started one.
+let stderr = "";
+server.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
+let exited = null;
+server.on("exit", (code, signal) => { exited = signal ?? `code ${code}`; });
+server.on("error", (err) => { exited = err.message; });
+
+const stop = () => server.kill();
+process.on("exit", stop);
+process.on("SIGINT", () => { stop(); process.exit(130); });
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** Wait for the server to answer, rather than guessing how long it takes to boot. */
+async function waitReady(timeoutMs = 20000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (exited !== null) {
+      const tail = stderr.trim().split("\n").slice(-5).join("\n");
+      throw new Error(`server exited before it was ready (${exited})${tail ? `\n${tail}` : ""}`);
+    }
+    try {
+      // `tools/list` rather than a health path: the Node HTTP transport exposes only
+      // /mcp. And the answer has to name our tools — a 200 from whatever else happens
+      // to hold the port would otherwise let the whole suite run against it, turning a
+      // bind failure into twelve puzzling case failures.
+      const res = await fetch(`http://localhost:${PORT}/mcp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" },
+        body: JSON.stringify({ jsonrpc: "2.0", method: "tools/list", id: 0 })
+      });
+      if (res.ok) {
+        const tools = (await res.json())?.result?.tools ?? [];
+        if (tools.some((t) => t?.name === "ckan_package_search")) return;
+        throw new Error(
+          `something else is answering on port ${PORT}: it replied to tools/list without offering ckan_package_search`
+        );
+      }
+    } catch (err) {
+      if (err instanceof Error && err.message.startsWith("something else")) throw err;
+      /* not listening yet */
+    }
+    await sleep(200);
+  }
+  throw new Error(`server did not answer on port ${PORT} within ${timeoutMs / 1000}s`);
+}
+
+try {
+  await waitReady();
+} catch (err) {
+  console.error(`smoke: ${err.message}`);
+  console.error("hint: `npm run build` produces dist/index.js; SMOKE_PORT moves the port.");
+  stop();
+  process.exit(2);
+}
+
+async function call(tool, server_url, args) {
+  const res = await fetch(`http://localhost:${PORT}/mcp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      method: "tools/call",
+      params: { name: tool, arguments: { server_url, ...args, response_format: "json" } },
+      id: 1
+    })
+  });
+  const body = await res.json();
+  const text = body?.result?.content?.[0]?.text;
+  if (!text) throw new Error(`no content: ${JSON.stringify(body).slice(0, 200)}`);
+  const payload = JSON.parse(text);
+  if (payload?._error) throw new Error(payload.error ?? "tool returned an error");
+  return payload;
+}
+
+/** The count a tool reports, whichever shape it uses. */
+const totalOf = (p) => p.total_results ?? p.count ?? p.total ?? null;
+/** The title of the first result, whichever list the tool returns. */
+const firstTitle = (p) => (p.results ?? p.datasets ?? [])[0]?.title ?? "";
+/** How many rows a listing tool returned. */
+const listLength = (p) =>
+  (p.organizations ?? p.tags ?? p.groups ?? p.results ?? p.datasets ?? []).length;
+
+/** Cross-tool invariant: two tools on the same query must see the same catalog. */
+async function compareTools(c) {
+  const mine = totalOf(await call(c.tool, c.server, c.args));
+  const theirs = totalOf(await call(c.compare_with.tool, c.server, c.compare_with.args));
+  if (mine === null || theirs === null) return [`could not read a count from both tools`];
+  const spread = Math.abs(mine - theirs) / Math.max(mine, theirs, 1);
+  return spread <= (c.compare_with.tolerance ?? 0.05)
+    ? []
+    : [`${c.tool} reports ${mine} and ${c.compare_with.tool} reports ${theirs}`];
+}
+
+function check(expect, payload) {
+  const fail = [];
+  const total = totalOf(payload);
+  const effective = payload.effective_query ?? payload.query ?? "";
+
+  if (expect.total_min !== undefined && !(total >= expect.total_min))
+    fail.push(`expected at least ${expect.total_min} results, got ${total}`);
+  if (expect.total_max !== undefined && !(total <= expect.total_max))
+    fail.push(`expected at most ${expect.total_max} results, got ${total}`);
+  if (expect.count_min !== undefined && !(listLength(payload) >= expect.count_min))
+    fail.push(`expected at least ${expect.count_min} rows, got ${listLength(payload)}`);
+  if (expect.first_matches && !new RegExp(expect.first_matches).test(firstTitle(payload)))
+    fail.push(`first result "${firstTitle(payload).slice(0, 60)}" does not match /${expect.first_matches}/`);
+  if (expect.wrapped && !effective.startsWith("text:("))
+    fail.push(`expected the text:(...) wrapper, effective query was "${effective}"`);
+  if (expect.not_wrapped && effective.startsWith("text:("))
+    fail.push(`expected no wrapper, effective query was "${effective}"`);
+  if (expect.effective_contains && !effective.includes(expect.effective_contains))
+    fail.push(`effective query "${effective}" does not contain "${expect.effective_contains}"`);
+  return fail;
+}
+
+let failed = 0;
+for (const c of selected) {
+  let fails;
+  try {
+    fails = c.compare_with
+      ? await compareTools(c)
+      : check(c.expect, await call(c.tool, c.server, c.args));
+  } catch (err) {
+    fails = [`${err.message}`];
+  }
+  if (fails.length === 0) {
+    console.log(`  ok    ${c.name}`);
+  } else {
+    failed++;
+    console.log(`  FAIL  ${c.name}`);
+    console.log(`        guards: ${c.regression}`);
+    for (const f of fails) console.log(`        ${f}`);
+  }
+}
+
+console.log(`\n${selected.length - failed}/${selected.length} passed`);
+stop();
+process.exit(failed === 0 ? 0 : 1);

@@ -1,0 +1,174 @@
+{
+  "_comment": "Known-answer cases for the pre-release gate. Every case asserts which dataset must come back, not how many. Thresholds are deliberately loose so catalog drift does not cause false alarms; they are tight enough to catch the failures this file was written for, listed in `regression`.",
+  "cases": [
+    {
+      "name": "plain multi-term query reaches the portal parser",
+      "regression": "v0.4.121: text:(...) wrapping cut this to 5 results",
+      "tool": "ckan_package_search",
+      "server": "https://www.dati.gov.it/opendata",
+      "args": {
+        "q": "bonifica siti contaminati Piemonte",
+        "rows": 5
+      },
+      "expect": {
+        "total_min": 15,
+        "not_wrapped": true,
+        "first_matches": "contaminati|bonifica"
+      }
+    },
+    {
+      "name": "long keyword query, the shape an LLM generates",
+      "regression": "v0.4.121: returned 0 results while nine datasets existed",
+      "tool": "ckan_package_search",
+      "server": "https://www.dati.gov.it/opendata",
+      "args": {
+        "q": "musei roma arte opere catalogo",
+        "rows": 3
+      },
+      "expect": {
+        "total_min": 5,
+        "not_wrapped": true,
+        "first_matches": "[Oo]pere|[Mm]usei"
+      }
+    },
+    {
+      "name": "boolean query is wrapped where the portal ignores OR",
+      "regression": "v0.4.122: find_relevant_datasets returned 0 against 87 here",
+      "tool": "ckan_package_search",
+      "server": "https://dati.comune.milano.it",
+      "args": {
+        "q": "aria OR acqua",
+        "rows": 3
+      },
+      "expect": {
+        "total_min": 50,
+        "wrapped": true
+      }
+    },
+    {
+      "name": "both search tools agree on a boolean query",
+      "regression": "v0.4.122: find_relevant_datasets never called the parser probe",
+      "tool": "ckan_package_search",
+      "server": "https://dati.comune.milano.it",
+      "args": {
+        "q": "aria OR acqua",
+        "rows": 1
+      },
+      "compare_with": {
+        "tool": "ckan_find_relevant_datasets",
+        "args": {
+          "query": "aria OR acqua",
+          "limit": 1
+        }
+      }
+    },
+    {
+      "name": "unary operator survives, exclusion not inverted",
+      "regression": "v0.4.121: escaping turned -rifiuti into a requirement, 7649 -> 398",
+      "tool": "ckan_package_search",
+      "server": "https://www.dati.gov.it/opendata",
+      "args": {
+        "q": "ambiente -rifiuti",
+        "rows": 2
+      },
+      "expect": {
+        "total_min": 3000,
+        "not_wrapped": true
+      }
+    },
+    {
+      "name": "punctuation inside a word is wrapped, dismax reads it as NOT",
+      "regression": "unwrapped e-government matches 58919 of ~65000 datasets",
+      "tool": "ckan_package_search",
+      "server": "https://www.dati.gov.it/opendata",
+      "args": {
+        "q": "e-government",
+        "rows": 2
+      },
+      "expect": {
+        "total_max": 5000,
+        "wrapped": true
+      }
+    },
+    {
+      "name": "grouping parentheses survive the escaping",
+      "regression": "escaped parentheses became literal tokens",
+      "tool": "ckan_package_search",
+      "server": "https://www.dati.gov.it/opendata",
+      "args": {
+        "q": "(aria OR acqua) AND Milano",
+        "rows": 2
+      },
+      "expect": {
+        "total_min": 20,
+        "effective_contains": "text:((aria OR acqua) AND Milano)"
+      }
+    },
+    {
+      "name": "portal whose text field is empty is never wrapped",
+      "regression": "wrapping Zurich returns 0 for every query",
+      "tool": "ckan_package_search",
+      "server": "https://data.stadt-zuerich.ch",
+      "args": {
+        "q": "Bevölkerung OR Einwohner",
+        "rows": 2
+      },
+      "expect": {
+        "total_min": 5,
+        "not_wrapped": true
+      }
+    },
+    {
+      "name": "the right dataset ranks first, not just any dataset",
+      "regression": "v0.4.122: Trento, Martina Franca and Desio outranked the Lecce dataset",
+      "tool": "ckan_find_relevant_datasets",
+      "server": "https://www.dati.gov.it/opendata",
+      "args": {
+        "query": "defibrillatori Comune di Lecce",
+        "limit": 3
+      },
+      "expect": {
+        "total_min": 100,
+        "first_matches": "Cardioprotetto"
+      }
+    },
+    {
+      "name": "accented terms contribute to the ranking",
+      "regression": "\\b is ASCII in JS, so qualità scored zero",
+      "tool": "ckan_find_relevant_datasets",
+      "server": "https://www.dati.gov.it/opendata",
+      "args": {
+        "query": "qualità dell'aria Milano",
+        "limit": 3
+      },
+      "expect": {
+        "first_matches": "[Aa]ria|[Qq]ualità"
+      }
+    },
+    {
+      "name": "organization filter folds accents before the Solr wildcard",
+      "regression": "città returned 0 while citta matched 135 datasets",
+      "tool": "ckan_organization_search",
+      "server": "https://www.dati.gov.it/opendata",
+      "args": {
+        "pattern": "città"
+      },
+      "expect": {
+        "count_min": 1
+      }
+    },
+    {
+      "name": "tag filter searches beyond the most frequent tags",
+      "regression": "53 tags contain citta, none in the top 100, filter said none existed",
+      "tool": "ckan_tag_list",
+      "server": "https://www.dati.gov.it/opendata",
+      "args": {
+        "tag_query": "città",
+        "limit": 3
+      },
+      "expect": {
+        "count_min": 1
+      }
+    }
+  ]
+}

@@ -28,7 +28,8 @@
     "pack:dxt": "rm -rf dxt-staging && mkdir -p dxt-staging/server && npm run build:dxt && echo '{\"type\":\"commonjs\"}' > dxt-staging/server/package.json && mkdir -p dxt-staging/server/node_modules && cp -r node_modules/undici dxt-staging/server/node_modules/ && cp manifest.json icon.png dxt-staging/ && dxt pack dxt-staging ckan-mcp-server.dxt && rm -rf dxt-staging",
     "pack:skill": "mkdir -p tmp && cd skills && zip -r ../tmp/ckan-mcp.skill ckan-mcp/ && cd ..",
     "prepack": "cp README.md .readme-full.md && cp .readme-npm.md README.md",
-    "postpack": "mv .readme-full.md README.md"
+    "postpack": "mv .readme-full.md README.md",
+    "smoke": "npm run build && node scripts/smoke.mjs"
   },
   "keywords": [
     "mcp",

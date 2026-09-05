@@ -347,13 +347,16 @@ export const scoreDatasetRelevance = (
     breakdown.tags = tagMatch ? weights.tags : 0;
   }
 
-  breakdown.total =
-    breakdown.title +
-    breakdown.notes +
-    breakdown.tags +
-    breakdown.organization +
-    breakdown.holder +
-    breakdown.publisher;
+  // Rounded: the per-field shares are fractions, and summing them raw surfaces
+  // binary-float noise in the output — a score printed as 8.299999999999999.
+  breakdown.total = Math.round(
+    (breakdown.title +
+      breakdown.notes +
+      breakdown.tags +
+      breakdown.organization +
+      breakdown.holder +
+      breakdown.publisher) * 10
+  ) / 10;
 
   return { total: breakdown.total, breakdown, terms };
 };
@@ -621,10 +624,15 @@ function normalizePackage(pkg: CkanPackage): CkanPackage {
 /**
  * Compact JSON representation of package_search results.
  * Keeps only essential fields to reduce token usage (~80% reduction).
+ *
+ * `effective_query` appears only when the server rewrote the caller's query — the
+ * markdown format has always shown it, and a JSON caller had no way to tell which
+ * query actually ran.
  */
-export function compactSearchResult(result: any, serverUrl?: string): object {
+export function compactSearchResult(result: any, serverUrl?: string, effectiveQuery?: string): object {
   return {
     count: result.count,
+    ...(effectiveQuery ? { effective_query: effectiveQuery } : {}),
     results: (result.results || []).map((rawPkg: CkanPackage) => {
       const pkg = serverUrl && requiresMultilingualNormalization(serverUrl) ? normalizePackage(rawPkg) : rawPkg;
       return {
@@ -973,7 +981,11 @@ Typical workflow: ckan_status_show (check locale) → ckan_package_search (query
         }
 
         if (params.response_format === ResponseFormat.JSON) {
-          const compact = compactSearchResult(result, params.server_url);
+          const compact = compactSearchResult(
+            result,
+            params.server_url,
+            effectiveQuery !== params.q ? effectiveQuery : undefined
+          );
           return {
             content: [{ type: "text", text: truncateJson(compact) }]
           };
