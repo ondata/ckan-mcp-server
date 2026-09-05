@@ -95,9 +95,10 @@ Typical workflow: ckan_tag_list → ckan_package_search with fq="tags:tag_name" 
           // With a tag_query the filter runs on what the facet returned, so asking for
           // only `limit` tags makes it search the most frequent ones alone: on
           // dati.gov.it 53 tags contain "citta" and none is in the top 100, so the
-          // filter answered "no tags" while they existed. Widen the facet, then apply
-          // the caller's limit to the filtered list.
-          'facet.limit': params.tag_query ? Math.max(params.limit, 1000) : params.limit
+          // filter answered "no tags" while they existed. -1 asks Solr for every tag
+          // (14138 on that portal), and the caller's limit is applied afterwards to
+          // what actually matched.
+          'facet.limit': params.tag_query ? -1 : params.limit
         };
 
         if (params.fq) apiParams.fq = params.fq;

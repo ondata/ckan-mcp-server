@@ -624,3 +624,22 @@ describe('relevance dilution (regression from v0.4.122)', () => {
     expect(countMatchingTerms('comune', [])).toBe(0);
   });
 });
+
+describe('multilingual term extraction', () => {
+  it('keeps an all-caps acronym that collides with a stopword', () => {
+    // `un` is an Italian article and the United Nations: dropping it would rank
+    // `UN population` on `population` alone.
+    expect(extractQueryTerms('UN population')).toEqual(['un', 'population']);
+    expect(extractQueryTerms('EU open data')).toContain('eu');
+  });
+
+  it('still drops the lowercase article', () => {
+    expect(extractQueryTerms('un comune di lecce')).toEqual(['comune', 'lecce']);
+  });
+
+  it('matches across Unicode normal forms', () => {
+    const nfd = 'mobilita\u0300 urbana';          // decomposed
+    expect(countMatchingTerms(nfd, ['mobilità'])).toBe(1);
+    expect(extractQueryTerms('mobilita\u0300')).toEqual(['mobilità'.normalize('NFC')]);
+  });
+});

@@ -225,8 +225,18 @@ const QUERY_STOPWORDS = new Set([
 ]);
 
 export const extractQueryTerms = (query: string): string[] => {
-  const matches = query.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
-  const terms = matches.filter((term) => term.length > 1 && !QUERY_STOPWORDS.has(term));
+  const raw = query.normalize("NFC").match(/[\p{L}\p{N}]+/gu) ?? [];
+  // An all-caps token is an acronym, not an article: the stopword list is there for
+  // `defibrillatori Comune di Lecce`, and must not swallow the `UN` of `UN population`
+  // on a catalog in another language.
+  const terms = raw
+    .filter((token) => {
+      const term = token.toLowerCase();
+      if (term.length <= 1) return false;
+      if (!QUERY_STOPWORDS.has(term)) return true;
+      return token.length > 1 && token === token.toUpperCase() && token !== term;
+    })
+    .map((token) => token.toLowerCase());
   return Array.from(new Set(terms));
 };
 
@@ -241,18 +251,22 @@ export const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}(
  * are mostly not in English.
  */
 const termPattern = (term: string): RegExp =>
-  new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(term)}(?![\\p{L}\\p{N}])`, "iu");
+  new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(term.normalize("NFC"))}(?![\\p{L}\\p{N}])`, "iu");
+
+/** Same Unicode form on both sides: `mobilità` written as NFD would not match NFC. */
+const normalizeForMatch = (text: string): string =>
+  text.normalize("NFC").toLowerCase().replace(/_/g, " ");
 
 export const textMatchesTerms = (text: string | undefined, terms: string[]): boolean => {
   if (!text || terms.length === 0) return false;
-  const normalized = text.toLowerCase().replace(/_/g, " ");
+  const normalized = normalizeForMatch(text);
   return terms.some((term) => termPattern(term).test(normalized));
 };
 
 /** How many of the query's terms this text contains. */
 export const countMatchingTerms = (text: string | undefined, terms: string[]): number => {
   if (!text || terms.length === 0) return 0;
-  const normalized = text.toLowerCase().replace(/_/g, " ");
+  const normalized = normalizeForMatch(text);
   return terms.filter((term) => termPattern(term).test(normalized)).length;
 };
 
