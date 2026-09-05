@@ -2,22 +2,6 @@
 
 ## 2026-09-05
 
-### 404 on datastore_search_sql: hint sent callers round a loop
-
-A 404 on `datastore_search_sql` fell into the generic `datastore_search` branch of
-`formatCkanError`, which answers "get a valid resource_id first: call `ckan_package_show`".
-On a portal that does not expose SQL the resource_id is fine and `ckan_package_show`
-hands back the same one, so a client following the hint retries into the same 404.
-
-SQL access is optional in CKAN and widely disabled: `datastore_search_sql?sql=SELECT 1`
-returns 404 on Toronto's portal and 200 on dati.comune.messina.it, while
-`datastore_search` answers 200 on both. A bad table name comes back as a 400, not a 404,
-so a 404 on that action means the endpoint itself is missing. The hint now says so and
-points at `ckan_datastore_search`.
-
-Verified e2e: Toronto returns the new hint; Messina counts 202.906 rows in a single SQL
-call. 498 tests pass, one added.
-
 ### Telemetry pipeline: cross-worker contamination, missing outcome, unattributable errors
 
 A usage review of `worker_events_flat.jsonl` surfaced three defects in the measurement itself, all confirmed against the live Observability API:

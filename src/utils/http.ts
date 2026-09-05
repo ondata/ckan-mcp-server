@@ -38,13 +38,7 @@ export function formatCkanError(error: unknown, _toolName: string): string {
   const { status, action, message } = error;
   let hint = '';
   if (status === 404) {
-    if (action === 'datastore_search_sql') {
-      // SQL access is optional in CKAN and many portals disable it, answering 404 on
-      // the endpoint itself. The resource_id is usually fine — a bad table name comes
-      // back as a 400 instead — so pointing at `ckan_package_show` sends the caller
-      // round a loop that ends on the same 404.
-      hint = '→ This portal does not expose the SQL endpoint (optional in CKAN, often disabled). Use `ckan_datastore_search` with `filters`/`sort` instead; the resource_id is probably fine.';
-    } else if (action.startsWith('datastore_search')) {
+    if (action.startsWith('datastore_search')) {
       hint = '→ Get a valid resource_id first: call `ckan_package_show` on a dataset, then pick a resource where `datastore_active` is true.';
     } else if (action === 'package_show') {
       hint = '→ Use `ckan_package_search` to find a valid dataset name or ID.';

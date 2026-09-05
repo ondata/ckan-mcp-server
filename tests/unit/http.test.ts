@@ -774,16 +774,6 @@ describe('formatCkanError', () => {
     expect(result).toContain('datastore_active');
   });
 
-  it('404 on datastore_search_sql says the portal lacks the SQL endpoint, not that the resource_id is wrong', () => {
-    const err = new CkanApiError('CKAN API error (404): Not Found', 404, 'datastore_search_sql');
-    const result = formatCkanError(err, 'ckan_datastore_search_sql');
-    expect(result).toContain('does not expose the SQL endpoint');
-    expect(result).toContain('ckan_datastore_search');
-    // the old hint sent the caller to package_show, which returns the same
-    // resource_id and loops straight back into this 404
-    expect(result).not.toContain('ckan_package_show');
-  });
-
   it('404 on package_show mentions ckan_package_search', () => {
     const err = new CkanApiError('CKAN API error (404): Not Found', 404, 'package_show');
     const result = formatCkanError(err, 'ckan_package_show');
