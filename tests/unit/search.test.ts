@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveSearchQuery, escapeSolrQuery, convertDateMathForUnsupportedFields, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery, hasExplicitBooleanOperator, mayNeedTextWrapping } from '../../src/utils/search';
+import { resolveSearchQuery, escapeSolrQuery, escapeForTextWrapping, convertDateMathForUnsupportedFields, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery, hasExplicitBooleanOperator, mayNeedTextWrapping } from '../../src/utils/search';
 
 describe('resolveSearchQuery', () => {
   it('keeps query unchanged for non-configured portals', () => {
@@ -280,20 +280,50 @@ describe('hasExplicitBooleanOperator', () => {
     expect(hasExplicitBooleanOperator('COVID-19')).toBe(true);
   });
 
-  it('leaves a real unary operator alone: wrapping inverts it', () => {
-    // dati.gov.it: `ambiente` 8047, `ambiente -rifiuti` 7649 unwrapped and 398
-    // wrapped — and 8047 - 7649 = 398, exactly the set the caller excluded.
-    // dismax honours +/-/! natively, so these queries must reach it untouched.
+  it('does not probe for a unary operator alone: dismax already honours it', () => {
+    // dati.gov.it: `ambiente` 8047, `ambiente -rifiuti` 7649 — the exclusion works,
+    // so there is nothing to repair and no reason to pay for a probe.
     expect(hasExplicitBooleanOperator('ambiente -rifiuti')).toBe(false);
     expect(hasExplicitBooleanOperator('+ambiente +rifiuti')).toBe(false);
     expect(hasExplicitBooleanOperator('ambiente !rifiuti')).toBe(false);
     expect(mayNeedTextWrapping('ambiente -rifiuti')).toBe(false);
   });
 
-  it('prefers a typed exclusion over the OR fix when both are present', () => {
-    // Neither form serves both: wrapping restores OR but destroys the exclusion.
-    // The exclusion was typed explicitly and the portal can honour it, so it wins.
-    expect(hasExplicitBooleanOperator('aria OR acqua -rifiuti')).toBe(false);
+  it('keeps both halves of a mixed query', () => {
+    // `text:(aria OR acqua -rifiuti)` returns 1349 against 1389 for the disjunction
+    // alone: the OR is honoured and the exclusion applied. dismax returns 21.
+    expect(hasExplicitBooleanOperator('aria OR acqua -rifiuti')).toBe(true);
+  });
+});
+
+describe('escapeForTextWrapping', () => {
+  it('leaves a unary operator in operator position intact', () => {
+    // Escaping it inverts the query: text:(ambiente \-rifiuti) returns 398, exactly
+    // the set the caller excluded, against 7649 for the unescaped form.
+    expect(escapeForTextWrapping('ambiente -rifiuti')).toBe('ambiente -rifiuti');
+    expect(escapeForTextWrapping('+ambiente -rifiuti')).toBe('+ambiente -rifiuti');
+  });
+
+  it('still escapes the same characters inside a word', () => {
+    expect(escapeForTextWrapping('e-government')).toBe('e\\-government');
+    expect(escapeForTextWrapping('COVID-19')).toBe('COVID\\-19');
+  });
+
+  it('escapes a dangling operator, which is not one', () => {
+    expect(escapeForTextWrapping('ambiente - rifiuti')).toBe('ambiente \\- rifiuti');
+  });
+
+  it('escapes every other special character as before', () => {
+    expect(escapeForTextWrapping('foo (bar):baz')).toBe(escapeSolrQuery('foo (bar):baz'));
+  });
+
+  it('wraps a mixed query without losing the exclusion', () => {
+    const result = resolveSearchQuery(
+      'https://www.dati.gov.it/opendata',
+      'aria OR acqua -rifiuti',
+      'text'
+    );
+    expect(result.effectiveQuery).toBe('text:(aria OR acqua -rifiuti)');
   });
 });
 

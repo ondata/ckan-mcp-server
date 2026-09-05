@@ -7,8 +7,6 @@ const FIELD_QUERY_PATTERN = /\b[a-zA-Z_][\w-]*:/;
 const EXPLICIT_BOOL_PATTERN = /\b(AND|OR|NOT)\b|[+\-!]/;
 /** AND/OR/NOT: dismax has no syntax for these and swallows them. */
 const BOOL_KEYWORD_PATTERN = /\b(AND|OR|NOT)\b/;
-/** `+`/`-`/`!` in operator position — dismax honours these natively. */
-const UNARY_OPERATOR_PATTERN = /(^|\s)[+\-!]\S/;
 /** The same characters inside a word: `e-government`, `COVID-19`. */
 const INTRAWORD_PUNCT_PATTERN = /\S[+\-!]\S/;
 const SOLR_SPECIAL_CHARS = /[+\-!(){}[\]^~*?:\\/|&]/g;
@@ -41,14 +39,10 @@ function isFieldedQuery(query: string): boolean {
 export function hasExplicitBooleanOperator(query: string): boolean {
   const trimmed = query.trim();
 
-  // A `+`/`-`/`!` in operator position is the one thing dismax does handle, and
-  // wrapping would destroy it: `escapeSolrQuery` escapes the character, so
-  // `ambiente -rifiuti` becomes `text:(ambiente \-rifiuti)` and stops excluding —
-  // it starts requiring. Measured on dati.gov.it: `ambiente` 8047, `ambiente
-  // -rifiuti` 7649 unwrapped, 398 wrapped, and 8047 - 7649 = 398, i.e. exactly the
-  // set the caller asked to leave out. So leave these queries alone, keywords or not.
-  if (UNARY_OPERATOR_PATTERN.test(trimmed)) return false;
-
+  // dismax already honours a `+`/`-`/`!` in operator position, so a query carrying
+  // nothing else has no reason to pay for a probe — `escapeForTextWrapping` keeps
+  // those characters intact, so a mixed query like `aria OR acqua -rifiuti` can be
+  // wrapped without losing the exclusion.
   if (BOOL_KEYWORD_PATTERN.test(trimmed)) return true;
 
   // The same characters inside a word are not operators to the caller but are to
@@ -74,6 +68,30 @@ export function mayNeedTextWrapping(query: string): boolean {
 
 export function escapeSolrQuery(query: string): string {
   return query.replace(SOLR_SPECIAL_CHARS, "\\$&");
+}
+
+/**
+ * Escape for `text:(...)` wrapping, leaving a `+`/`-`/`!` in operator position alone.
+ *
+ * Escaping those inverts the caller's intent: on dati.gov.it `ambiente` returns 8047
+ * and `ambiente -rifiuti` returns 7649, but `text:(ambiente \-rifiuti)` returns 398 —
+ * exactly the 398 the caller asked to leave out. Unescaped, `text:(ambiente -rifiuti)`
+ * returns 7649, the same answer dismax gives.
+ *
+ * Which is what lets a mixed query keep both halves: `text:(aria OR acqua -rifiuti)`
+ * returns 1349 against 1389 for the disjunction alone, so the OR is honoured and the
+ * exclusion applied. dismax gives 21 for the same disjunction, having swallowed the OR.
+ */
+export function escapeForTextWrapping(query: string): string {
+  return query.replace(
+    SOLR_SPECIAL_CHARS,
+    (char, offset: number, whole: string) => {
+      const isUnary = char === "+" || char === "-" || char === "!";
+      const atTermStart = offset === 0 || /\s/.test(whole[offset - 1]!);
+      const followedByTerm = offset + 1 < whole.length && !/\s/.test(whole[offset + 1]!);
+      return isUnary && atTermStart && followedByTerm ? char : `\\${char}`;
+    }
+  );
 }
 
 /**
@@ -161,7 +179,7 @@ export function resolveSearchQuery(
       hasExplicitBooleanOperator(trimmedQuery);
   }
 
-  let effectiveQuery = forceTextField ? `text:(${escapeSolrQuery(query)})` : query;
+  let effectiveQuery = forceTextField ? `text:(${escapeForTextWrapping(query)})` : query;
   effectiveQuery = convertDateMathForUnsupportedFields(effectiveQuery);
 
   return { effectiveQuery, forcedTextField: forceTextField };
