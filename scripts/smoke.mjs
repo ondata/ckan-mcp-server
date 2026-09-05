@@ -27,14 +27,55 @@ const domains = [...new Set(selected.map((c) => new URL(c.server).hostname))].jo
 
 const server = spawn("node", [join(ROOT, "dist/index.js")], {
   env: { ...process.env, TRANSPORT: "http", PORT: String(PORT), CKAN_ALLOWED_DOMAINS: domains },
-  stdio: ["ignore", "ignore", "ignore"]
+  stdio: ["ignore", "ignore", "pipe"]
 });
+
+// A setup problem must look like a setup problem: without this, a missing build or an
+// occupied port surfaces as twelve cases failing with `fetch failed`, which reads like a
+// broken server rather than a runner that never started one.
+let stderr = "";
+server.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
+let exited = null;
+server.on("exit", (code, signal) => { exited = signal ?? `code ${code}`; });
+server.on("error", (err) => { exited = err.message; });
+
 const stop = () => server.kill();
 process.on("exit", stop);
 process.on("SIGINT", () => { stop(); process.exit(130); });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-await sleep(1500);
+
+/** Wait for the server to answer, rather than guessing how long it takes to boot. */
+async function waitReady(timeoutMs = 20000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (exited !== null) {
+      const tail = stderr.trim().split("\n").slice(-5).join("\n");
+      throw new Error(`server exited before it was ready (${exited})${tail ? `\n${tail}` : ""}`);
+    }
+    try {
+      // `tools/list` rather than a health path: the Node HTTP transport exposes only
+      // /mcp, and answering this proves the MCP layer is up, not just the socket.
+      const res = await fetch(`http://localhost:${PORT}/mcp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" },
+        body: JSON.stringify({ jsonrpc: "2.0", method: "tools/list", id: 0 })
+      });
+      if (res.ok) return;
+    } catch { /* not listening yet */ }
+    await sleep(200);
+  }
+  throw new Error(`server did not answer on port ${PORT} within ${timeoutMs / 1000}s`);
+}
+
+try {
+  await waitReady();
+} catch (err) {
+  console.error(`smoke: ${err.message}`);
+  console.error("hint: `npm run build` produces dist/index.js; SMOKE_PORT moves the port.");
+  stop();
+  process.exit(2);
+}
 
 async function call(tool, server_url, args) {
   const res = await fetch(`http://localhost:${PORT}/mcp`, {
@@ -63,6 +104,17 @@ const firstTitle = (p) => (p.results ?? p.datasets ?? [])[0]?.title ?? "";
 const listLength = (p) =>
   (p.organizations ?? p.tags ?? p.groups ?? p.results ?? p.datasets ?? []).length;
 
+/** Cross-tool invariant: two tools on the same query must see the same catalog. */
+async function compareTools(c) {
+  const mine = totalOf(await call(c.tool, c.server, c.args));
+  const theirs = totalOf(await call(c.compare_with.tool, c.server, c.compare_with.args));
+  if (mine === null || theirs === null) return [`could not read a count from both tools`];
+  const spread = Math.abs(mine - theirs) / Math.max(mine, theirs, 1);
+  return spread <= (c.compare_with.tolerance ?? 0.05)
+    ? []
+    : [`${c.tool} reports ${mine} and ${c.compare_with.tool} reports ${theirs}`];
+}
+
 function check(expect, payload) {
   const fail = [];
   const total = totalOf(payload);
@@ -89,7 +141,9 @@ let failed = 0;
 for (const c of selected) {
   let fails;
   try {
-    fails = check(c.expect, await call(c.tool, c.server, c.args));
+    fails = c.compare_with
+      ? await compareTools(c)
+      : check(c.expect, await call(c.tool, c.server, c.args));
   } catch (err) {
     fails = [`${err.message}`];
   }

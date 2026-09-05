@@ -29,7 +29,7 @@
     "pack:skill": "mkdir -p tmp && cd skills && zip -r ../tmp/ckan-mcp.skill ckan-mcp/ && cd ..",
     "prepack": "cp README.md .readme-full.md && cp .readme-npm.md README.md",
     "postpack": "mv .readme-full.md README.md",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "npm run build && node scripts/smoke.mjs"
   },
   "keywords": [
     "mcp",
