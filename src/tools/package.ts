@@ -175,6 +175,12 @@ const DEFAULT_RELEVANCE_WEIGHTS: RelevanceWeights = {
 };
 
 const QUERY_STOPWORDS = new Set([
+  // Italian: without these, `defibrillatori Comune di Lecce` scored a full holder
+  // match against "Provincia Autonoma di Trento" on the strength of "di" alone.
+  "di", "del", "dello", "della", "dei", "degli", "delle",
+  "il", "lo", "la", "i", "gli", "le", "un", "uno", "una",
+  "e", "ed", "per", "con", "su", "da", "dal", "dalla", "nel", "nella", "al", "alla",
+  "che", "non", "come", "dove", "sono",
   "a",
   "an",
   "the",
@@ -219,21 +225,62 @@ const QUERY_STOPWORDS = new Set([
 ]);
 
 export const extractQueryTerms = (query: string): string[] => {
-  const matches = query.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
-  const terms = matches.filter((term) => term.length > 1 && !QUERY_STOPWORDS.has(term));
+  const raw = query.normalize("NFC").match(/[\p{L}\p{N}]+/gu) ?? [];
+  // An all-caps token is an acronym, not an article: the stopword list is there for
+  // `defibrillatori Comune di Lecce`, and must not swallow the `UN` of `UN population`
+  // on a catalog in another language.
+  const terms = raw
+    .filter((token) => {
+      const term = token.toLowerCase();
+      if (term.length <= 1) return false;
+      if (!QUERY_STOPWORDS.has(term)) return true;
+      return token.length > 1 && token === token.toUpperCase() && token !== term;
+    })
+    .map((token) => token.toLowerCase());
   return Array.from(new Set(terms));
 };
 
 export const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+/**
+ * Word-boundary matcher for a single term.
+ *
+ * `\b` is ASCII-only in JavaScript, so an accented letter counts as a non-word
+ * character and a term ending in one never finds its boundary: `mobilità` failed to
+ * match "mobilità urbana". Unicode lookarounds fix it, which matters on catalogs that
+ * are mostly not in English.
+ */
+const termPattern = (term: string): RegExp =>
+  new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(term.normalize("NFC"))}(?![\\p{L}\\p{N}])`, "iu");
+
+/** Same Unicode form on both sides: `mobilità` written as NFD would not match NFC. */
+const normalizeForMatch = (text: string): string =>
+  text.normalize("NFC").toLowerCase().replace(/_/g, " ");
+
 export const textMatchesTerms = (text: string | undefined, terms: string[]): boolean => {
   if (!text || terms.length === 0) return false;
-  const normalized = text.toLowerCase().replace(/_/g, " ");
-  return terms.some((term) => new RegExp(`\\b${escapeRegExp(term)}\\b`, "i").test(normalized));
+  const normalized = normalizeForMatch(text);
+  return terms.some((term) => termPattern(term).test(normalized));
 };
 
+/** How many of the query's terms this text contains. */
+export const countMatchingTerms = (text: string | undefined, terms: string[]): number => {
+  if (!text || terms.length === 0) return 0;
+  const normalized = normalizeForMatch(text);
+  return terms.filter((term) => termPattern(term).test(normalized)).length;
+};
+
+/**
+ * Score a field by the share of query terms it carries, not by whether any of them
+ * appears. With the all-or-nothing rule a single common word earned the whole field:
+ * on `defibrillatori Comune di Lecce`, "Comune di Martina Franca" and "Comune di Lecce"
+ * both scored a full holder match, so the catalog's only Lecce dataset could not
+ * outrank the others and fell out of the top results.
+ */
 export const scoreTextField = (text: string | undefined, terms: string[], weight: number): number => {
-  return textMatchesTerms(text, terms) ? weight : 0;
+  const matched = countMatchingTerms(text, terms);
+  if (matched === 0) return 0;
+  return Math.round((weight * matched / terms.length) * 10) / 10;
 };
 
 /**
@@ -1128,11 +1175,25 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
           ...(params.weights ?? {})
         };
 
-        const rows = Math.min(Math.max(params.limit * 5, params.limit), 100);
+        // At least 50 candidates to score: the local ranking only sees what Solr
+        // returns first, and a small limit used to shrink the window to 15 — enough
+        // when a search returned a handful of results, not enough now that it returns
+        // hundreds.
+        const rows = Math.min(Math.max(params.limit * 5, 50), 100);
+
+        // Same probe as ckan_package_search: without it this tool sends a boolean
+        // query to the parser that ignores booleans. On dati.comune.milano.it
+        // `aria OR acqua` returned 0 here against 87 there.
+        let parserOverride = params.query_parser;
+        if (!parserOverride && mayNeedTextWrapping(params.query)) {
+          const needsText = await probePortalParser(params.server_url);
+          if (needsText) parserOverride = "text";
+        }
+
         const { effectiveQuery } = resolveSearchQuery(
           params.server_url,
           params.query,
-          params.query_parser
+          parserOverride
         );
 
         const searchResult = await makeCkanRequest<any>(

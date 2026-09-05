@@ -2,6 +2,59 @@
 
 ## 2026-09-05
 
+### Relevance scoring: three defects that only became visible once search worked
+
+Testing v0.4.122 through an MCP client, not curl, showed `ckan_find_relevant_datasets`
+answering its own documented example badly. `defibrillatori Comune di Lecce` on
+dati.gov.it used to return the catalog's only Lecce dataset — because the search
+returned exactly one result. With recall restored it returns 679, and the top three
+became Trento, Martina Franca and Desio while the Lecce dataset fell out of the window.
+
+The wrapping fix did not cause this; it removed the cover. Three defects, all older:
+
+- `scoreTextField` awarded the **whole** field weight when **any** query term matched.
+  "Comune di Martina Franca" and "Comune di Lecce" both scored a full holder match, so
+  the right dataset could not outrank the wrong ones. It now scores the share of terms
+  the field carries.
+- the stopword list was English-only, so `di` counted as a term: "Provincia Autonoma
+  **di** Trento" earned a full holder match on a query asking for Lecce. Italian
+  stopwords added.
+- `\b` is ASCII-only in JavaScript, so a term ending in an accented letter never found
+  its word boundary: `mobilità` scored 0 against "mobilità urbana", `qualità` against
+  "qualità dell'aria". On a catalog that is mostly not in English this silently sank
+  every accented query. Replaced with Unicode lookarounds.
+
+Looking for more of the same family turned up three more, all cases of a local filter
+running over a truncated or wrongly-normalised set:
+
+- `ckan_find_relevant_datasets` never called the parser probe. `portals.json` used to
+  cover it; removing `force_text_field` left it sending boolean queries to the parser that
+  ignores them. On dati.comune.milano.it `aria OR acqua` returned 0 there against 87 from
+  `ckan_package_search`. Same probe now applies to both.
+- `ckan_organization_search` builds a Solr wildcard, which bypasses the analysis chain, so
+  the pattern must be pre-normalised the way CKAN builds a name slug. It lowercased but did
+  not fold accents: `città` returned 0 while `citta` matched 135 datasets.
+- `ckan_tag_list` applied `tag_query` after faceting, with `facet.limit` set to the
+  caller's `limit`. On dati.gov.it 53 tags contain "citta" and none is in the top 100, so
+  the filter answered "no tags" while they existed. The facet is now widened when a filter
+  is given.
+
+`openspec/specs/ckan-search/spec.md` described the parser as a property of
+`ckan_package_search` alone, which is what let the second caller go unnoticed — and after
+yesterday it was also wrong, still describing the per-portal default that was removed.
+Rewritten as a property of the query-building path, naming every tool that shares it.
+
+Also raised the candidate window to at least 50: the local ranking only sees what Solr
+returns first, and `limit: 3` shrank it to 15 — enough when a search returned a handful
+of results, not enough now.
+
+`defibrillatori Comune di Lecce` puts the Lecce dataset first again. 532 tests, 5 added.
+
+How it was missed: yesterday's verification checked result **counts** through
+`ckan_package_search`, never the ranked output of `ckan_find_relevant_datasets` — the
+third most used tool in the telemetry, and the second caller of `resolveSearchQuery`.
+Counting results proves recall, not usefulness.
+
 ### v0.4.122 - Solr parser fix
 
 Ships #534: the `text:(...)` wrapper is reserved for the queries dismax cannot serve, the escaping preserves unary operators and balanced grouping, and the parser probe measures two terms taken from the catalog on every portal. `force_text_field` is gone from `portals.json`.

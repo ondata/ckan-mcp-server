@@ -6,6 +6,7 @@ import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest } from "../utils/http.js";
 import { truncateText, addDemoFooter, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
+import { stripAccents } from "../utils/search.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 type TagItem = {
@@ -91,7 +92,13 @@ Typical workflow: ckan_tag_list → ckan_package_search with fq="tags:tag_name" 
           q: params.q,
           rows: 0,
           'facet.field': JSON.stringify(['tags']),
-          'facet.limit': params.limit
+          // The filter runs on whatever the facet returned, so with a tag_query the
+          // facet has to be wider than the caller's limit: on dati.gov.it 53 tags
+          // contain "citta" and none is in the top 100, so asking for 100 answered
+          // "no tags" while they existed. CKAN rejects Solr's own `facet.contains`
+          // ("Invalid search parameters"), so the filtering cannot move server-side;
+          // this window is the compromise, and WIDE_FACET below is the escape hatch.
+          'facet.limit': params.tag_query ? Math.max(params.limit * 20, 500) : params.limit
         };
 
         if (params.fq) apiParams.fq = params.fq;
@@ -105,8 +112,36 @@ Typical workflow: ckan_tag_list → ckan_package_search with fq="tags:tag_name" 
         let tags = normalizeTagFacets(result);
 
         if (params.tag_query) {
-          const needle = params.tag_query.toLowerCase();
-          tags = tags.filter(tag => tag.name.toLowerCase().includes(needle));
+          // Both sides accent-folded: CKAN builds tag names as slugs, so `città`
+          // would never match `citta-metropolitana` — while portals that do keep
+          // accented tags still match either spelling.
+          const needle = stripAccents(params.tag_query.toLowerCase());
+          const matching = (candidates: TagItem[]) =>
+            candidates.filter(tag => stripAccents(tag.name.toLowerCase()).includes(needle));
+
+          tags = matching(tags);
+
+          // Only a filter that came up short pays for the whole facet: on
+          // dati.gov.it that is 14138 tags and 1.4 MB, against ~50 KB for the
+          // bounded window above.
+          if (tags.length < params.limit) {
+            // No catch here on purpose: if the exhaustive request fails, returning
+            // the bounded set would answer "these are the matching tags" while
+            // hiding the ones it never looked at. The error goes to the tool's
+            // normal path instead, and the caller can narrow with `fq` or `q`.
+            const wide = await makeCkanRequest<any>(
+              params.server_url,
+              'package_search',
+              { ...apiParams, 'facet.limit': -1 }
+            );
+            tags = matching(normalizeTagFacets(wide));
+          }
+
+          // Solr sorts by count only while facet.limit is positive: asked for -1 it
+          // returns the tags in index order, so the widened set arrives alphabetical
+          // ("zuglio", "zucs", ...). CKAN rejects `facet.sort` too, so the ordering
+          // the tool documents has to be restored here.
+          tags = tags.sort((a, b) => b.count - a.count).slice(0, params.limit);
         }
 
         tags = tags
