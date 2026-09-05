@@ -7799,3 +7799,8 @@
 {"id": "01M1M4JRK80000000000000004", "timestamp": "2026-09-03T17:20:34Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Canada query=RCMP", "error": null}
 {"id": "01M1M4JY280000000000000004", "timestamp": "2026-09-03T17:20:40Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "country=Canada", "error": null}
 {"id": "01M1P6JGRT000000000000000W", "timestamp": "2026-09-04T12:33:52Z", "outcome": null, "tool": "ckan_package_search", "server": "https://ckan0.cf.opendata.inter.prod-toronto.ca", "query": "metadata_created:[NOW-7DAYS TO NOW]", "error": null}
+{"id": "01M1QC62H90000000000000001", "timestamp": "2026-09-04T23:31:11Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "query=data", "error": null}
+{"id": "01M1QC8D220000000000000004", "timestamp": "2026-09-04T23:32:27Z", "outcome": null, "tool": "ckan_find_portals", "server": "", "query": "query=data", "error": null}
+{"id": "01M1QC8WBF0000000000000007", "timestamp": "2026-09-04T23:32:42Z", "outcome": null, "tool": "ckan_catalog_stats", "server": "https://data.gov.au/data/", "query": null, "error": null}
+{"id": "01M1QC8ZHJ000000000000000K", "timestamp": "2026-09-04T23:32:46Z", "outcome": null, "tool": "ckan_package_search", "server": "https://data.gov.au/data/", "query": "climate", "error": null}
+{"id": "01M1QC98SB0000000000000015", "timestamp": "2026-09-04T23:32:55Z", "outcome": null, "tool": "ckan_package_search", "server": "https://data.qld.gov.au/", "query": "geospatial", "error": null}
