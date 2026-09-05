@@ -651,6 +651,10 @@ Verify:
 Use this checklist to ensure nothing is missed:
 
 ### Pre-Release
+- [ ] **Release gate green**: `npm run smoke` — known-answer search queries against live
+      portals, asserting *which* dataset comes back rather than how many. v0.4.122 shipped
+      with counts verified and ranking broken; "22 results" and "the right dataset first"
+      are different claims, and only the second one is what a user asked for
 - [ ] Security audit clean: `npm audit` (0 vulnerabilities)
 - [ ] All tests passing: `npm test`
 - [ ] Code builds successfully: `npm run build`

@@ -95,6 +95,29 @@ schema change.
 bash scripts/worker_daily_stats.sh
 ```
 
+## smoke.mjs — the release gate
+
+`npm run smoke` runs the known-answer cases in `tests/smoke/cases.json` against live
+portals and exits non-zero on the first failed assertion. `npm run smoke -- lecce` runs
+only the cases whose name matches.
+
+Every case asserts **which** dataset comes back, not how many, and carries a `regression`
+field naming the failure it guards. That distinction is the reason the file exists:
+v0.4.122 shipped with result counts verified and the ranking broken, because a query
+returning 679 datasets and a query returning the right one first are different claims.
+
+The gate is checked against the defects it claims to catch. Reintroducing the v0.4.121
+wrapping rule fails 4 of the 12 cases; removing the parser probe from
+`ckan_find_relevant_datasets`, the v0.4.122 regression, fails the case that requires the
+two search tools to agree.
+
+Cases hit real portals, so the thresholds are loose enough to survive catalog drift and
+a failure can also mean a portal is down — check the message before assuming a code bug.
+
+```bash
+npm run build && npm run smoke
+```
+
 ## GitHub Actions
 
 `update-telemetry.yml` runs both scripts automatically twice a day (06:00 and 18:00 UTC).

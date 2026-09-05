@@ -643,3 +643,17 @@ describe('multilingual term extraction', () => {
     expect(extractQueryTerms('mobilita\u0300')).toEqual(['mobilità'.normalize('NFC')]);
   });
 });
+
+describe('score total', () => {
+  it('does not leak binary-float noise into the output', () => {
+    // A real result printed as 8.299999999999999 before rounding the sum.
+    const dataset = {
+      title: 'Sinistri stradali rilevati nel territorio comunale',
+      notes: 'incidenti a Palermo',
+      tags: [{ name: 'incidenti' }],
+      organization: { title: 'Comune di Palermo' }
+    } as any;
+    const { total } = scoreDatasetRelevance('incidenti stradali Palermo', dataset);
+    expect(total).toBe(Math.round(total * 10) / 10);
+  });
+});

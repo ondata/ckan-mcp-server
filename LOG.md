@@ -2,6 +2,39 @@
 
 ## 2026-09-05
 
+### A release gate that asserts which dataset comes back
+
+Three releases went out today, two of them to repair the one before. The verification in
+between was a sequence of commands rebuilt from memory each time, so it covered something
+different on each pass — and what it always covered was result counts. v0.4.122 shipped
+with counts verified and the ranking broken, because "22 results" and "the right dataset
+first" are different claims and only the second is what a caller asked for.
+
+`npm run smoke` is that check as a command. Twelve known-answer cases from real telemetry
+in `tests/smoke/cases.json`, each asserting which dataset must come back and carrying the
+regression it guards; the runner starts the built server over HTTP, calls each tool the
+way a client does, and exits non-zero on the first failure.
+
+Checked against the defects it claims to catch: reintroducing the v0.4.121 wrapping rule
+fails 4 of 12, and removing the parser probe from `ckan_find_relevant_datasets` — the
+v0.4.122 regression — fails the case requiring the two search tools to agree. Wired into
+the release workflow in `CLAUDE.md` (step 2, before the tag) and the checklist in
+`docs/DEPLOYMENT.md`.
+
+Two things the gate needed on the way:
+
+- the JSON format never exposed the query that actually ran, while Markdown has always
+  shown it. `effective_query` now appears in `ckan_package_search` JSON output when the
+  server rewrote the query, and is absent when it did not.
+- relevance scores summed unrounded fractions, printing totals like `8.299999999999999`.
+
+Known and not fixed: the ranking model weights every query term equally, so on
+`defibrillatori Comune di Lecce` three datasets tie at 9.7 and the right one leads on
+Solr order rather than on score. Making the `tags` field proportional like the others was
+tried and reverted — it promotes "Elenco patrocini Comune di Lecce", whose tags carry two
+of the three terms against the defibrillator dataset's one. The fix is term specificity,
+a design change, not a patch.
+
 ### v0.4.123 - relevance scoring and shared parser probe
 
 Ships #536: field scoring by share of matched terms, Italian stopwords with acronyms preserved, Unicode-aware term matching, a wider candidate window, the parser probe shared with `ckan_find_relevant_datasets`, and accent-safe filters in `ckan_organization_search` and `ckan_tag_list`. `openspec/specs/ckan-search/spec.md` rewritten around the query-building path.

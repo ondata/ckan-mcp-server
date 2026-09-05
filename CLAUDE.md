@@ -210,16 +210,16 @@ The server (`src/index.ts`):
    - `tools/datastore.ts`: `ckan_datastore_search`
    - `tools/status.ts`: `ckan_status_show`
 
-3. **MCP Resource Templates** (`resources/`)
+4. **MCP Resource Templates** (`resources/`)
    - `ckan://{server}/dataset/{id}` - Dataset metadata
    - `ckan://{server}/resource/{id}` - Resource metadata
    - `ckan://{server}/organization/{name}` - Organization metadata
 
-4. **Utility Functions** (`utils/`)
+5. **Utility Functions** (`utils/`)
    - `http.ts`: `makeCkanRequest<T>()` - HTTP client for CKAN API v3
    - `formatting.ts`: `truncateText()`, `formatDate()`, `formatBytes()`
 
-5. **Type Definitions** (`types.ts`)
+6. **Type Definitions** (`types.ts`)
    - `ResponseFormat` enum (MARKDOWN, JSON)
    - `ResponseFormatSchema` Zod validator
    - `CHARACTER_LIMIT` constant
@@ -228,11 +228,11 @@ The server (`src/index.ts`):
    - `stdio.ts`: Standard input/output (Claude Desktop)
    - `http.ts`: HTTP server (remote access)
 
-6. **Validation Schema**
+7. **Validation Schema**
    - Uses Zod to validate all tool inputs
    - Each tool has a strict schema that rejects extra parameters
 
-7. **Output Formatting**
+8. **Output Formatting**
    - All tools support two formats: `markdown` (default) and `json`
    - Markdown format optimized for human readability
    - JSON format returns compact objects with only essential fields (~70% token reduction vs raw CKAN API)
@@ -460,20 +460,21 @@ npm cannot resolve relative paths from the tarball.
 When releasing a new version:
 
 1. **Update version**: Edit the version field in `package.json`, `package-lock.json`, `manifest.json`, **`server.json`** (in `server.json` there are **two** fields: top-level `version` and `packages[0].version` — both must match), **`src/server.ts`** (MCP server version) and **`src/worker.ts`** (`/health` response). The two source files are easy to forget: v0.4.119 shipped with them still at 0.4.118. Check with `grep -rn "<old version>" package.json manifest.json server.json src/server.ts src/worker.ts` — it must return nothing
-2. **Update LOG.md**: Add entry with date and changes
-3. **Commit changes on a branch**: `git checkout -b <type>/<description>` then `git add . && git commit -m "..."`. Code never goes straight to `main`; documentation-only changes may.
-4. **Open a PR and merge it**: `git push -u origin <branch>`, `gh pr create`, wait for green checks, `gh pr merge --squash --delete-branch`, then `git checkout main && git pull`. `main` has a `non_fast_forward` rule: a commit pushed there by mistake needs a revert, not a force-push.
-5. **Create tag**: `git tag -a v0.x.0 -m "..." && git push origin v0.x.0` — ⚠️ **this triggers the npm publish**, see step 9
-6. **Build DXT**: `npm run pack:dxt` → produces `ckan-mcp-server.dxt`
-7. **Build skill**: `npm run pack:skill` → produces `tmp/ckan-mcp.skill`
-8. **Attach to release**: `gh release upload v0.x.0 ckan-mcp-server.dxt tmp/ckan-mcp.skill`
-9. **npm publish happens automatically**: pushing the tag in step 5 starts `.github/workflows/release.yml`, which verifies the tag matches `package.json`, builds, tests, and runs `npm publish --provenance`. **Do not run `npm publish` by hand** — the two paths collide and the loser gets `EPUBLISHCONFLICT`. Watch the run: `gh run watch $(gh run list --workflow=release.yml --limit 1 --json databaseId -q '.[0].databaseId')`
-10. **Publish to the MCP Registry** — only **after** the step 9 run has finished green, since the registry validates that the npm version exists: `mcp-publisher login github && mcp-publisher publish`. If login fails with `incorrect_device_code`, the local binary is stale: compare `mcp-publisher --version` against the [latest release](https://github.com/modelcontextprotocol/registry/releases) and update it — the device-auth flow has changed between versions, and the error does not say so
-11. **Deploy to Cloudflare** (if code changed): `npm run deploy`
+2. **Run the release gate**: `npm run smoke` — known-answer search queries against live portals, asserting *which* dataset comes back rather than how many. It must be green before tagging. It exists because v0.4.122 shipped with counts verified and ranking broken: "22 results" and "the right dataset first" are different claims
+3. **Update LOG.md**: Add entry with date and changes
+4. **Commit changes on a branch**: `git checkout -b <type>/<description>` then `git add . && git commit -m "..."`. Code never goes straight to `main`; documentation-only changes may.
+5. **Open a PR and merge it**: `git push -u origin <branch>`, `gh pr create`, wait for green checks, `gh pr merge --squash --delete-branch`, then `git checkout main && git pull`. `main` has a `non_fast_forward` rule: a commit pushed there by mistake needs a revert, not a force-push.
+6. **Create tag**: `git tag -a v0.x.0 -m "..." && git push origin v0.x.0` — ⚠️ **this triggers the npm publish**, see step 10
+7. **Build DXT**: `npm run pack:dxt` → produces `ckan-mcp-server.dxt`
+8. **Build skill**: `npm run pack:skill` → produces `tmp/ckan-mcp.skill`
+9. **Attach to release**: `gh release upload v0.x.0 ckan-mcp-server.dxt tmp/ckan-mcp.skill`
+10. **npm publish happens automatically**: pushing the tag in step 6 starts `.github/workflows/release.yml`, which verifies the tag matches `package.json`, builds, tests, and runs `npm publish --provenance`. **Do not run `npm publish` by hand** — the two paths collide and the loser gets `EPUBLISHCONFLICT`. Watch the run: `gh run watch $(gh run list --workflow=release.yml --limit 1 --json databaseId -q '.[0].databaseId')`
+11. **Publish to the MCP Registry** — only **after** the step 10 run has finished green, since the registry validates that the npm version exists: `mcp-publisher login github && mcp-publisher publish`. If login fails with `incorrect_device_code`, the local binary is stale: compare `mcp-publisher --version` against the [latest release](https://github.com/modelcontextprotocol/registry/releases) and update it — the device-auth flow has changed between versions, and the error does not say so
+12. **Deploy to Cloudflare** (if code changed): `npm run deploy`
 
 See `docs/DEPLOYMENT.md` for detailed Cloudflare deployment instructions.
 
-**Why steps 1 and 10 matter**: `server.json` feeds the official MCP Registry entry, which is what clients installing via the registry resolve. It is *not* updated by `npm publish`. Skipping it silently pins public installs to an old version: between v0.4.83 (2026-03-12) and v0.4.114 (2026-08-03) the registry advertised a build predating the v0.4.108 SSRF remediation, while npm was current. Verify after publishing:
+**Why steps 1 and 11 matter**: `server.json` feeds the official MCP Registry entry, which is what clients installing via the registry resolve. It is *not* updated by `npm publish`. Skipping it silently pins public installs to an old version: between v0.4.83 (2026-03-12) and v0.4.114 (2026-08-03) the registry advertised a build predating the v0.4.108 SSRF remediation, while npm was current. Verify after publishing:
 
 ```bash
 curl -s "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.aborruso/ckan-mcp-server" | \
