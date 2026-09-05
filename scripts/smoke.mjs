@@ -55,14 +55,25 @@ async function waitReady(timeoutMs = 20000) {
     }
     try {
       // `tools/list` rather than a health path: the Node HTTP transport exposes only
-      // /mcp, and answering this proves the MCP layer is up, not just the socket.
+      // /mcp. And the answer has to name our tools — a 200 from whatever else happens
+      // to hold the port would otherwise let the whole suite run against it, turning a
+      // bind failure into twelve puzzling case failures.
       const res = await fetch(`http://localhost:${PORT}/mcp`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" },
         body: JSON.stringify({ jsonrpc: "2.0", method: "tools/list", id: 0 })
       });
-      if (res.ok) return;
-    } catch { /* not listening yet */ }
+      if (res.ok) {
+        const tools = (await res.json())?.result?.tools ?? [];
+        if (tools.some((t) => t?.name === "ckan_package_search")) return;
+        throw new Error(
+          `something else is answering on port ${PORT}: it replied to tools/list without offering ckan_package_search`
+        );
+      }
+    } catch (err) {
+      if (err instanceof Error && err.message.startsWith("something else")) throw err;
+      /* not listening yet */
+    }
     await sleep(200);
   }
   throw new Error(`server did not answer on port ${PORT} within ${timeoutMs / 1000}s`);
