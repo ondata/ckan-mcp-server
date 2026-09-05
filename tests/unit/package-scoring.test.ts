@@ -4,6 +4,7 @@ import {
   escapeRegExp,
   textMatchesTerms,
   scoreTextField,
+  countMatchingTerms,
   scoreDatasetRelevance,
   readDcatExtra
 } from '../../src/tools/package';
@@ -576,5 +577,50 @@ describe('scoreDatasetRelevance — holder and publisher', () => {
     const result = scoreDatasetRelevance('Lecce', dataset);
 
     expect(result.breakdown.publisher).toBe(2);
+  });
+});
+
+describe('relevance dilution (regression from v0.4.122)', () => {
+  it('drops Italian stopwords, which used to carry a whole field', () => {
+    // `di` matched "Provincia Autonoma di Trento" and awarded the full holder
+    // weight on a query asking for Lecce.
+    expect(extractQueryTerms('defibrillatori Comune di Lecce')).toEqual([
+      'defibrillatori',
+      'comune',
+      'lecce'
+    ]);
+    expect(extractQueryTerms('elenco dei siti della regione')).toEqual([
+      'elenco',
+      'siti',
+      'regione'
+    ]);
+  });
+
+  it('scores a field by the share of terms it carries', () => {
+    const terms = ['defibrillatori', 'comune', 'lecce'];
+    expect(scoreTextField('Comune di Lecce', terms, 4)).toBe(2.7);
+    expect(scoreTextField('Comune di Martina Franca', terms, 4)).toBe(1.3);
+    expect(scoreTextField('Provincia Autonoma di Trento', terms, 4)).toBe(0);
+  });
+
+  it('still gives the full weight when every term matches', () => {
+    expect(scoreTextField('health data portal', ['health'], 5)).toBe(5);
+    expect(scoreTextField('mobilità urbana', ['mobilità', 'urbana'], 6)).toBe(6);
+  });
+
+  it('matches a term ending in an accented letter', () => {
+    // `\\b` is ASCII-only in JavaScript, so `mobilità` never found its boundary and
+    // scored 0 on a catalog that is mostly not in English.
+    expect(countMatchingTerms('mobilità urbana', ['mobilità'])).toBe(1);
+    expect(countMatchingTerms('qualità dell aria', ['qualità'])).toBe(1);
+    expect(countMatchingTerms('città metropolitana', ['città'])).toBe(1);
+    // and still respects boundaries
+    expect(countMatchingTerms('immobilità', ['mobilità'])).toBe(0);
+  });
+
+  it('counts matching terms without double counting', () => {
+    expect(countMatchingTerms('comune di lecce, comune', ['comune', 'lecce'])).toBe(2);
+    expect(countMatchingTerms(undefined, ['comune'])).toBe(0);
+    expect(countMatchingTerms('comune', [])).toBe(0);
   });
 });
