@@ -266,7 +266,7 @@ The server supports three transport modes:
 - Uses `WebStandardStreamableHTTPServerTransport` from MCP SDK
 - Compatible with Workers runtime (no Node.js APIs)
 - Stateless mode (no session management)
-- All 7 tools and 3 resource templates work identically to Node.js version
+- All tools and resource templates work identically to the Node.js version (`/health` reports the current counts: 20 tools, 7 resources, 6 prompts as of v0.4.120)
 
 See `docs/DEPLOYMENT.md` for complete deployment guide.
 
@@ -461,8 +461,8 @@ When releasing a new version:
 
 1. **Update version**: Edit the version field in `package.json`, `package-lock.json`, `manifest.json`, **`server.json`** (in `server.json` there are **two** fields: top-level `version` and `packages[0].version` — both must match), **`src/server.ts`** (MCP server version) and **`src/worker.ts`** (`/health` response). The two source files are easy to forget: v0.4.119 shipped with them still at 0.4.118. Check with `grep -rn "<old version>" package.json manifest.json server.json src/server.ts src/worker.ts` — it must return nothing
 2. **Update LOG.md**: Add entry with date and changes
-3. **Commit changes**: `git add . && git commit -m "..."`
-4. **Push to GitHub**: `git push origin main`
+3. **Commit changes on a branch**: `git checkout -b <type>/<description>` then `git add . && git commit -m "..."`. Code never goes straight to `main`; documentation-only changes may.
+4. **Open a PR and merge it**: `git push -u origin <branch>`, `gh pr create`, wait for green checks, `gh pr merge --squash --delete-branch`, then `git checkout main && git pull`. `main` has a `non_fast_forward` rule: a commit pushed there by mistake needs a revert, not a force-push.
 5. **Create tag**: `git tag -a v0.x.0 -m "..." && git push origin v0.x.0` — ⚠️ **this triggers the npm publish**, see step 9
 6. **Build DXT**: `npm run pack:dxt` → produces `ckan-mcp-server.dxt`
 7. **Build skill**: `npm run pack:skill` → produces `tmp/ckan-mcp.skill`

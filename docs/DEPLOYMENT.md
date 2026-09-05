@@ -16,9 +16,9 @@ The server is ideal for Workers deployment:
 
 - ✅ **Stateless**: No database or persistent state
 - ✅ **Read-only**: All operations are GET-only
-- ✅ **Lightweight**: Small bundle (~400KB)
+- ✅ **Lightweight**: Small bundle (~530KB)
 - ✅ **Global edge**: Low latency worldwide
-- ✅ **Free tier**: 100,000 requests/day
+- ✅ **Free tier**: 100,000 requests/day (enough to start; see Cost Breakdown)
 
 ## Step-by-Step Deployment
 
@@ -139,7 +139,7 @@ curl -X POST http://localhost:8787/mcp \
 curl -X POST http://localhost:8787/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
-  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"ckan_status_show","arguments":{"server_url":"https://demo.ckan.org"}},"id":2}'
+  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"ckan_status_show","arguments":{"server_url":"https://www.dati.gov.it/opendata"}},"id":2}'
 ```
 
 Stop local server: Press `x` or `Ctrl+C`
@@ -231,7 +231,7 @@ curl -X POST https://ckan-mcp-server.<your-account>.workers.dev/mcp \
 curl -X POST https://ckan-mcp-server.<your-account>.workers.dev/mcp \
   -H "Content-Type: application/json" \
   -H "Accept: application/json, text/event-stream" \
-  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"ckan_status_show","arguments":{"server_url":"https://demo.ckan.org"}},"id":2}'
+  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"ckan_status_show","arguments":{"server_url":"https://www.dati.gov.it/opendata"}},"id":2}'
 ```
 
 ---
@@ -283,7 +283,7 @@ Add environment variables in `wrangler.toml`:
 
 ```toml
 [vars]
-DEFAULT_CKAN_SERVER = "https://demo.ckan.org"
+DEFAULT_CKAN_SERVER = "https://www.dati.gov.it/opendata"
 LOG_LEVEL = "info"
 ```
 
@@ -355,11 +355,15 @@ wrangler login
 
 ### Error: "Worker exceeded CPU time limit"
 
-Check if you're making blocking operations. CKAN API calls are async (I/O-bound), so this should be rare.
+Check if you're making blocking operations. CKAN API calls are async (I/O-bound), so this
+should be rare — but on the ondata deployment it is not: 22 occurrences in the first four
+days of September 2026 (6% of calls) against 11 in the whole of August (0.8%). These
+events carry no tool or server in the telemetry, so they were not attributable until
+`script_version` was added to the archive on 2026-09-05. Unexplained so far.
 
 ### Error: "Script too large"
 
-Current bundle: ~400KB (limit: 1MB). If you hit this:
+Current bundle: ~530KB (limit: 1MB). If you hit this:
 
 ```bash
 # Analyze bundle size
@@ -393,7 +397,7 @@ npm run deploy
 
 ### 2. Monitor Usage
 
-Free tier includes 100k requests/day. Monitor in Cloudflare dashboard.
+The free tier includes 100k requests/day. Monitor in the Cloudflare dashboard.
 
 ### 3. Set Up Alerts (Optional)
 
@@ -416,17 +420,23 @@ View deployment versions in Cloudflare dashboard.
 
 ## Cost Breakdown
 
-**Free Tier** (default):
+**Free Tier** (what a new deployment gets):
 - 100,000 requests/day
 - 10ms CPU time per request
 - Workers KV: 1GB storage
 - Automatic HTTPS
 
-**Paid Plans** (if needed):
-- **Workers Paid** ($5/month): 10M requests/month
-- **Workers Unbound**: Pay-per-use beyond free tier
+**Paid Plans**:
+- **Workers Paid** ($5/month): 10M requests/month included
+- **Workers Unbound**: pay-per-use beyond that
 
-For most users, **free tier is sufficient**.
+For most users the free tier is sufficient.
+
+> **The ondata deployment is not on the free tier.** Workers Observability keeps
+> 7 days of telemetry there, against 3 on the free plan (measured 2026-09-05:
+> events returned at 7 days back, none at 8). So the free-tier request and CPU
+> limits above are not the ones it operates under — check the dashboard before
+> reasoning about its quota. They do apply to a fresh deployment of your own.
 
 ---
 
@@ -492,29 +502,39 @@ Add entry to `LOG.md` with current date (YYYY-MM-DD format) at the top:
 - **No breaking changes**: Confirm backward compatibility
 ```
 
-### Step 3: Commit Changes
+### Step 3: Commit Changes on a Branch
+
+Code changes never go straight to `main`: work on a branch and merge through a pull
+request. Only documentation-only changes may be committed to `main` directly.
 
 ```bash
+git checkout -b <type>/<short-description>
 git add .
 git commit -m "Add feature name (v0.5.0)
 
 - Detailed description of changes
 - List key improvements
-- Note any breaking changes (if any)
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+- Note any breaking changes (if any)"
 ```
 
-### Step 4: Push to GitHub
-
-Before pushing, check if the remote has new commits (e.g. from another machine or collaborator):
+### Step 4: Open a Pull Request and Merge It
 
 ```bash
-git pull --rebase origin main
-git push origin main
+git push -u origin <type>/<short-description>
+gh pr create --base main --title "..." --body "..."
+gh pr checks <number>          # wait for green
+gh pr merge <number> --squash --delete-branch
+git checkout main && git pull
 ```
 
-Verify: Check https://github.com/ondata/ckan-mcp-server commits
+Verify: check https://github.com/ondata/ckan-mcp-server commits
+
+> `main` carries a `non_fast_forward` rule, so a commit pushed there by mistake cannot be
+> removed with a force-push — it takes a revert, and the history keeps both. There is no
+> rule *requiring* pull requests, so a direct push succeeds silently: the discipline is
+> yours, not the server's.
+
+The tag in the next step must point at the squashed commit on `main`, not at the branch.
 
 ### Step 5: Create Git Tag
 
@@ -649,9 +669,9 @@ Use this checklist to ensure nothing is missed:
 > The `prepack`/`postpack` hooks in `package.json` swap them automatically during `npm publish`.
 
 ### Git Operations
-- [ ] Changes committed with descriptive message
-- [ ] Pushed to GitHub main branch
-- [ ] Git tag created (format: v0.X.Y)
+- [ ] Code changes committed on a branch, never on `main`
+- [ ] Pull request opened, checks green, squash-merged
+- [ ] Git tag created on the merged commit (format: v0.X.Y)
 - [ ] Tag pushed to GitHub
 
 ### Publishing
@@ -680,7 +700,8 @@ Use this checklist to ensure nothing is missed:
 Not every change requires publishing to all platforms:
 
 ### Always Required
-- **GitHub**: Commit + Push (every change)
+- **GitHub**: commit + push (every change) — code goes through a branch and a pull
+  request, documentation-only changes may go to `main` directly
 
 ### Sometimes Required
 - **Git Tag**: Only for versioned releases (v0.X.Y)
@@ -690,11 +711,11 @@ Not every change requires publishing to all platforms:
 
 ### Decision Matrix
 
-| Change Type | GitHub Commit | Git Tag | GitHub Release | npm Publish | Cloudflare Deploy |
-|------------|---------------|---------|----------------|-------------|-------------------|
+| Change Type | Branch + PR | Git Tag | GitHub Release | npm Publish | Cloudflare Deploy |
+|------------|-------------|---------|----------------|-------------|-------------------|
 | Bug fix in tools | ✅ | ✅ | ✅ | ✅ | ✅ |
 | New tool added | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Documentation only | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Documentation only | ❌ (commit to `main`) | ❌ | ❌ | ❌ | ❌ |
 | Workers optimization | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Test improvements | ✅ | ❌ | ❌ | ❌ | ❌ |
 
@@ -774,7 +795,7 @@ Then configure DNS in Cloudflare dashboard.
 
 ### Q: Can multiple people use my deployment?
 
-Yes. Share your Workers URL with team members. Free tier supports 100k requests/day.
+Yes. Share your Workers URL with team members. The free tier supports 100k requests/day.
 
 ### Q: How do I update to a new version?
 
@@ -796,7 +817,7 @@ npm run deploy
 
 ## Next Steps
 
-- [ ] Test all 7 CKAN tools with your deployment
+- [ ] Test the tools with your deployment (`/health` reports the current counts — 20 tools, 7 resources, 6 prompts as of v0.4.120)
 - [ ] Configure Claude Desktop with Workers URL
 - [ ] Monitor usage in Cloudflare dashboard
 - [ ] Share endpoint with team members (optional)

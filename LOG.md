@@ -2,6 +2,21 @@
 
 ## 2026-09-05
 
+### DEPLOYMENT.md and CLAUDE.md realigned with the actual deployment
+
+Six things the deployment guide got wrong, all verified against the live system:
+
+- tool count stuck at 7; `/health` reports 20 tools, 7 resources, 6 prompts on v0.4.120
+- bundle "~400KB" in two places, while the doc's own sample output said 541 KiB; rebuilt: 533 KB
+- the free tier presented as the configuration in use. Workers Observability keeps 7 days of telemetry on this account (measured: events at 7 days back, none at 8), which is the paid retention — the free-tier request and CPU limits are not the ones this deployment operates under
+- `demo.ckan.org` in three curl examples, which CLAUDE.md forbids for tests
+- the release workflow told you to commit and push straight to `main`, in both files. Now branch, PR, squash-merge, then tag on the merged commit
+- a stale `Co-Authored-By` line in the sample commit
+
+Also corrected the troubleshooting entry calling CPU-limit errors "rare": 22 in the first four days of September against 11 in all of August. Left flagged as unexplained.
+
+Left alone on purpose: archived OpenSpec proposals, historical LOG entries, and `demo.ckan.org` where it appears as an example for end users (README, EXAMPLES, SKILL) rather than as a test target.
+
 ### 404 on datastore_search_sql: hint sent callers round a loop
 
 A 404 on `datastore_search_sql` fell into the generic `datastore_search` branch of
