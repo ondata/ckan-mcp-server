@@ -2,6 +2,10 @@
 
 ## 2026-09-05
 
+### v0.4.123 - relevance scoring and shared parser probe
+
+Ships #536: field scoring by share of matched terms, Italian stopwords with acronyms preserved, Unicode-aware term matching, a wider candidate window, the parser probe shared with `ckan_find_relevant_datasets`, and accent-safe filters in `ckan_organization_search` and `ckan_tag_list`. `openspec/specs/ckan-search/spec.md` rewritten around the query-building path.
+
 ### Relevance scoring: three defects that only became visible once search worked
 
 Testing v0.4.122 through an MCP client, not curl, showed `ckan_find_relevant_datasets`
