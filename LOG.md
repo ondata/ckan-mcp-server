@@ -2,6 +2,18 @@
 
 ## 2026-09-05
 
+### Telemetry pipeline: cross-worker contamination, missing outcome, unattributable errors
+
+A usage review of `worker_events_flat.jsonl` surfaced three defects in the measurement itself, all confirmed against the live Observability API:
+
+- The query filtered only on `$metadata.type = cf-worker`, with no `service` filter, so events from `opensdmx-mcp` (another Worker on the same account) were archived here: 7 out of 31 events in a 48h probe, 589 `sdmx_*` records in the May-July history. Added `$metadata.service = ckan-mcp-server` (env override `CF_SCRIPT_NAME`); the probe then returned 24/24 ckan events. The existing records cannot be cleaned: retention is 3 days.
+- `$workers.outcome` disappeared from the API on 2026-07-12 (the object now carries `spanId`/`traceId` instead). Not a regression of ours: the archiver's only refactor is 7e78b32, March. The replacement was already there and unused: `src/worker.ts` logs its own `status` per call, plus `cache_hit`, `duration_ms` and `limit`, and the archiver was throwing all four away. `resolve_outcome()` now reads `$workers.outcome`, then `source.status`, then `$metadata.level`, and writes `unknown` rather than assuming `ok`. On a 47-event live sample it resolved every record (40 ok, 7 error, no unknown), CPU-limit crashes included. July-September stays null and cannot be backfilled: retention is 3 days.
+- `worker_daily_stats.sh` had been writing `ok:0, errors:0` on every row since that date. It now derives the error flag from `error IS NOT NULL OR outcome IN (...)`, which stays valid across the schema change. March figures are unchanged; August and September are populated again (2026-09-03: 240 calls, 220 ok, 20 errors).
+
+Flat schema gains `script_version`, `request_id`, `trigger`, `cache_hit`, `duration_ms`, `limit`. Without the first, a CPU-limit event cannot be tied to a release, and those events carry no `tool` or `server` either; they now do carry the version, so September's 22 CPU errors in 4 days (against 11 in the whole of August) become attributable from here on, not retroactively. `cache_hit` and `limit` answer the two questions this review could only guess at: cache fragmentation from URL spelling, and page size on the long datastore loops. Older records are padded to the same field set on rewrite.
+
+Usage, excluding March (evaluation traffic: 2.953 calls, 242 portals) and the sdmx events: ~470-1.450 calls a month, median 13,5 a day, very spiky. `ckan_datastore_search` leads (1.142 since June), and on 2026-08-24 a single client generated 392 calls with 6 distinct queries paging Toronto's datastore. Callers spell the same portal in three or four ways (`dati.gov.it/opendata`, `www.` variant, trailing slash; `open.canada.ca` in three forms), which fragments the cache key.
+
 ### v0.4.120 - SSRF hardening release + dependency audit
 
 Releases PR #531 (env-proxy refusal, multicast/reserved/site-local ranges, see 2026-09-04 entry). Also:

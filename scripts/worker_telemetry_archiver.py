@@ -25,10 +25,26 @@ if env_file.exists():
 
 ACCOUNT_ID = os.environ.get("CF_ACCOUNT_ID", "c89b6bdafbbb793bf64cfa3b271fa5a4")
 API_TOKEN = os.environ.get("CF_API_TOKEN", "")
+SCRIPT_NAME = os.environ.get("CF_SCRIPT_NAME", "ckan-mcp-server")
 DATA_DIR = Path(__file__).parent.parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
 FLAT_FILE = DATA_DIR / "worker_events_flat.jsonl"
 STATE_FILE = DATA_DIR / "worker_telemetry_last_run.json"
+FLAT_FIELDS = (
+    "id",
+    "timestamp",
+    "outcome",
+    "tool",
+    "server",
+    "query",
+    "error",
+    "script_version",
+    "request_id",
+    "trigger",
+    "cache_hit",
+    "duration_ms",
+    "limit",
+)
 DAY_MS = 86400 * 1000
 
 
@@ -67,7 +83,15 @@ def fetch_events(from_ms, to_ms):
                         "operation": "eq",
                         "type": "string",
                         "value": "cf-worker",
-                    }
+                    },
+                    # Without this filter the archive also collects events from
+                    # the other Workers on the same Cloudflare account.
+                    {
+                        "key": "$metadata.service",
+                        "operation": "eq",
+                        "type": "string",
+                        "value": SCRIPT_NAME,
+                    },
                 ],
                 "filterCombination": "and",
                 "orderBy": {"value": "timestamp", "order": "asc"},
@@ -113,6 +137,30 @@ def extract_query(source: dict) -> str | None:
     )
 
 
+def resolve_outcome(workers: dict, metadata: dict, source: dict) -> str | None:
+    """Request outcome, from the most reliable source available.
+
+    1. $workers.outcome: the runtime verdict (ok / exception / exceededCpu /
+       canceled). Available up to 2026-07-12, then gone from the API.
+    2. source.status: written by the Worker itself (src/worker.ts) after
+       inspecting the MCP response. Catches application errors, which the
+       runtime still reports as ok.
+    3. $metadata.level: the only signal left for crashes that never reach the
+       application log (CPU limit, exception), where source.status is absent.
+    4. "unknown": none of the three. Never assumed to be "ok", otherwise a
+       request killed by the runtime would look like a successful one.
+    """
+    outcome = workers.get("outcome")
+    if outcome:
+        return outcome
+
+    status = source.get("status") if isinstance(source, dict) else None
+    if status:
+        return status
+
+    return "error" if metadata.get("level") == "error" else "unknown"
+
+
 def flatten(event: dict) -> dict | None:
     workers = event.get("$workers", {})
     metadata = event.get("$metadata", {})
@@ -129,11 +177,17 @@ def flatten(event: dict) -> dict | None:
     return {
         "id": metadata.get("id"),
         "timestamp": ts_iso,
-        "outcome": workers.get("outcome"),
+        "outcome": resolve_outcome(workers, metadata, source),
         "tool": source.get("tool") if isinstance(source, dict) else None,
         "server": source.get("server") if isinstance(source, dict) else None,
         "query": extract_query(source) if isinstance(source, dict) else None,
         "error": metadata.get("error"),
+        "script_version": (workers.get("scriptVersion") or {}).get("id"),
+        "request_id": metadata.get("requestId"),
+        "trigger": metadata.get("trigger"),
+        "cache_hit": source.get("cache_hit") if isinstance(source, dict) else None,
+        "duration_ms": source.get("duration_ms") if isinstance(source, dict) else None,
+        "limit": source.get("limit") if isinstance(source, dict) else None,
     }
 
 
@@ -165,8 +219,10 @@ def update_flat(new_events: list) -> tuple[int, int]:
             existing[eid] = flat
             added += 1
 
-    # Riscrivi ordinato per timestamp asc
+    # Rewrite sorted by timestamp asc, same field set on every line (records
+    # predating script_version/request_id/trigger would otherwise lack them)
     records = sorted(existing.values(), key=lambda r: r.get("timestamp", ""))
+    records = [{k: rec.get(k) for k in FLAT_FIELDS} for rec in records]
     with open(FLAT_FILE, "w") as f:
         for rec in records:
             f.write(json.dumps(rec) + "\n")

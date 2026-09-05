@@ -17,10 +17,22 @@ duckdb -c "
   COPY (
     SELECT
       strftime(timestamp::TIMESTAMP, '%Y-%m-%d') AS date,
-      count(*)                                   AS calls,
-      count(*) FILTER (WHERE outcome = 'ok')     AS ok,
-      count(*) FILTER (WHERE outcome != 'ok')    AS errors
-    FROM read_json('$INPUT', format='newline_delimited')
+      count(*)                                                   AS calls,
+      -- 'ok' means 'did not come back as an error', not a runtime confirmation:
+      -- the API stopped exposing outcome on 2026-07-12 (see scripts/README.md)
+      count(*) FILTER (WHERE NOT is_error)                       AS ok,
+      count(*) FILTER (WHERE is_error)                           AS errors
+    FROM (
+      SELECT
+        timestamp,
+        -- outcome only covers events up to 2026-07-12 (the field then vanished
+        -- from the API); error stays populated across the whole history and also
+        -- catches application errors that the runtime reported as ok
+        error IS NOT NULL
+          OR coalesce(outcome IN ('exception', 'exceededCpu', 'canceled', 'error'), false)
+          AS is_error
+      FROM read_json('$INPUT', format='newline_delimited')
+    )
     GROUP BY 1
     ORDER BY 1
   ) TO '${OUTPUT}' (FORMAT JSON)
