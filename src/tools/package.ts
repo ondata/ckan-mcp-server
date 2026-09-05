@@ -7,8 +7,8 @@ import { ResponseFormat, ResponseFormatSchema, CkanTag, CkanResource, CkanPackag
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
 import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter, wrapUntrusted, safeUrlText, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
 import { getDatasetViewUrl, extractSourcePortal } from "../utils/url-generator.js";
-import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from "../utils/search.js";
-import { getPortalHvdConfig, getPortalApiPath, requiresMultilingualNormalization, isPortalSearchExplicitlyConfigured } from "../utils/portal-config.js";
+import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery, mayNeedTextWrapping } from "../utils/search.js";
+import { getPortalHvdConfig, getPortalApiPath, requiresMultilingualNormalization } from "../utils/portal-config.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /**
@@ -19,25 +19,93 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 const _portalParserCache = new Map<string, boolean>();
 
 /**
- * Probe a portal to detect whether it needs force_text_field.
- * Runs two parallel rows=0 queries (default vs text parser) using "data OR dati".
- * If text count > default count * 2, the portal has the Solr df bug and needs wrapping.
- * Result is cached for the session lifetime.
+ * Pick two terms that actually occur in this catalog, for the parser probe below.
+ *
+ * They must be single words (a multi-word term would need quoting and change the
+ * parse) and neither rare nor saturating: a term matching most of the catalog makes
+ * `A OR B` indistinguishable from `A`, which is how the previous probe — hardcoded to
+ * "data OR dati" — read dati.comune.milano.it as healthy while `aria OR acqua` there
+ * returned 0 against 54 and 33 for the single terms.
+ *
+ * Tag facets first, since tags are in the catalog's own language; frequent title words
+ * as a fallback for portals that expose no tag facets (open.canada.ca) or too few
+ * (dati.regione.sicilia.it).
+ */
+async function pickProbeTerms(serverUrl: string): Promise<[string, string] | null> {
+  const facetRes = await makeCkanRequest<any>(serverUrl, 'package_search', {
+    q: '*:*',
+    rows: 0,
+    'facet.field': '["tags"]',
+    'facet.limit': 100
+  }).catch(() => null);
+
+  const total: number = facetRes?.count ?? 0;
+  if (!total) return null;
+
+  const items: Array<{ name?: string; count?: number }> =
+    facetRes?.search_facets?.tags?.items ?? [];
+  const usable = items
+    .filter(i => typeof i.name === 'string' && !/\s/.test(i.name))
+    .filter(i => (i.count ?? 0) >= total * 0.005 && (i.count ?? 0) <= total * 0.3)
+    .sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
+  if (usable.length >= 2) return [usable[0].name!, usable[1].name!];
+
+  const sampleRes = await makeCkanRequest<any>(serverUrl, 'package_search', {
+    q: '*:*',
+    rows: 25
+  }).catch(() => null);
+  const titles: string[] = (sampleRes?.results ?? []).map((r: any) => r?.title ?? '');
+  const freq = new Map<string, number>();
+  for (const word of titles.join(' ').toLowerCase().split(/[^\p{L}]+/u)) {
+    if (word.length > 4) freq.set(word, (freq.get(word) ?? 0) + 1);
+  }
+  const top = [...freq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2);
+  return top.length === 2 ? [top[0][0], top[1][0]] : null;
+}
+
+/**
+ * Does this portal need `text:(...)` wrapping to honour a boolean query?
+ *
+ * `package_search` hands a colon-free query to Solr's dismax parser with `q.op=AND`
+ * (ckan/lib/search/query.py), and dismax has no boolean syntax: `A OR B` collapses to
+ * `A AND B`. A colon takes the query off dismax, which is what the wrapper exploits.
+ * That is CKAN's own default, so most portals need it — but not all: on
+ * data.stadt-zuerich.ch the catch-all `text` field returns 0 for every query, and
+ * wrapping there loses everything.
+ *
+ * So: an `A OR B` that returns fewer hits than `A` or `B` alone is not being honoured,
+ * and the wrapper is the fix only if the wrapped form actually returns more.
+ * Four rows=0 counts, cached per portal for the session, negative verdicts included.
+ * Callers must only reach here for queries that carry a boolean operator — nothing
+ * else is ever wrapped, so nothing else needs to pay for this.
  */
 async function probePortalParser(serverUrl: string): Promise<boolean> {
   const key = serverUrl.replace(/\/$/, '').toLowerCase();
   if (_portalParserCache.has(key)) return _portalParserCache.get(key)!;
 
-  const probe = 'data OR dati';
-  const [defaultRes, textRes] = await Promise.allSettled([
-    makeCkanRequest<any>(serverUrl, 'package_search', { q: probe, rows: 0 }),
-    makeCkanRequest<any>(serverUrl, 'package_search', { q: `text:(${probe})`, rows: 0 })
-  ]);
+  let needsText = false;
+  const terms = await pickProbeTerms(serverUrl).catch(() => null);
 
-  const defaultCount = defaultRes.status === 'fulfilled' ? (defaultRes.value.count ?? 0) : 0;
-  const textCount = textRes.status === 'fulfilled' ? (textRes.value.count ?? 0) : 0;
+  if (terms) {
+    const [a, b] = terms;
+    const count = async (q: string): Promise<number | null> => {
+      const res = await makeCkanRequest<any>(serverUrl, 'package_search', { q, rows: 0 })
+        .catch(() => null);
+      return typeof res?.count === 'number' ? res.count : null;
+    };
+    const [ca, cb, cOr, cText] = await Promise.all([
+      count(a),
+      count(b),
+      count(`${a} OR ${b}`),
+      count(`text:(${a} OR ${b})`)
+    ]);
 
-  const needsText = textCount > 0 && (defaultCount === 0 || textCount > defaultCount * 2);
+    if (ca !== null && cb !== null && cOr !== null && cText !== null) {
+      const booleanIgnored = cOr < Math.max(ca, cb);
+      needsText = booleanIgnored && cText > cOr;
+    }
+  }
+
   _portalParserCache.set(key, needsText);
   return needsText;
 }
@@ -773,10 +841,11 @@ Typical workflow: ckan_status_show (check locale) → ckan_package_search (query
           if (!effectiveSort) effectiveSort = "issued desc, metadata_created desc";
         }
 
-        // For portals not explicitly configured in portals.json, auto-detect
-        // whether they need text:(...) wrapping by probing with a two-term OR query.
+        // Only a boolean query can benefit from text:(...) wrapping, so only a boolean
+        // query pays for the probe. Every portal is probed, configured ones included:
+        // the values that used to live in portals.json went stale.
         let parserOverride = params.query_parser;
-        if (!parserOverride && !isPortalSearchExplicitlyConfigured(params.server_url)) {
+        if (!parserOverride && mayNeedTextWrapping(query)) {
           const needsText = await probePortalParser(params.server_url);
           if (needsText) parserOverride = "text";
         }
@@ -922,7 +991,10 @@ ${hvdNote}`;
           markdown += `No datasets found matching your query.\n`;
           markdown += `\n> **Note**: No data was found on this portal. Do not use information from other sources to supplement this result.\n`;
           if (isPlainMultiTermQuery(params.q)) {
-            markdown += `\n> **Tip**: Multi-term queries use AND by default (all terms must match). Try OR to broaden the search:\n`;
+            // CKAN's dismax applies mm='2<-1 5<80%', so a plain multi-term query is
+            // already a partial match: spelling out OR relaxes it the rest of the way
+            // and, on portals that ignore boolean operators, switches parser too.
+            markdown += `\n> **Tip**: With several terms the portal requires most of them to match. Spelling out OR broadens the search:\n`;
             markdown += `> \`q: "${buildOrQuery(params.q)}"\`\n`;
           }
         }

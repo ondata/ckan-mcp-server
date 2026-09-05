@@ -53,10 +53,10 @@ Each entry in `portals` array supports:
   - Example: data.europa.eu requires this due to its DCAT-AP based field structure
 
 - **`search`** (object): Search behavior configuration
-  - **`force_text_field`** (boolean): Force wrapping non-fielded queries in `text:(...)`
-    - Default: `false`
-    - Set to `true` for portals with restrictive query parsers that break on long OR queries
-    - Example: dati.gov.it requires this to handle queries like `"hotel OR alberghi"`
+  - **`force_text_field`** (boolean): forces `text:(...)` wrapping on non-fielded queries.
+    Still honoured if present, but **no portal sets it any more** and new ones should not:
+    the decision is measured at runtime by `probePortalParser()` in `src/tools/package.ts`.
+    The stored values went stale and were removed on 2026-09-05.
 
 ### Defaults
 
@@ -72,6 +72,38 @@ The `defaults` object provides fallback values when a portal is not found in the
 }
 ```
 
+### Query parser: when `text:(...)` wrapping is applied
+
+`package_search` sends a colon-free query to Solr's **dismax** parser with `q.op=AND`,
+`mm='2<-1 5<80%'` and `qf='name^4 title^4 tags^2 groups^2 text'` (`ckan/lib/search/query.py`).
+dismax has no boolean syntax, so `A OR B` collapses into `A AND B`. A colon in the query
+takes it off dismax, which is what wrapping it as `text:(A OR B)` exploits.
+
+The same switch is why wrapping hurts everything else: it drops the `qf` boosts that rank
+titles and tags first, searches the catch-all `text` field alone, and ANDs every term
+instead of applying `mm`. Measured on dati.gov.it, 2026-09-05:
+
+| query | plain | `text:(...)` |
+|---|---|---|
+| `ambiente` | 8047 | 8047 |
+| `qualità aria Milano` | 650 | 51 |
+| `defibrillatori Comune di Lecce` | 678 | 1 |
+| `musei roma arte opere catalogo` | 9 | 0 |
+| `aria OR Milano` | 59 | 3421 |
+
+So the wrapper is applied **only to queries carrying a boolean operator**
+(`mayNeedTextWrapping` in `src/utils/search.ts`), and only when the portal needs it.
+
+`probePortalParser()` decides that per portal: it picks two terms that occur in the
+catalog — single-word tag facets between 0.5% and 30% of the catalog, falling back to
+frequent title words — and compares `A`, `B`, `A OR B` and `text:(A OR B)`. An `A OR B`
+returning fewer hits than `A` or `B` alone is not being honoured; the wrapper is the answer
+only if the wrapped form returns more. On `data.stadt-zuerich.ch` the `text` field returns 0
+for every query, so the probe correctly declines to wrap there.
+
+Cost: nothing for a plain query, 5 extra `rows=0` calls the first time a boolean query hits
+a portal in a session, nothing afterwards (cached, negative verdicts included).
+
 ### Adding a New Portal
 
 1. Add entry to `portals` array
@@ -79,7 +111,7 @@ The `defaults` object provides fallback values when a portal is not found in the
 3. Add `api_url_aliases` if the portal has multiple URL variants
 4. Set `api_path` if the portal uses non-standard API path (e.g., `/api/action/` instead of `/api/3/action/`)
 5. Customize `dataset_view_url` and/or `organization_view_url` only if non-standard
-6. Set `search.force_text_field: true` if the portal has query parser issues
+6. Leave `search.force_text_field` unset: the runtime probe decides
 7. Set `normalize: "multilingual"` if the portal uses multilingual/DCAT-AP field structures
 
 **Note**: To determine the correct `api_path`, test the portal's API endpoints:
@@ -158,7 +190,7 @@ The following portals have been tested and verified (as of v0.4.37):
 
 | Portal | Country | CKAN Version | Notes |
 |--------|---------|--------------|-------|
-| dati.gov.it/opendata | 🇮🇹 Italy | 2.10.3 | `force_text_field: true`; custom `dataset_view_url` and `organization_view_url` |
+| dati.gov.it/opendata | 🇮🇹 Italy | 2.10.3 | Custom `dataset_view_url` and `organization_view_url` |
 | dati.anticorruzione.it/opendata | 🇮🇹 Italy | — | Standard configuration |
 | catalog.data.gov | 🇺🇸 USA | 2.11.4 | Standard configuration |
 | open.canada.ca/data | 🇨🇦 Canada | 2.10.8 | Standard configuration |

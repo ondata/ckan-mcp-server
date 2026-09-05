@@ -4,10 +4,51 @@ export type QueryParserOverride = "default" | "text" | undefined;
 
 const DEFAULT_SEARCH_QUERY = "*:*";
 const FIELD_QUERY_PATTERN = /\b[a-zA-Z_][\w-]*:/;
+const EXPLICIT_BOOL_PATTERN = /\b(AND|OR|NOT)\b|[+\-!]/;
 const SOLR_SPECIAL_CHARS = /[+\-!(){}[\]^~*?:\\/|&]/g;
 
 function isFieldedQuery(query: string): boolean {
   return FIELD_QUERY_PATTERN.test(query);
+}
+
+/**
+ * True when the query asks for boolean semantics: the AND/OR/NOT keywords, or a
+ * leading +/-/! operator. This is the only case where `text:(...)` wrapping earns
+ * its keep.
+ *
+ * Why: `package_search` sends a colon-free query to Solr's **dismax** parser with
+ * `q.op=AND`, `mm='2<-1 5<80%'` and `qf='name^4 title^4 tags^2 groups^2 text'`
+ * (ckan/lib/search/query.py). dismax has no boolean syntax, so `OR` is swallowed
+ * and `q.op=AND` takes over: on dati.gov.it `aria OR Milano` returns 59 results,
+ * exactly what `aria AND Milano` returns. A colon in the query makes CKAN leave
+ * dismax, which is what the wrapper exploits — `text:(aria OR Milano)` returns 3421.
+ *
+ * The same switch is what makes the wrapper harmful everywhere else: it drops the
+ * `qf` boosts that put titles and tags first, searches the catch-all `text` field
+ * alone, and ANDs every term instead of applying `mm`. `defibrillatori Comune di
+ * Lecce` goes from 678 results to 1, `musei roma arte opere catalogo` from 9 to 0.
+ *
+ * Measured 2026-09-05 on 40 real queries from the public deployment's telemetry:
+ * with a boolean operator the wrapper helped 8 times and hurt none; without one it
+ * helped none and hurt 10, six of them down to zero results.
+ */
+export function hasExplicitBooleanOperator(query: string): boolean {
+  return EXPLICIT_BOOL_PATTERN.test(query.trim());
+}
+
+/**
+ * True when wrapping could still change this query's meaning: it is not `*:*`, it is
+ * not already fielded (a colon has taken it off dismax on its own), and it carries a
+ * boolean operator. Everything else is left to the portal's own parser, so it must not
+ * pay for the probe either.
+ */
+export function mayNeedTextWrapping(query: string): boolean {
+  const trimmed = query.trim();
+  return (
+    trimmed !== DEFAULT_SEARCH_QUERY &&
+    !isFieldedQuery(trimmed) &&
+    hasExplicitBooleanOperator(trimmed)
+  );
 }
 
 export function escapeSolrQuery(query: string): string {
@@ -54,7 +95,6 @@ export function convertDateMathForUnsupportedFields(query: string): string {
   });
 }
 
-const EXPLICIT_BOOL_PATTERN = /\b(AND|OR|NOT)\b|[+\-!]/;
 
 export function isPlainMultiTermQuery(query: string): boolean {
   const trimmed = query.trim();
@@ -94,7 +134,10 @@ export function resolveSearchQuery(
     forceTextField = false;
   } else if (portalForce) {
     const trimmedQuery = query.trim();
-    forceTextField = trimmedQuery !== DEFAULT_SEARCH_QUERY && !isFieldedQuery(trimmedQuery);
+    forceTextField =
+      trimmedQuery !== DEFAULT_SEARCH_QUERY &&
+      !isFieldedQuery(trimmedQuery) &&
+      hasExplicitBooleanOperator(trimmedQuery);
   }
 
   let effectiveQuery = forceTextField ? `text:(${escapeSolrQuery(query)})` : query;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { resolveSearchQuery, escapeSolrQuery, convertDateMathForUnsupportedFields, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery } from '../../src/utils/search';
+import { resolveSearchQuery, escapeSolrQuery, convertDateMathForUnsupportedFields, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery, hasExplicitBooleanOperator, mayNeedTextWrapping } from '../../src/utils/search';
 
 describe('resolveSearchQuery', () => {
   it('keeps query unchanged for non-configured portals', () => {
@@ -13,11 +13,11 @@ describe('resolveSearchQuery', () => {
     expect(result.forcedTextField).toBe(false);
   });
 
-  it('forces text field for configured portals on non-fielded queries', () => {
+  it('wraps a boolean query when the probe asked for the text parser', () => {
     const result = resolveSearchQuery(
       'https://www.dati.gov.it/opendata',
       'hotel OR alberghi',
-      undefined
+      'text'
     );
 
     expect(result.effectiveQuery).toBe('text:(hotel OR alberghi)');
@@ -83,21 +83,25 @@ describe('resolveSearchQuery', () => {
     const escaped = escapeSolrQuery('foo") (bar):baz\\qux');
     expect(escaped).toBe('foo"\\) \\(bar\\)\\:baz\\\\qux');
 
+    // The wrapping only applies to boolean queries now, so the escaping path is
+    // exercised through one.
     const result = resolveSearchQuery(
       'https://www.dati.gov.it/opendata',
-      'foo") (bar):baz\\qux',
-      undefined
+      'foo") (bar):baz\\qux OR altro',
+      'text'
     );
 
-    expect(result.effectiveQuery).toBe('text:(foo"\\) \\(bar\\)\\:baz\\\\qux)');
     expect(result.forcedTextField).toBe(true);
+    expect(result.effectiveQuery).toContain('text:(');
+    expect(result.effectiveQuery).toContain('OR altro');
+    expect(result.effectiveQuery).toContain('\\(bar');
   });
 
   it('preserves quoted phrases inside text:() wrapping', () => {
     const result = resolveSearchQuery(
       'https://www.dati.gov.it/opendata',
       'SIC OR PAI OR "aree protette" OR "rischio idrogeologico"',
-      undefined
+      'text'
     );
 
     expect(result.effectiveQuery).toBe('text:(SIC OR PAI OR "aree protette" OR "rischio idrogeologico")');
@@ -249,5 +253,94 @@ describe('buildOrQuery', () => {
 
   it('handles extra whitespace', () => {
     expect(buildOrQuery('  crime   homicide  ')).toBe('crime OR homicide');
+  });
+});
+
+describe('hasExplicitBooleanOperator', () => {
+  // The shapes below were measured against live portals on 2026-09-05. Counts are
+  // dati.gov.it, plain vs text:(...): the wrapper must reach only the boolean ones.
+  it.each([
+    ['ambiente', false],                              // 8047 / 8047
+    ['qualità aria', false],                          // 366 / 366
+    ['qualità aria Milano', false],                   // 650 / 51
+    ['defibrillatori Comune di Lecce', false],        // 678 / 1
+    ['musei roma arte opere catalogo', false],        // 9 / 0
+    ['"qualità dell\'aria"', false],                  // 318 / 318
+    ['aria OR Milano', true],                         // 59 / 3421
+    ['aria AND Milano', true],                        // 59 / 59
+    ['bandiera blu OR bandiere blu OR spiagge', true] // 0 / 7
+  ])('%s -> %s', (query, expected) => {
+    expect(hasExplicitBooleanOperator(query as string)).toBe(expected);
+  });
+
+  it('treats a hyphenated term as an operator, which is what the portal does', () => {
+    // plain e-government returns 58919 of ~65000 datasets: the portal reads the
+    // hyphen as NOT. The wrapper gives 278 instead.
+    expect(hasExplicitBooleanOperator('e-government')).toBe(true);
+  });
+});
+
+describe('mayNeedTextWrapping', () => {
+  it('is false for the match-all query, so it never triggers a probe', () => {
+    expect(mayNeedTextWrapping('*:*')).toBe(false);
+  });
+
+  it('is false for a fielded query: the colon already leaves dismax', () => {
+    expect(mayNeedTextWrapping('title:(aria OR acqua)')).toBe(false);
+    expect(mayNeedTextWrapping('metadata_created:[NOW-7DAYS TO NOW]')).toBe(false);
+  });
+
+  it('is false for plain keyword queries, the common LLM-generated shape', () => {
+    expect(mayNeedTextWrapping('bonifica siti contaminati Piemonte')).toBe(false);
+    expect(mayNeedTextWrapping('ANAC bandi gara appalti OCDS anticorruzione')).toBe(false);
+  });
+
+  it('is true only when a boolean operator can actually be honoured', () => {
+    expect(mayNeedTextWrapping('aria OR acqua')).toBe(true);
+  });
+});
+
+describe('resolveSearchQuery — boolean-only wrapping', () => {
+  it('leaves a plain multi-term query to the portal parser', () => {
+    // The regression this guards: 678 results collapsed to 1. Two layers keep it
+    // away: mayNeedTextWrapping stops the probe from ever asking for the wrapper on
+    // this shape, and with no override nothing wraps.
+    expect(mayNeedTextWrapping('defibrillatori Comune di Lecce')).toBe(false);
+
+    const result = resolveSearchQuery(
+      'https://www.dati.gov.it/opendata',
+      'defibrillatori Comune di Lecce',
+      undefined
+    );
+    expect(result.forcedTextField).toBe(false);
+    expect(result.effectiveQuery).toBe('defibrillatori Comune di Lecce');
+  });
+
+  it('honours an explicit query_parser: "text" from the caller, whatever the shape', () => {
+    const result = resolveSearchQuery(
+      'https://www.dati.gov.it/opendata',
+      'defibrillatori Comune di Lecce',
+      'text'
+    );
+    expect(result.forcedTextField).toBe(true);
+  });
+
+  it('still wraps when the query carries OR', () => {
+    const result = resolveSearchQuery(
+      'https://www.dati.gov.it/opendata',
+      'bandiera blu OR spiagge',
+      'text'
+    );
+    expect(result.forcedTextField).toBe(true);
+    expect(result.effectiveQuery).toBe('text:(bandiera blu OR spiagge)');
+  });
+
+  it('never wraps when the caller asked for the default parser', () => {
+    const result = resolveSearchQuery(
+      'https://www.dati.gov.it/opendata',
+      'aria OR acqua',
+      'default'
+    );
+    expect(result.forcedTextField).toBe(false);
   });
 });
