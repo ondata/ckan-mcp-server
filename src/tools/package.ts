@@ -234,7 +234,8 @@ export const extractQueryTerms = (query: string): string[] => {
   // score on while a bare `OR` is syntax. Tokenisation has already dropped the quotes,
   // so the quoted tokens are collected first.
   const quoted = new Set<string>();
-  for (const m of normalized.matchAll(/"([^"]*)"/g)) {
+  // `\"` inside a phrase is a literal quote, not the end of it: `"OR\" AND"` is one phrase.
+  for (const m of normalized.matchAll(/"((?:[^"\\]|\\.)*)"/g)) {
     for (const t of m[1].match(/[\p{L}\p{N}]+/gu) ?? []) quoted.add(t);
   }
   // An all-caps token is an acronym, not an article: the stopword list is there for

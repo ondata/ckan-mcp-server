@@ -649,6 +649,8 @@ describe('multilingual term extraction', () => {
   it('keeps a quoted operator: inside quotes Solr reads it as a literal', () => {
     expect(extractQueryTerms('"OR" Oregon')).toEqual(['or', 'oregon']);
     expect(extractQueryTerms('aria OR "AND"')).toEqual(['aria', 'and']);
+    // an escaped quote inside the phrase does not end it
+    expect(extractQueryTerms('"OR\\" AND" acqua')).toEqual(['or', 'and', 'acqua']);
   });
 
   it('matches across Unicode normal forms', () => {
