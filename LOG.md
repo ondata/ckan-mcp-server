@@ -2,6 +2,41 @@
 
 ## 2026-09-06
 
+### #539: the window is the lever, not the score
+
+The issue proposed IDF for the tie at 9.7 on `defibrillatori Comune di Lecce`. Prototyped
+on the real 50 candidates the tool fetches, IDF alone makes it worse — the Lecce dataset
+drops out of the top three, since `lecce` is rarer than `comune` in that set and the
+"patrocini" datasets carry it in every field. Two other things do the work, and both are
+smaller than a ranking model:
+
+- `mm=100%`. It is on CKAN's `VALID_SOLR_PARAMETERS` and works on every portal tried
+  (dati.gov.it, Milano, Toronto, Zurigo); with a wrapped query it is ignored without error.
+  It asks Solr for datasets carrying every term, matched with Solr's own stemming across
+  `qf`, and changes the candidate window itself: the Lecce query returns exactly one
+  dataset; `qualità dell'aria Milano`, whose default top 50 contained no Milan dataset at
+  all, returns the Comune di Milano reports first; `incidenti stradali Palermo` returns 20,
+  all Palermo. The strict pass runs first and the default pass fills in when it is short;
+  strict candidates earn a `coverage` bonus (weight 4) shown in the breakdown.
+- light stemming in the local matcher: `defibrillatore` in the tag and `defibrillatori` in
+  the query were strangers to the whole-word regex, and that tag score was the whole
+  difference. One final vowel stripped from words of five letters or more, whole-word
+  comparison kept. Elided articles (`dell'aria` → `dell`) join the stopwords.
+
+Native dati.gov.it API against the MCP server, same text:
+
+| query | native API, top 3 | MCP `find_relevant_datasets`, top 3 |
+|---|---|---|
+| defibrillatori Comune di Lecce | Mussolente, Desio, Lecce (679) | **Lecce 14.4**, then patrocini 9.7 |
+| qualità dell'aria Milano | Marche, Campania, Sicilia (2401) | three Comune di Milano reports (327 with every term) |
+| incidenti stradali Palermo | Lombardia, Palermo, Lombardia (320) | three Comune di Palermo datasets (20 with every term) |
+| aria OR acqua (Milano) | 0 — dismax swallows the OR | 87, sent as `text:(aria OR acqua)` |
+
+Cost: one extra call only when the strict pass is short; none for boolean or fielded
+queries. The gate asserts terms and margin now (`terms_equal`, `margin_min`): Lecce leads
+by ≥ 2 with terms `[defibrillatori, comune, lecce]`, and the Milano case requires a Comune
+di Milano report first. 550 tests, 14/14 smoke. OpenSpec change `rank-on-full-coverage`.
+
 ### catalog.data.gov has not been CKAN since 2025; we said otherwise in twelve places
 
 Checking the two configured portals that answered nothing yesterday. `dati.arpae.it` is

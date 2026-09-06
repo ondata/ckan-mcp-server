@@ -136,6 +136,13 @@ async function probePortalParser(serverUrl: string): Promise<boolean> {
 }
 
 type RelevanceWeights = {
+  /**
+   * Bonus for a dataset the portal itself returned with every query term required
+   * (`mm=100%`). Solr matches with its own stemming across `qf`, so this is the one
+   * signal the local matcher cannot fake — and the reason the right dataset now leads
+   * with a margin instead of tying on Solr's order.
+   */
+  coverage: number;
   title: number;
   notes: number;
   tags: number;
@@ -156,6 +163,7 @@ type RelevanceWeights = {
 };
 
 type RelevanceBreakdown = {
+  coverage: number;
   title: number;
   notes: number;
   tags: number;
@@ -166,6 +174,7 @@ type RelevanceBreakdown = {
 };
 
 const DEFAULT_RELEVANCE_WEIGHTS: RelevanceWeights = {
+  coverage: 4,
   title: 4,
   notes: 2,
   tags: 3,
@@ -178,6 +187,8 @@ const QUERY_STOPWORDS = new Set([
   // Italian: without these, `defibrillatori Comune di Lecce` scored a full holder
   // match against "Provincia Autonoma di Trento" on the strength of "di" alone.
   "di", "del", "dello", "della", "dei", "degli", "delle",
+  // elided forms: `dell'aria` tokenises to `dell` + `aria`
+  "dell", "nell", "dall", "sull", "all", "coll", "quell",
   "il", "lo", "la", "i", "gli", "le", "un", "uno", "una",
   "e", "ed", "per", "con", "su", "da", "dal", "dalla", "nel", "nella", "al", "alla",
   "che", "non", "come", "dove", "sono",
@@ -257,31 +268,31 @@ export const extractQueryTerms = (query: string): string[] => {
 export const escapeRegExp = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 /**
- * Word-boundary matcher for a single term.
- *
- * `\b` is ASCII-only in JavaScript, so an accented letter counts as a non-word
- * character and a term ending in one never finds its boundary: `mobilità` failed to
- * match "mobilità urbana". Unicode lookarounds fix it, which matters on catalogs that
- * are mostly not in English.
+ * A term matches a word when they are equal, or when they share a stem: the final
+ * vowel stripped from words of five letters or more. `defibrillatori` in the query and
+ * `defibrillatore` in a tag were strangers to the old whole-word regex, and the one
+ * dataset actually about defibrillators lost its tag score to datasets about patrocini.
+ * Whole-word comparison keeps the boundary: `immobilità` still does not match
+ * `mobilità`. Accented vowels count, so `qualità` and the slug `qualita` share a stem.
  */
-const termPattern = (term: string): RegExp =>
-  new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(term.normalize("NFC"))}(?![\\p{L}\\p{N}])`, "iu");
+const FINAL_VOWEL = /[aeiouàèéìòù]$/u;
+export const stemTerm = (word: string): string =>
+  word.length >= 5 ? word.replace(FINAL_VOWEL, "") : word;
 
-/** Same Unicode form on both sides: `mobilità` written as NFD would not match NFC. */
-const normalizeForMatch = (text: string): string =>
-  text.normalize("NFC").toLowerCase().replace(/_/g, " ");
+const wordsOf = (text: string): string[] =>
+  text.normalize("NFC").toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
 
-export const textMatchesTerms = (text: string | undefined, terms: string[]): boolean => {
-  if (!text || terms.length === 0) return false;
-  const normalized = normalizeForMatch(text);
-  return terms.some((term) => termPattern(term).test(normalized));
-};
+const termMatchesWord = (term: string, word: string): boolean =>
+  word === term || (term.length >= 5 && word.length >= 5 && stemTerm(word) === stemTerm(term));
+
+export const textMatchesTerms = (text: string | undefined, terms: string[]): boolean =>
+  countMatchingTerms(text, terms) > 0;
 
 /** How many of the query's terms this text contains. */
 export const countMatchingTerms = (text: string | undefined, terms: string[]): number => {
   if (!text || terms.length === 0) return 0;
-  const normalized = normalizeForMatch(text);
-  return terms.filter((term) => termPattern(term).test(normalized)).length;
+  const words = wordsOf(text);
+  return terms.filter((term) => words.some((word) => termMatchesWord(term.normalize("NFC"), word))).length;
 };
 
 /**
@@ -334,7 +345,8 @@ export const readDcatExtra = (dataset: CkanPackage, key: "holder_name" | "publis
 export const scoreDatasetRelevance = (
   query: string,
   dataset: CkanPackage,
-  weights: RelevanceWeights = DEFAULT_RELEVANCE_WEIGHTS
+  weights: RelevanceWeights = DEFAULT_RELEVANCE_WEIGHTS,
+  fullCoverage = false
 ): { total: number; breakdown: RelevanceBreakdown; terms: string[] } => {
   const terms = extractQueryTerms(query);
   const titleText = dataset.title || dataset.name || "";
@@ -344,6 +356,7 @@ export const scoreDatasetRelevance = (
   const publisherText = readDcatExtra(dataset, "publisher_name");
 
   const breakdown = {
+    coverage: fullCoverage ? weights.coverage : 0,
     title: scoreTextField(titleText, terms, weights.title),
     notes: scoreTextField(notesText, terms, weights.notes),
     tags: 0,
@@ -364,7 +377,8 @@ export const scoreDatasetRelevance = (
   // Rounded: the per-field shares are fractions, and summing them raw surfaces
   // binary-float noise in the output — a score printed as 8.299999999999999.
   breakdown.total = Math.round(
-    (breakdown.title +
+    (breakdown.coverage +
+      breakdown.title +
       breakdown.notes +
       breakdown.tags +
       breakdown.organization +
@@ -1141,7 +1155,9 @@ Args:
   - query (string): Natural language or keyword query (e.g., "mobilità urbana", "air quality")
   - limit (number): Number of datasets to return (default: 10)
   - weights (object): Field weights for scoring — higher weight = more influence on rank
-    Default: title=4, tags=3, notes=2, organization=1, holder=4, publisher=2
+    Default: title=4, tags=3, notes=2, organization=1, holder=4, publisher=2, coverage=4
+    coverage: bonus for datasets the portal returned with every query term required
+    (Solr mm=100%); these are fetched first, the rest fills in when they are fewer than limit
     Note on holder vs organization: on federated catalogs (e.g. dati.gov.it), \`organization\`
     is the harvesting catalog (e.g. Regione Puglia), while \`holder\` (DCAT-AP_IT dct:rightsHolder)
     is the actual data owner (e.g. Comune di Lecce). Queries like "datasets from a specific Comune"
@@ -1180,7 +1196,8 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
           tags: z.coerce.number().min(0).optional().describe("Weight for tag match (default 3)"),
           organization: z.coerce.number().min(0).optional().describe("Weight for organization (CKAN catalog / harvester) match (default 1)"),
           holder: z.coerce.number().min(0).optional().describe("Weight for holder_name match — DCAT-AP_IT dct:rightsHolder, the actual data owner (default 4)"),
-          publisher: z.coerce.number().min(0).optional().describe("Weight for publisher_name match — DCAT-AP_IT dct:publisher (default 2)")
+          publisher: z.coerce.number().min(0).optional().describe("Weight for publisher_name match — DCAT-AP_IT dct:publisher (default 2)"),
+          coverage: z.coerce.number().min(0).optional().describe("Bonus for datasets the portal returned with every query term required (default 4)")
         }).optional().describe("Per-field scoring weights; unspecified fields use defaults"),
         query_parser: z.enum(["default", "text"])
           .optional()
@@ -1222,29 +1239,31 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
           parserOverride
         );
 
-        const searchResult = await makeCkanRequest<any>(
-          params.server_url,
-          'package_search',
-          {
-            q: effectiveQuery,
-            rows,
-            start: 0
-          }
-        );
+        // Strict pass first: `mm=100%` asks Solr for datasets carrying every query term,
+        // matched with its own stemming across `qf`. No local re-ranking can surface a
+        // dataset the portal never returned — on dati.gov.it none of the top 50 for
+        // `qualità dell'aria Milano` mentioned Milano — so the window is the lever, not
+        // the score. A fielded or wrapped query leaves dismax, and `mm` with it: it is
+        // sent as written. When the strict pass comes up short, the default pass fills in.
+        const strictEligible = !effectiveQuery.includes(":");
+        const fetchCandidates = (extra: Record<string, unknown>) =>
+          makeCkanRequest<any>(params.server_url, 'package_search', { q: effectiveQuery, rows, start: 0, ...extra });
 
-        const scored = (searchResult.results || []).map((dataset: CkanPackage) => {
-          const { total, breakdown } = scoreDatasetRelevance(
-            params.query,
-            dataset,
-            weights
-          );
+        const strictResult = strictEligible ? await fetchCandidates({ mm: "100%" }) : null;
+        const strictHits: CkanPackage[] = strictResult?.results ?? [];
+        const fillResult = strictHits.length >= params.limit ? null : await fetchCandidates({});
+        const seen = new Set(strictHits.map((d) => d.id));
+        const fillHits: CkanPackage[] = (fillResult?.results ?? []).filter((d: CkanPackage) => !seen.has(d.id));
 
-          return {
-            dataset,
-            score: total,
-            breakdown
-          };
-        });
+        const scoreOne = (dataset: CkanPackage, fullCoverage: boolean) => {
+          const { total, breakdown } = scoreDatasetRelevance(params.query, dataset, weights, fullCoverage);
+          return { dataset, score: total, breakdown };
+        };
+        const scored = [
+          ...strictHits.map((d) => scoreOne(d, true)),
+          ...fillHits.map((d) => scoreOne(d, false))
+        ];
+        const searchResult = fillResult ?? strictResult ?? { count: 0 };
 
         scored.sort((a, b) => b.score - a.score);
 
@@ -1267,6 +1286,7 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
           terms: extractQueryTerms(params.query),
           weights,
           total_results: searchResult.count ?? 0,
+          all_terms_results: strictResult ? (strictResult.count ?? 0) : null,
           returned: top.length,
           results: top
         };
@@ -1311,6 +1331,7 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
             markdown += `- Tags: ${dataset.breakdown.tags}\n`;
             markdown += `- Organization: ${dataset.breakdown.organization}\n`;
             markdown += `- Holder: ${dataset.breakdown.holder}\n`;
+            markdown += `- Coverage (every term, per the portal): ${dataset.breakdown.coverage}\n`;
             markdown += `- Publisher: ${dataset.breakdown.publisher}\n`;
             markdown += `- Total: ${dataset.breakdown.total}\n\n`;
           });

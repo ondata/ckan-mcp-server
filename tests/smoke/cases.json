@@ -120,7 +120,7 @@
     },
     {
       "name": "the right dataset ranks first, not just any dataset",
-      "regression": "v0.4.122: Trento, Martina Franca and Desio outranked the Lecce dataset",
+      "regression": "v0.4.122: Trento, Martina Franca and Desio outranked the Lecce dataset; v0.4.123: it led on Solr order only, tied at 9.7 (#539)",
       "tool": "ckan_find_relevant_datasets",
       "server": "https://www.dati.gov.it/opendata",
       "args": {
@@ -129,7 +129,13 @@
       },
       "expect": {
         "total_min": 100,
-        "first_matches": "Cardioprotetto"
+        "first_matches": "Cardioprotetto",
+        "margin_min": 2,
+        "terms_equal": [
+          "defibrillatori",
+          "comune",
+          "lecce"
+        ]
       }
     },
     {
@@ -181,6 +187,24 @@
       },
       "expect": {
         "error_matches": "stopped being a CKAN portal"
+      }
+    },
+    {
+      "name": "every query term required narrows the window to the right portal",
+      "regression": "none of the top 50 default candidates for this query mentioned Milano; no local ranking could surface one (#539)",
+      "tool": "ckan_find_relevant_datasets",
+      "server": "https://www.dati.gov.it/opendata",
+      "args": {
+        "query": "qualità dell'aria Milano",
+        "limit": 3
+      },
+      "expect": {
+        "first_matches": "^Report qualità aria",
+        "terms_equal": [
+          "qualità",
+          "aria",
+          "milano"
+        ]
       }
     }
   ]
