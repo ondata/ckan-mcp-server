@@ -637,6 +637,15 @@ describe('multilingual term extraction', () => {
     expect(extractQueryTerms('un comune di lecce')).toEqual(['comune', 'lecce']);
   });
 
+  it('never scores on a Solr operator, even though it is all-caps', () => {
+    // The acronym rule let `OR` through: `aria OR acqua` scored on three terms and
+    // a title carrying one of them got 4 × 1/3 instead of 4 × 1/2.
+    expect(extractQueryTerms('aria OR acqua')).toEqual(['aria', 'acqua']);
+    expect(extractQueryTerms('aria AND NOT rifiuti')).toEqual(['aria', 'rifiuti']);
+    // lowercase `or` was already a stopword; an English `Or` mid-sentence stays one too
+    expect(extractQueryTerms('water or sewage')).toEqual(['water', 'sewage']);
+  });
+
   it('matches across Unicode normal forms', () => {
     const nfd = 'mobilita\u0300 urbana';          // decomposed
     expect(countMatchingTerms(nfd, ['mobilità'])).toBe(1);

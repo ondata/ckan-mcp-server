@@ -224,13 +224,18 @@ const QUERY_STOPWORDS = new Set([
   "those"
 ]);
 
+/** Solr boolean keywords: all-caps by convention, never a term to score on. */
+const SOLR_OPERATORS = new Set(["AND", "OR", "NOT"]);
+
 export const extractQueryTerms = (query: string): string[] => {
   const raw = query.normalize("NFC").match(/[\p{L}\p{N}]+/gu) ?? [];
   // An all-caps token is an acronym, not an article: the stopword list is there for
   // `defibrillatori Comune di Lecce`, and must not swallow the `UN` of `UN population`
-  // on a catalog in another language.
+  // on a catalog in another language. Solr's own operators are the exception to the
+  // exception — `aria OR acqua` is a query, not a mention of an organisation called OR.
   const terms = raw
     .filter((token) => {
+      if (SOLR_OPERATORS.has(token)) return false;
       const term = token.toLowerCase();
       if (term.length <= 1) return false;
       if (!QUERY_STOPWORDS.has(term)) return true;
