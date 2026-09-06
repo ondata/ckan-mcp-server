@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { getPortalMigration } from '../../src/utils/portal-config';
+import { describe, it, expect } from "vitest";
+import { getPortalMigration } from "../../src/utils/portal-config";
 
 describe('getPortalMigration', () => {
   it('returns the notice for a portal marked migrated', () => {
