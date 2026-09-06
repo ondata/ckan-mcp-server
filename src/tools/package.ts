@@ -224,13 +224,27 @@ const QUERY_STOPWORDS = new Set([
   "those"
 ]);
 
+/** Solr boolean keywords: all-caps by convention, never a term to score on. */
+const SOLR_OPERATORS = new Set(["AND", "OR", "NOT"]);
+
 export const extractQueryTerms = (query: string): string[] => {
-  const raw = query.normalize("NFC").match(/[\p{L}\p{N}]+/gu) ?? [];
+  const normalized = query.normalize("NFC");
+  const raw = normalized.match(/[\p{L}\p{N}]+/gu) ?? [];
+  // Inside double quotes Solr reads a keyword as a literal, so `"OR"` is a term to
+  // score on while a bare `OR` is syntax. Tokenisation has already dropped the quotes,
+  // so the quoted tokens are collected first.
+  const quoted = new Set<string>();
+  // `\"` inside a phrase is a literal quote, not the end of it: `"OR\" AND"` is one phrase.
+  for (const m of normalized.matchAll(/"((?:[^"\\]|\\.)*)"/g)) {
+    for (const t of m[1].match(/[\p{L}\p{N}]+/gu) ?? []) quoted.add(t);
+  }
   // An all-caps token is an acronym, not an article: the stopword list is there for
   // `defibrillatori Comune di Lecce`, and must not swallow the `UN` of `UN population`
-  // on a catalog in another language.
+  // on a catalog in another language. Solr's own operators are the exception to the
+  // exception — `aria OR acqua` is a query, not a mention of an organisation called OR.
   const terms = raw
     .filter((token) => {
+      if (SOLR_OPERATORS.has(token) && !quoted.has(token)) return false;
       const term = token.toLowerCase();
       if (term.length <= 1) return false;
       if (!QUERY_STOPWORDS.has(term)) return true;
