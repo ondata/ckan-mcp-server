@@ -280,3 +280,15 @@ These tools already return minimal JSON and were not changed:
 - `ckan_analyze_datasets` — statistical summary
 - `ckan_catalog_stats` — aggregate counts
 - `ckan_status_show` — portal status
+
+## ckan_find_relevant_datasets
+
+Only the fields added on 2026-09-06 are listed here; the rest of the payload mirrors the Markdown view.
+
+| Field | Type | Description |
+|---|---|---|
+| `all_terms_results` | number \| null | How many datasets the portal returned with **every** query term required (Solr `mm=100%`). Those candidates are fetched first and carry the `coverage` bonus. `null` when the strict pass was skipped — fielded, wrapped or boolean queries are sent as written — or when the portal rejected `mm`. |
+| `total_results` | number | Unchanged: how many datasets match the query on the portal's default search. |
+| `results[].breakdown.coverage` | number | The `coverage` weight (default 4) for a dataset from the strict pass, 0 otherwise. |
+| `weights.coverage` | number | Settable like the other weights. |
+

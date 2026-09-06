@@ -5,6 +5,7 @@ import {
   textMatchesTerms,
   scoreTextField,
   countMatchingTerms,
+  stemTerm,
   scoreDatasetRelevance,
   readDcatExtra
 } from '../../src/tools/package';
@@ -671,5 +672,43 @@ describe('score total', () => {
     } as any;
     const { total } = scoreDatasetRelevance('incidenti stradali Palermo', dataset);
     expect(total).toBe(Math.round(total * 10) / 10);
+  });
+});
+
+describe('stemming (#539)', () => {
+  it('strips one final vowel from words of five letters or more', () => {
+    expect(stemTerm('defibrillatori')).toBe('defibrillator');
+    expect(stemTerm('defibrillatore')).toBe('defibrillator');
+    expect(stemTerm('qualità')).toBe('qualit');
+    expect(stemTerm('qualita')).toBe('qualit');
+    expect(stemTerm('aria')).toBe('aria');
+  });
+
+  it('lets singular and plural match, which cost the Lecce dataset its tag score', () => {
+    expect(countMatchingTerms('dae defibrillatore comune-cardioprotetto', ['defibrillatori'])).toBe(1);
+    expect(countMatchingTerms('qualita-aria', ['qualità'])).toBe(1);
+    expect(countMatchingTerms('Milan observatory', ['milano'])).toBe(1);
+  });
+
+  it('still compares whole words', () => {
+    expect(countMatchingTerms('immobilità', ['mobilità'])).toBe(0);
+    expect(countMatchingTerms('aria', ['arie'])).toBe(0);
+  });
+
+  it('drops elided articles', () => {
+    expect(extractQueryTerms("qualità dell'aria Milano")).toEqual(['qualità', 'aria', 'milano']);
+    expect(extractQueryTerms("dati sull'acqua nell'area")).toEqual(['dati', 'acqua', 'area']);
+  });
+});
+
+describe('coverage bonus (#539)', () => {
+  const dataset = { title: 'Defibrillatori DAE', notes: '', tags: [] } as any;
+
+  it('adds the coverage weight when the portal returned the dataset with every term', () => {
+    const plain = scoreDatasetRelevance('defibrillatori Lecce', dataset);
+    const full = scoreDatasetRelevance('defibrillatori Lecce', dataset, undefined, true);
+    expect(plain.breakdown.coverage).toBe(0);
+    expect(full.breakdown.coverage).toBe(4);
+    expect(full.total - plain.total).toBe(4);
   });
 });

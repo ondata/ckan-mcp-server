@@ -145,6 +145,13 @@ function check(expect, payload) {
     fail.push(`expected no wrapper, effective query was "${effective}"`);
   if (expect.effective_contains && !effective.includes(expect.effective_contains))
     fail.push(`effective query "${effective}" does not contain "${expect.effective_contains}"`);
+  if (expect.terms_equal && JSON.stringify(payload.terms ?? null) !== JSON.stringify(expect.terms_equal))
+    fail.push(`terms ${JSON.stringify(payload.terms)} differ from ${JSON.stringify(expect.terms_equal)}`);
+  if (expect.margin_min !== undefined) {
+    const [a, b] = (payload.results ?? []).map((r) => r.score ?? 0);
+    if (a === undefined || b === undefined || a - b < expect.margin_min)
+      fail.push(`first result leads by ${a === undefined || b === undefined ? "n/a" : (a - b).toFixed(1)}, expected at least ${expect.margin_min}`);
+  }
   return fail;
 }
 
