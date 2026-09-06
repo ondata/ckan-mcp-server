@@ -386,7 +386,7 @@ fq: "res_format:CSV OR res_format:JSON"
 |--------------|--------|------|
 | Italy | dati.gov.it | Primary |
 | France | data.europa.eu | data.gouv.fr is NOT CKAN |
-| USA | catalog.data.gov | |
+| USA | — | catalog.data.gov is NOT CKAN since 2025 (new API at api.gsa.gov v4, not supported) |
 | Canada | open.canada.ca/data | |
 | UK | data.gov.uk | |
 | EU / multi-country | data.europa.eu | Default for cross-border |

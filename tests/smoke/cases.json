@@ -169,6 +169,19 @@
       "expect": {
         "count_min": 1
       }
+    },
+    {
+      "name": "a portal that left CKAN says so, not 'Unknown error'",
+      "regression": "catalog.data.gov answered 47 calls since April with a bare 404 while our docs called it CKAN (#540)",
+      "tool": "ckan_package_search",
+      "server": "https://catalog.data.gov",
+      "args": {
+        "q": "water",
+        "rows": 1
+      },
+      "expect": {
+        "error_matches": "stopped being a CKAN portal"
+      }
     }
   ]
 }

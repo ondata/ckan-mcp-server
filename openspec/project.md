@@ -94,7 +94,6 @@ Exposes MCP tools for:
 ### CKAN Portals
 Major supported portals:
 - 🇮🇹 https://dati.gov.it/opendata (Italia)
-- 🇺🇸 https://catalog.data.gov (United States)
 - 🇨🇦 https://open.canada.ca/data (Canada)
 - 🇬🇧 https://data.gov.uk (United Kingdom)
 - 🇪🇺 https://data.europa.eu (European Union)

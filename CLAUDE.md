@@ -323,7 +323,6 @@ TypeScript configuration (for IDE):
 The server can connect to any CKAN instance. Some main portals:
 
 - 🇮🇹 https://dati.gov.it (Italy)
-- 🇺🇸 https://catalog.data.gov (United States)
 - 🇨🇦 https://open.canada.ca/data (Canada)
 - 🇬🇧 https://data.gov.uk (United Kingdom)
 - 🌍 https://demo.ckan.org (Official CKAN Demo)

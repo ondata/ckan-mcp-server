@@ -1,5 +1,34 @@
 # LOG
 
+## 2026-09-06
+
+### catalog.data.gov has not been CKAN since 2025; we said otherwise in twelve places
+
+Checking the two configured portals that answered nothing yesterday. `dati.arpae.it` is
+still CKAN and still at the same address, just down most of the time — site-wide 500s,
+not ours to fix (#541). `catalog.data.gov` is a different story: Data.gov replaced its
+CKAN catalog with a Flask/OpenSearch application in 2025 and the CKAN-compatible
+endpoints — `catalog-old.data.gov`, the `api.gsa.gov/…/v3` gateway — now all redirect to
+the new host, which answers 404 to any CKAN request. The replacement API (`…/v4/search`)
+needs a key, paginates with a cursor and, per GSA, will not support CKAN filter syntax.
+47 calls reached it through the public deployment since April and got
+`CKAN API error (404): Unknown error`, while README, EXAMPLES, CLAUDE.md, the skill and a
+tool description all listed it as a working CKAN portal (#540).
+
+Fixed the part that is ours: `portals.json` entries can carry a `migrated` block, the
+`catalog-data-gov` entry is kept and marked so the hint keeps firing, `CkanApiError` now
+carries the portal URL, and `formatCkanError` returns the migration notice for such a
+portal whatever the status — no status-based hint can be right for it. `ckan_status_show`
+routes its error through the formatter too. Every document that presented it as CKAN now
+says the opposite; the skill's country table says "NOT CKAN since 2025", which is what
+stops an LLM client from trying. A v4 adapter is a separate proposal.
+
+The gate gained a case that calls the live portal and expects the notice; 13/13.
+OpenSpec change `mark-migrated-portals` on `ckan-error-hints`. 542 tests, 6 added.
+
+Left alone: `docs/DECISIONS.md` still describes the parser probe replaced in #534 and says
+configured portals skip it. Stale independently of this change; flagged, not touched.
+
 ## 2026-09-05
 
 ### A release gate that asserts which dataset comes back

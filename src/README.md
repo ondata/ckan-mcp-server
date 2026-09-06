@@ -192,7 +192,7 @@ The following portals have been tested and verified (as of v0.4.37):
 |--------|---------|--------------|-------|
 | dati.gov.it/opendata | 🇮🇹 Italy | 2.10.3 | Custom `dataset_view_url` and `organization_view_url` |
 | dati.anticorruzione.it/opendata | 🇮🇹 Italy | — | Standard configuration |
-| catalog.data.gov | 🇺🇸 USA | 2.11.4 | Standard configuration |
+| catalog.data.gov | 🇺🇸 USA | — | **Migrated off CKAN in 2025.** Entry kept, marked `migrated`, so a call to it explains where the data went (#540) |
 | open.canada.ca/data | 🇨🇦 Canada | 2.10.8 | Standard configuration |
 | data.gov.au | 🇦🇺 Australia | 2.11.4 | Custom `dataset_view_url` and `organization_view_url` |
 | ckan.opendata.swiss | 🇨🇭 Switzerland | — | Standard configuration |

@@ -473,7 +473,6 @@ The server can connect to **any public CKAN server**. Main portals:
 | Country | Portal | URL |
 |---------|--------|-----|
 | 🇮🇹 Italia | Portale Nazionale Dati Aperti | https://www.dati.gov.it/opendata |
-| 🇺🇸 USA | Data.gov | https://catalog.data.gov |
 | 🇨🇦 Canada | Open Government | https://open.canada.ca/data |
 | 🇬🇧 UK | Data.gov.uk | https://data.gov.uk |
 | 🇪🇺 EU | European Data Portal | https://data.europa.eu |

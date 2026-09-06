@@ -534,11 +534,12 @@ npx skills add ondata/ckan-mcp-server --skill ckan-mcp
 Some examples of supported portals:
 
 - 🇮🇹 **https://www.dati.gov.it/opendata** - Italian National Open Data Portal (CKAN 2.10.3)
-- 🇺🇸 **https://catalog.data.gov** - United States Open Data (CKAN 2.11.4)
 - 🇨🇦 **https://open.canada.ca/data** - Canada Open Government (CKAN 2.10.8)
 - 🇦🇺 **https://data.gov.au** - Australian Government Open Data (CKAN 2.11.4)
 - 🇬🇧 **https://data.gov.uk** - United Kingdom Open Data
 - And many more portals worldwide
+
+> **catalog.data.gov is no longer CKAN.** Data.gov replaced its catalog in 2025 with a different API ([details](https://github.com/ondata/ckan-mcp-server/issues/540)); a call to it now explains this instead of failing with a bare 404.
 
 ### Discover CKAN portals worldwide
 

@@ -767,6 +767,34 @@ describe('audit logging', () => {
 });
 
 describe('formatCkanError', () => {
+  it('a migrated portal gets the migration notice, whatever the status', () => {
+    // catalog.data.gov left CKAN in 2025 and answers every action with a bare 404:
+    // no status-based hint can be right for it, so the notice takes precedence.
+    for (const status of [404, 500, undefined]) {
+      const err = new CkanApiError('CKAN API error (404): Not Found', status, 'package_search', 'https://catalog.data.gov');
+      const result = formatCkanError(err, 'ckan_package_search');
+      expect(result).toContain('stopped being a CKAN portal');
+      expect(result).toContain('https://resources.data.gov/catalog-api/');
+      // The raw message stays, as with every other hint; what must not follow it is a
+      // status-based hint that would be wrong for this portal.
+      expect(result).not.toContain('retry later');
+      expect(result).not.toContain('ckan_package_search');
+    }
+  });
+
+  it('a working portal keeps the status-based hint', () => {
+    const err = new CkanApiError('CKAN API error (500): Internal Server Error', 500, 'package_search', 'https://open.canada.ca/data');
+    const result = formatCkanError(err, 'ckan_package_search');
+    expect(result).toContain('internal error');
+    expect(result).not.toContain('stopped being');
+  });
+
+  it('an error without a portal URL behaves as before', () => {
+    const err = new CkanApiError('CKAN API error (404): Not Found', 404, 'package_show');
+    expect(err.serverUrl).toBeUndefined();
+    expect(formatCkanError(err, 'ckan_package_show')).toContain('ckan_package_search');
+  });
+
   it('404 on datastore_search mentions ckan_package_show and datastore_active', () => {
     const err = new CkanApiError('CKAN API error (404): Not Found', 404, 'datastore_search');
     const result = formatCkanError(err, 'ckan_datastore_search');

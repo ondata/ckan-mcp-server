@@ -155,8 +155,12 @@ for (const c of selected) {
     fails = c.compare_with
       ? await compareTools(c)
       : check(c.expect, await call(c.tool, c.server, c.args));
+    if (c.expect?.error_matches) fails = [`expected an error matching /${c.expect.error_matches}/, got a result`];
   } catch (err) {
-    fails = [`${err.message}`];
+    // Some cases exist to pin down what the error says, not that a result comes back.
+    fails = c.expect?.error_matches && new RegExp(c.expect.error_matches).test(err.message)
+      ? []
+      : [`${err.message}`];
   }
   if (fails.length === 0) {
     console.log(`  ok    ${c.name}`);

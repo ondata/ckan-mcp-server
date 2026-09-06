@@ -3,9 +3,9 @@
  */
 
 import { z } from "zod";
-import { makeCkanRequest } from "../utils/http.js";
+import { makeCkanRequest, formatCkanError, CkanApiError } from "../utils/http.js";
 import { truncateText, cappedStructured, addDemoFooter } from "../utils/formatting.js";
-import { getPortalSparqlConfig, getPortalHvdConfig } from "../utils/portal-config.js";
+import { getPortalSparqlConfig, getPortalHvdConfig, getPortalMigration } from "../utils/portal-config.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 export function formatStatusMarkdown(result: { ckan_version?: string; site_title?: string; site_url?: string; locale_default?: string }, serverUrl: string, hvdCount?: number): string {
@@ -77,10 +77,15 @@ Typical workflow: ckan_status_show (verify server is up) → ckan_package_search
           structuredContent: cappedStructured(result)
         };
       } catch (error) {
+        // A portal that left CKAN is neither offline nor invalid: the migration notice
+        // is the whole diagnosis, and the usual prefix would contradict it.
+        const migrated =
+          error instanceof CkanApiError && error.serverUrl && getPortalMigration(error.serverUrl);
+        const detail = formatCkanError(error, "ckan_status_show");
         return {
           content: [{
             type: "text",
-            text: `Server appears to be offline or not a valid CKAN instance:\n${error instanceof Error ? error.message : String(error)}`
+            text: migrated ? detail : `Server appears to be offline or not a valid CKAN instance:\n${detail}`
           }],
           isError: true
         };
