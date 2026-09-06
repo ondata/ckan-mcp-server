@@ -96,3 +96,9 @@ data/worker_events.jsonl
 docs/untrusted-portal-strings-map.md
 .firecrawl/
 docs/internal/
+
+# Personal Claude Code tooling: the rules live in CLAUDE.md and scripts/, this is
+# only the local enforcement of them (see .claude/hooks/README.md)
+.claude/hooks/
+.claude/skills/release/
+.claude/skills/pr-review-loop/
