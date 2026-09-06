@@ -115,7 +115,8 @@ Assertions available in a case's `expect`: `total_min` / `total_max` (catalog ma
 `returned_min` (rows actually handed back — not the same claim), `count_min` (rows in a
 listing tool), `first_matches` (regex on the first title), `margin_min` (how far the first
 result leads the second), `terms_equal` (the extracted query terms), `field_equals` (an
-exact value for any payload field, `null` included), `wrapped` / `not_wrapped` /
+exact value for any payload field, `null` included — the field must be present),
+`field_min` (a numeric floor, for values that track the catalog and drift), `wrapped` / `not_wrapped` /
 `effective_contains` (what reached Solr), `error_matches` (the case expects an error).
 
 Cases hit real portals, so the thresholds are loose enough to survive catalog drift and

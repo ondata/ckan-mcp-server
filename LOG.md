@@ -16,8 +16,12 @@ passed it. `returned_min` was added: a tool can report thousands of matches and 
 an empty list, and those are different claims. Both cases now fail on the broken build and
 pass on the fixed one.
 
-Also added `field_equals`, an exact check on any payload field: the strict count had to be
-pinned at 1, at 0 and at null, which is three meanings of one field.
+Also added `field_equals`, an exact check on any payload field, and `field_min`, a floor.
+The split came from review: pinning the Milano case at exactly 327 matching datasets broke
+the file's own rule that thresholds survive catalog drift, so counts that track the catalog
+are floors now, while `null` and `0` stay equalities — they are behaviours, not counts.
+`field_equals` also requires the field to be present, or a response that stopped emitting
+`all_terms_results` would read as an explicit null and pass.
 
 16 cases, 16 passing.
 

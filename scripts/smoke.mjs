@@ -153,11 +153,20 @@ function check(expect, payload) {
   // included. Written generic rather than per-field: the cases that needed it wanted
   // `all_terms_results` at 1, at 0 and at null, which is three meanings of one field.
   for (const [field, want] of Object.entries(expect.field_equals ?? {})) {
-    if (JSON.stringify(payload[field] ?? null) !== JSON.stringify(want))
-      fail.push(`${field} is ${JSON.stringify(payload[field] ?? null)}, expected ${JSON.stringify(want)}`);
+    // Presence is part of the check: a field that stopped being emitted must not read
+    // as an explicit null, or the boolean-query case would pass on a response that no
+    // longer carries `all_terms_results` at all.
+    if (!Object.hasOwn(payload, field))
+      fail.push(`${field} is missing from the response, expected ${JSON.stringify(want)}`);
+    else if (JSON.stringify(payload[field]) !== JSON.stringify(want))
+      fail.push(`${field} is ${JSON.stringify(payload[field])}, expected ${JSON.stringify(want)}`);
   }
   if (expect.terms_equal && JSON.stringify(payload.terms ?? null) !== JSON.stringify(expect.terms_equal))
     fail.push(`terms ${JSON.stringify(payload.terms)} differ from ${JSON.stringify(expect.terms_equal)}`);
+  for (const [field, min] of Object.entries(expect.field_min ?? {})) {
+    if (!(typeof payload[field] === "number" && payload[field] >= min))
+      fail.push(`${field} is ${JSON.stringify(payload[field])}, expected a number of at least ${min}`);
+  }
   if (expect.margin_min !== undefined) {
     const [a, b] = (payload.results ?? []).map((r) => r.score ?? 0);
     if (a === undefined || b === undefined || a - b < expect.margin_min)

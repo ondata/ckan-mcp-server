@@ -136,7 +136,7 @@
           "comune",
           "lecce"
         ],
-        "field_equals": {
+        "field_min": {
           "all_terms_results": 1
         }
       }
@@ -208,10 +208,10 @@
           "aria",
           "milano"
         ],
-        "field_equals": {
-          "all_terms_results": 327
-        },
-        "margin_min": 0
+        "margin_min": 0,
+        "field_min": {
+          "all_terms_results": 163
+        }
       }
     },
     {
