@@ -169,25 +169,9 @@ Returns quality score and detailed metrics from data.europa.eu MQA (Metadata Qua
 
 **Note**: Only works with dati.gov.it datasets. Uses the `identifier` field (or falls back to `name`) to query the European MQA API.
 
-## USA Examples - data.gov
+## USA - data.gov
 
-### Search government datasets
-```typescript
-ckan_package_search({
-  server_url: "https://catalog.data.gov",
-  q: "climate change",
-  rows: 20
-})
-```
-
-### Datasets by tag
-```typescript
-ckan_package_search({
-  server_url: "https://catalog.data.gov",
-  q: "tags:health",
-  rows: 20
-})
-```
+`catalog.data.gov` stopped being a CKAN portal in 2025: Data.gov now serves its catalog through a different API (`api.gsa.gov/technology/datagov/v4`, key required, not CKAN-compatible). A call to it returns an error that says so. See [#540](https://github.com/ondata/ckan-mcp-server/issues/540).
 
 ## CKAN Demo Examples
 

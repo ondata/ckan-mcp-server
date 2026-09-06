@@ -358,7 +358,7 @@ Returns:
 
 Examples:
   - { server_url: "https://www.dati.gov.it/opendata", pattern: "toscana" }
-  - { server_url: "https://catalog.data.gov", pattern: "health" }
+  - { server_url: "https://open.canada.ca/data", pattern: "health" }
 
 Typical workflow: ckan_organization_search → ckan_organization_show (get details) → ckan_package_search with fq="organization:name"`,
       inputSchema: z.object({

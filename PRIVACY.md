@@ -23,7 +23,7 @@ All data accessed through this server is **publicly available** on the respectiv
 
 ## Third-Party Services
 
-Queries are sent to the CKAN portal you configure (e.g., `https://dati.gov.it`, `https://catalog.data.gov`). Those portals have their own privacy policies and terms of use.
+Queries are sent to the CKAN portal you configure (e.g., `https://dati.gov.it`, `https://open.canada.ca/data`). Those portals have their own privacy policies and terms of use.
 
 ## Open Source
 

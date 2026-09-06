@@ -3,7 +3,7 @@
  */
 
 import axios, { AxiosError } from "axios";
-import { getPortalApiUrlForHostname, getPortalApiPath } from "./portal-config.js";
+import { getPortalApiUrlForHostname, getPortalApiPath, getPortalMigration } from "./portal-config.js";
 import {
   buildCacheKey,
   getCache,
@@ -23,11 +23,14 @@ export interface MakeCkanRequestOptions {
 export class CkanApiError extends Error {
   readonly status: number | undefined;
   readonly action: string;
-  constructor(message: string, status: number | undefined, action: string) {
+  /** The portal the request went to, as the caller wrote it: lets the hint know its origin. */
+  readonly serverUrl: string | undefined;
+  constructor(message: string, status: number | undefined, action: string, serverUrl?: string) {
     super(message);
     this.name = 'CkanApiError';
     this.status = status;
     this.action = action;
+    this.serverUrl = serverUrl;
   }
 }
 
@@ -35,7 +38,16 @@ export function formatCkanError(error: unknown, _toolName: string): string {
   if (!(error instanceof CkanApiError)) {
     return error instanceof Error ? error.message : String(error);
   }
-  const { status, action, message } = error;
+  const { status, action, message, serverUrl } = error;
+
+  // A portal that left CKAN answers every CKAN request the same way — catalog.data.gov
+  // returns a bare 404 — so no status-based hint can be right for it. Say what happened
+  // and where the data went, whatever the status.
+  const migration = serverUrl ? getPortalMigration(serverUrl) : null;
+  if (migration) {
+    return `${message}\n→ ${migration.notice} See ${migration.docs_url}`;
+  }
+
   let hint = '';
   if (status === 404) {
     if (action === 'datastore_search_sql') {
@@ -776,16 +788,16 @@ export async function makeCkanRequest<T>(
       }
 
       if (!response.ok) {
-        throw new CkanApiError(`CKAN API error (${response.status}): ${response.statusText}`, response.status, action);
+        throw new CkanApiError(`CKAN API error (${response.status}): ${response.statusText}`, response.status, action, serverUrl);
       }
 
       const declaredLength = Number(response.headers.get("content-length"));
       if (Number.isFinite(declaredLength) && declaredLength > MAX_RESPONSE_BYTES) {
-        throw new CkanApiError(`Response too large (${declaredLength} bytes)`, undefined, action);
+        throw new CkanApiError(`Response too large (${declaredLength} bytes)`, undefined, action, serverUrl);
       }
       const buffer = await response.arrayBuffer();
       if (buffer.byteLength > MAX_RESPONSE_BYTES) {
-        throw new CkanApiError(`Response too large (${buffer.byteLength} bytes)`, undefined, action);
+        throw new CkanApiError(`Response too large (${buffer.byteLength} bytes)`, undefined, action, serverUrl);
       }
       const headers: Record<string, string> = {};
       response.headers.forEach((headerValue, headerKey) => {
@@ -823,7 +835,8 @@ export async function makeCkanRequest<T>(
       throw new CkanApiError(
         `CKAN API returned success=false for action "${action}".`,
         undefined,
-        action
+        action,
+        serverUrl
       );
     }
   } catch (error) {
@@ -834,7 +847,7 @@ export async function makeCkanRequest<T>(
         const status = axiosError.response.status;
         const data = axiosError.response.data as any;
         const errorMsg = data?.error?.message || data?.error || 'Unknown error';
-        throw new CkanApiError(`CKAN API error (${status}): ${errorMsg}`, status, action);
+        throw new CkanApiError(`CKAN API error (${status}): ${errorMsg}`, status, action, serverUrl);
       } else if (axiosError.code === 'ECONNABORTED') {
         throw new Error(`Request timeout connecting to ${serverUrl}`);
       } else if (axiosError.code === 'ENOTFOUND') {

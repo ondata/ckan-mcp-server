@@ -13,6 +13,16 @@ export type SparqlConfig = {
   method?: "GET" | "POST";
 };
 
+/**
+ * A portal that used to be CKAN and no longer is. The entry stays in portals.json so
+ * that a call to it can say what happened and where the data went, instead of the
+ * bare 404 the new platform returns to a CKAN request.
+ */
+export type PortalMigration = {
+  notice: string;
+  docs_url: string;
+};
+
 type PortalConfig = {
   api_url: string;
   api_url_aliases?: string[];
@@ -21,6 +31,7 @@ type PortalConfig = {
   hvd?: HvdConfig;
   sparql?: SparqlConfig;
   normalize?: string;
+  migrated?: PortalMigration;
 };
 
 type PortalDefaults = {
@@ -49,6 +60,10 @@ export function getPortalConfig(serverUrl: string): PortalConfig | null {
   });
 
   return portal || null;
+}
+
+export function getPortalMigration(serverUrl: string): PortalMigration | null {
+  return getPortalConfig(serverUrl)?.migrated ?? null;
 }
 
 export function getPortalSearchConfig(serverUrl: string): PortalSearchConfig {

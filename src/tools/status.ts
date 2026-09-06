@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import { makeCkanRequest } from "../utils/http.js";
+import { makeCkanRequest, formatCkanError } from "../utils/http.js";
 import { truncateText, cappedStructured, addDemoFooter } from "../utils/formatting.js";
 import { getPortalSparqlConfig, getPortalHvdConfig } from "../utils/portal-config.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -80,7 +80,9 @@ Typical workflow: ckan_status_show (verify server is up) → ckan_package_search
         return {
           content: [{
             type: "text",
-            text: `Server appears to be offline or not a valid CKAN instance:\n${error instanceof Error ? error.message : String(error)}`
+            // formatCkanError, not error.message: a portal that left CKAN is neither
+            // offline nor invalid, and the hint is the only useful thing to say.
+            text: `Server appears to be offline or not a valid CKAN instance:\n${formatCkanError(error, "ckan_status_show")}`
           }],
           isError: true
         };

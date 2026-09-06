@@ -58,7 +58,11 @@
       "api_url": "https://catalog.data.gov",
       "api_url_aliases": [
         "http://catalog.data.gov"
-      ]
+      ],
+      "migrated": {
+        "notice": "catalog.data.gov stopped being a CKAN portal in 2025. Data.gov now serves its catalog through a different API (api.gsa.gov/technology/datagov/v4, key required, not CKAN-compatible), which this server does not speak.",
+        "docs_url": "https://resources.data.gov/catalog-api/"
+      }
     },
     {
       "id": "open-canada",
@@ -79,8 +83,7 @@
         "https://www.data.gov.au",
         "http://www.data.gov.au"
       ],
-      "dataset_view_url": "https://data.gov.au/data/dataset/{name}"
-      ,
+      "dataset_view_url": "https://data.gov.au/data/dataset/{name}",
       "organization_view_url": "https://data.gov.au/data/organization/{name}"
     },
     {
