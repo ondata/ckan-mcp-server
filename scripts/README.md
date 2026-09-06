@@ -111,6 +111,13 @@ wrapping rule fails 4 of the 12 cases; removing the parser probe from
 `ckan_find_relevant_datasets`, the v0.4.122 regression, fails the case that requires the
 two search tools to agree.
 
+Assertions available in a case's `expect`: `total_min` / `total_max` (catalog matches),
+`returned_min` (rows actually handed back — not the same claim), `count_min` (rows in a
+listing tool), `first_matches` (regex on the first title), `margin_min` (how far the first
+result leads the second), `terms_equal` (the extracted query terms), `field_equals` (an
+exact value for any payload field, `null` included), `wrapped` / `not_wrapped` /
+`effective_contains` (what reached Solr), `error_matches` (the case expects an error).
+
 Cases hit real portals, so the thresholds are loose enough to survive catalog drift and
 a failure can also mean a portal is down — check the message before assuming a code bug.
 

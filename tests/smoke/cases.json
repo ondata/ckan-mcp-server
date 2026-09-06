@@ -135,7 +135,10 @@
           "defibrillatori",
           "comune",
           "lecce"
-        ]
+        ],
+        "field_equals": {
+          "all_terms_results": 1
+        }
       }
     },
     {
@@ -204,7 +207,46 @@
           "qualità",
           "aria",
           "milano"
-        ]
+        ],
+        "field_equals": {
+          "all_terms_results": 327
+        },
+        "margin_min": 0
+      }
+    },
+    {
+      "name": "a boolean query skips the strict pass",
+      "regression": "mm=100% would require the OR token itself; caught in review on #544",
+      "tool": "ckan_find_relevant_datasets",
+      "server": "https://data.stadt-zuerich.ch",
+      "args": {
+        "query": "Bevölkerung OR Einwohner",
+        "limit": 2
+      },
+      "expect": {
+        "total_min": 5,
+        "field_equals": {
+          "all_terms_results": null
+        },
+        "returned_min": 2
+      }
+    },
+    {
+      "name": "no dataset carries every term, so the default pass fills in",
+      "regression": "a strict pass returning nothing must not empty the answer (#544)",
+      "tool": "ckan_find_relevant_datasets",
+      "server": "https://dati.comune.messina.it",
+      "args": {
+        "query": "bilancio spese comune",
+        "limit": 3
+      },
+      "expect": {
+        "total_min": 1,
+        "field_equals": {
+          "all_terms_results": 0
+        },
+        "returned_min": 3,
+        "first_matches": "[Ss]pese|[Bb]ilancio|[Cc]omune"
       }
     }
   ]
