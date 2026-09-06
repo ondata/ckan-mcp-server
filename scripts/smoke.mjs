@@ -137,6 +137,10 @@ function check(expect, payload) {
     fail.push(`expected at most ${expect.total_max} results, got ${total}`);
   if (expect.count_min !== undefined && !(listLength(payload) >= expect.count_min))
     fail.push(`expected at least ${expect.count_min} rows, got ${listLength(payload)}`);
+  // `returned_min` is about the answer, not the catalog: a tool can report thousands of
+  // matches and hand back an empty list. The fill case passed a broken build without it.
+  if (expect.returned_min !== undefined && !((payload.results ?? []).length >= expect.returned_min))
+    fail.push(`returned ${(payload.results ?? []).length} results, expected at least ${expect.returned_min}`);
   if (expect.first_matches && !new RegExp(expect.first_matches).test(firstTitle(payload)))
     fail.push(`first result "${firstTitle(payload).slice(0, 60)}" does not match /${expect.first_matches}/`);
   if (expect.wrapped && !effective.startsWith("text:("))
@@ -145,8 +149,24 @@ function check(expect, payload) {
     fail.push(`expected no wrapper, effective query was "${effective}"`);
   if (expect.effective_contains && !effective.includes(expect.effective_contains))
     fail.push(`effective query "${effective}" does not contain "${expect.effective_contains}"`);
+  // `field_equals: { name: value }` — an exact check on any payload field, `null`
+  // included. Written generic rather than per-field: the cases that needed it wanted
+  // `all_terms_results` at 1, at 0 and at null, which is three meanings of one field.
+  for (const [field, want] of Object.entries(expect.field_equals ?? {})) {
+    // Presence is part of the check: a field that stopped being emitted must not read
+    // as an explicit null, or the boolean-query case would pass on a response that no
+    // longer carries `all_terms_results` at all.
+    if (!Object.hasOwn(payload, field))
+      fail.push(`${field} is missing from the response, expected ${JSON.stringify(want)}`);
+    else if (JSON.stringify(payload[field]) !== JSON.stringify(want))
+      fail.push(`${field} is ${JSON.stringify(payload[field])}, expected ${JSON.stringify(want)}`);
+  }
   if (expect.terms_equal && JSON.stringify(payload.terms ?? null) !== JSON.stringify(expect.terms_equal))
     fail.push(`terms ${JSON.stringify(payload.terms)} differ from ${JSON.stringify(expect.terms_equal)}`);
+  for (const [field, min] of Object.entries(expect.field_min ?? {})) {
+    if (!(typeof payload[field] === "number" && payload[field] >= min))
+      fail.push(`${field} is ${JSON.stringify(payload[field])}, expected a number of at least ${min}`);
+  }
   if (expect.margin_min !== undefined) {
     const [a, b] = (payload.results ?? []).map((r) => r.score ?? 0);
     if (a === undefined || b === undefined || a - b < expect.margin_min)

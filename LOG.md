@@ -2,6 +2,29 @@
 
 ## 2026-09-06
 
+### Two gate cases for the strict pass, and one that was passing for free
+
+The `mm=100%` pass added in #544 was verified by hand, so nothing stopped it from
+regressing. Two cases now cover it: a boolean query must skip the strict pass
+(`all_terms_results: null`), and a query no dataset satisfies in full must still be
+answered by the fill pass (`all_terms_results: 0`, results returned).
+
+Checking that they fail on the defects they name — which is the point of this file —
+found that the second one did not. It asserted `total_results` and `all_terms_results`
+but never that any result came back, so a build where the strict pass emptied the answer
+passed it. `returned_min` was added: a tool can report thousands of matches and hand back
+an empty list, and those are different claims. Both cases now fail on the broken build and
+pass on the fixed one.
+
+Also added `field_equals`, an exact check on any payload field, and `field_min`, a floor.
+The split came from review: pinning the Milano case at exactly 327 matching datasets broke
+the file's own rule that thresholds survive catalog drift, so counts that track the catalog
+are floors now, while `null` and `0` stay equalities — they are behaviours, not counts.
+`field_equals` also requires the field to be present, or a response that stopped emitting
+`all_terms_results` would read as an explicit null and pass.
+
+16 cases, 16 passing.
+
 ### #539: the window is the lever, not the score
 
 The issue proposed IDF for the tie at 9.7 on `defibrillatori Comune di Lecce`. Prototyped
