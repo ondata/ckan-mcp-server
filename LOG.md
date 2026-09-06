@@ -2,6 +2,13 @@
 
 ## 2026-09-06
 
+### v0.4.124 - search that answers the question that was asked
+
+Ships #542, #543, #544 and #545. For a caller: a query naming a place or an organisation
+now returns that place's datasets instead of any dataset on the topic; `catalog.data.gov`
+says where its data went instead of failing with "Unknown error"; `OR`, `AND` and `NOT`
+are treated as operators rather than words to score.
+
 ### Two gate cases for the strict pass, and one that was passing for free
 
 The `mm=100%` pass added in #544 was verified by hand, so nothing stopped it from
