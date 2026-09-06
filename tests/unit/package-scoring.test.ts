@@ -646,6 +646,11 @@ describe('multilingual term extraction', () => {
     expect(extractQueryTerms('water or sewage')).toEqual(['water', 'sewage']);
   });
 
+  it('keeps a quoted operator: inside quotes Solr reads it as a literal', () => {
+    expect(extractQueryTerms('"OR" Oregon')).toEqual(['or', 'oregon']);
+    expect(extractQueryTerms('aria OR "AND"')).toEqual(['aria', 'and']);
+  });
+
   it('matches across Unicode normal forms', () => {
     const nfd = 'mobilita\u0300 urbana';          // decomposed
     expect(countMatchingTerms(nfd, ['mobilità'])).toBe(1);
