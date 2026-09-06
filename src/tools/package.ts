@@ -7,7 +7,7 @@ import { ResponseFormat, ResponseFormatSchema, CkanTag, CkanResource, CkanPackag
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
 import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter, wrapUntrusted, safeUrlText, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
 import { getDatasetViewUrl, extractSourcePortal } from "../utils/url-generator.js";
-import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery, mayNeedTextWrapping } from "../utils/search.js";
+import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery, mayNeedTextWrapping, hasExplicitBooleanOperator } from "../utils/search.js";
 import { getPortalHvdConfig, getPortalApiPath, requiresMultilingualNormalization } from "../utils/portal-config.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -1243,15 +1243,22 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
         // matched with its own stemming across `qf`. No local re-ranking can surface a
         // dataset the portal never returned — on dati.gov.it none of the top 50 for
         // `qualità dell'aria Milano` mentioned Milano — so the window is the lever, not
-        // the score. A fielded or wrapped query leaves dismax, and `mm` with it: it is
-        // sent as written. When the strict pass comes up short, the default pass fills in.
-        const strictEligible = !effectiveQuery.includes(":");
+        // the score. A fielded, wrapped or boolean query carries its own logic and is
+        // sent as written: a colon leaves dismax, and `mm` with it. When the strict pass
+        // comes up short, the default pass fills in.
+        const strictEligible =
+          !effectiveQuery.includes(":") && !hasExplicitBooleanOperator(params.query);
         const fetchCandidates = (extra: Record<string, unknown>) =>
           makeCkanRequest<any>(params.server_url, 'package_search', { q: effectiveQuery, rows, start: 0, ...extra });
 
-        const strictResult = strictEligible ? await fetchCandidates({ mm: "100%" }) : null;
+        // `mm` is on CKAN's parameter whitelist, but a portal that rejects it must not
+        // take the whole tool down: the strict pass is an improvement, not a dependency.
+        const strictResult = strictEligible ? await fetchCandidates({ mm: "100%" }).catch(() => null) : null;
         const strictHits: CkanPackage[] = strictResult?.results ?? [];
-        const fillResult = strictHits.length >= params.limit ? null : await fetchCandidates({});
+        // The default pass always runs, so `total_results` keeps its meaning — the whole
+        // catalog match, not the strict subset. When the strict pass already filled the
+        // limit only the count is needed, and rows=0 makes that request tiny.
+        const fillResult = await fetchCandidates(strictHits.length >= params.limit ? { rows: 0 } : {});
         const seen = new Set(strictHits.map((d) => d.id));
         const fillHits: CkanPackage[] = (fillResult?.results ?? []).filter((d: CkanPackage) => !seen.has(d.id));
 
@@ -1263,7 +1270,7 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
           ...strictHits.map((d) => scoreOne(d, true)),
           ...fillHits.map((d) => scoreOne(d, false))
         ];
-        const searchResult = fillResult ?? strictResult ?? { count: 0 };
+        const searchResult = fillResult;
 
         scored.sort((a, b) => b.score - a.score);
 

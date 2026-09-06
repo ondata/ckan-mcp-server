@@ -25,7 +25,7 @@ dati.gov.it, dati.comune.milano.it, Toronto and Zurich.
 - **Strict pass first.** Candidates are fetched with `mm=100%`; when they are fewer than
   `limit`, a default pass fills in. Datasets from the strict pass earn a `coverage` bonus
   (new weight, default 4), shown in the breakdown. Fielded and wrapped queries skip the
-  strict pass: a colon leaves dismax, and `mm` with it.
+  strict pass, and so do boolean queries: they carry their own logic and are sent as written.
 - **Light stemming** in the local matcher: a term matches a word when they are equal or
   share a stem (final vowel stripped, words of five letters or more). Whole-word comparison
   is kept, so `immobilità` still does not match `mobilità`.
@@ -39,7 +39,9 @@ dati.gov.it, dati.comune.milano.it, Toronto and Zurich.
 
 - Affected specs: `ckan-search`
 - Affected code: `src/tools/package.ts` (matcher, scoring, `ckan_find_relevant_datasets`)
-- Cost: one extra `package_search` call only when the strict pass returns fewer than
-  `limit`; none for boolean or fielded queries
+- Cost: one extra `package_search` call per ranked search — the strict pass — and none
+  for boolean or fielded queries. The default pass still runs so `total_results` keeps its
+  meaning; when the strict pass already filled the limit it is a `rows=0` count only. See
+  `design.md`
 - Backwards compatible: inputs unchanged; `coverage` is an optional weight; existing
   breakdown fields keep their meaning

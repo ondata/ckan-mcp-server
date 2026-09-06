@@ -287,8 +287,8 @@ Only the fields added on 2026-09-06 are listed here; the rest of the payload mir
 
 | Field | Type | Description |
 |---|---|---|
-| `all_terms_results` | number \| null | How many datasets the portal returned with **every** query term required (Solr `mm=100%`). Those candidates are fetched first and carry the `coverage` bonus. `null` when the strict pass was skipped: fielded queries and queries wrapped for a portal that ignores booleans are sent as written. |
-| `total_results` | number | The count of the pass the results were drawn from: the strict pass when it filled the limit, the default pass otherwise. |
+| `all_terms_results` | number \| null | How many datasets the portal returned with **every** query term required (Solr `mm=100%`). Those candidates are fetched first and carry the `coverage` bonus. `null` when the strict pass was skipped — fielded, wrapped or boolean queries are sent as written — or when the portal rejected `mm`. |
+| `total_results` | number | Unchanged: how many datasets match the query on the portal's default search. |
 | `results[].breakdown.coverage` | number | The `coverage` weight (default 4) for a dataset from the strict pass, 0 otherwise. |
 | `weights.coverage` | number | Settable like the other weights. |
 

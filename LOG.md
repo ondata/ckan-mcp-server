@@ -32,8 +32,10 @@ Native dati.gov.it API against the MCP server, same text:
 | incidenti stradali Palermo | Lombardia, Palermo, Lombardia (320) | three Comune di Palermo datasets (20 with every term) |
 | aria OR acqua (Milano) | 0 — dismax swallows the OR | 87, sent as `text:(aria OR acqua)` |
 
-Cost: one extra call only when the strict pass is short; none for boolean or fielded
-queries. The gate asserts terms and margin now (`terms_equal`, `margin_min`): Lecce leads
+Cost: one extra call per ranked search, the strict pass; the default pass still runs so
+`total_results` keeps its meaning, as a `rows=0` count when the strict pass already filled
+the limit. Boolean and fielded queries make one call, as before. A portal that rejects
+`mm` falls back to the default pass alone. The gate asserts terms and margin now (`terms_equal`, `margin_min`): Lecce leads
 by ≥ 2 with terms `[defibrillatori, comune, lecce]`, and the Milano case requires a Comune
 di Milano report first. 550 tests, 14/14 smoke. OpenSpec change `rank-on-full-coverage`.
 
