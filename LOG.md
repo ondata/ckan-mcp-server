@@ -2,6 +2,10 @@
 
 ## 2026-09-23
 
+### v0.4.125 - MQA scores on the new data.europa.eu methodology
+
+Ships #549 (closes #548). For a caller: `ckan_get_mqa_quality` and `ckan_get_mqa_quality_details` report the MQA v2 score (0-7.5, band, failing metrics by gain) instead of printing v2 numbers on the old 405 scale or failing with "identifier not aligned"; datasets not yet re-evaluated get the previous-methodology score, labelled. The MQA tools work again on the Cloudflare Worker. **BREAKING** for JSON consumers of the two MQA tools: compact shape with `methodology`, `metricsVersion`, `score`, `maxScore`.
+
 ### MQA tools follow the data.europa.eu methodology v2 (#548)
 
 - data.europa.eu switched the MQA to a new methodology (DCAT-AP 3, weights 1/0.5/0.25, 0-7.5 scale, four FAIR dimensions, no Contextuality, SHACL not scored). The dataset cache now serves only v2 and answers `404 No v2 metrics found` for datasets not yet re-evaluated: on day one, 1,051 of 61,897 dati.gov.it datasets.
