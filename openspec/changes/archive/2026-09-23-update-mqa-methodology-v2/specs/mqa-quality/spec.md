@@ -10,6 +10,6 @@ The system SHALL provide an MCP tool that returns a detailed MQA quality breakdo
 - **WHEN** the user requests details for any dataset id with format `json`
 - **THEN** the tool returns a compact structured payload with `methodology`, `metricsVersion`, scores and failing metrics, never the raw MQA payload
 
-#### Scenario: Previous methodology fallback
-- **WHEN** the dataset has no v2 metrics yet
-- **THEN** the tool returns the previous-methodology dimension scores and non-max reasons (e.g., `knownLicence=false` under reusability), labelled as previous methodology
+#### Scenario: Markdown summary with non-max reasons
+- **WHEN** the user requests details with format `markdown` for a dataset that has no v2 metrics yet
+- **THEN** the tool returns the previous-methodology dimension scores and lists non-max reasons (e.g., `knownLicence=false` under reusability), labelled as previous methodology
