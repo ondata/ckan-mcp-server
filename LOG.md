@@ -2,6 +2,10 @@
 
 ## 2026-09-23
 
+### v0.4.126 - why MQA URL tests fail
+
+Ships #552. For a caller: `ckan_get_mqa_quality_details` now says why URL tests fail (`HTTP test: 1100 timeout ×21, no status recorded ×3`). For the project: `npm run smoke` checks the MQA tool live against data.europa.eu, so a format change there fails the release gate.
+
 ### MQA: smoke gate and HTTP status of failing URL tests
 
 - `npm run smoke` gains a live MQA case (Roma `czrm-…-2023`: `methodology` v2, `maxScore` 7.5, 0 ≤ `score` ≤ 7.5) and a generic `field_max`. v0.4.124 shipped broken MQA tools with green tests because the tests read stored fixtures; the gate now asks data.europa.eu. Negative check: expecting `v1` fails the case.
