@@ -2,6 +2,12 @@
 
 ## 2026-09-23
 
+### MQA: smoke gate and HTTP status of failing URL tests
+
+- `npm run smoke` gains a live MQA case (Roma `czrm-…-2023`: `methodology` v2, `maxScore` 7.5, 0 ≤ `score` ≤ 7.5) and a generic `field_max`. v0.4.124 shipped broken MQA tools with green tests because the tests read stored fixtures; the gate now asks data.europa.eu. Negative check: expecting `v1` fails the case.
+- `ckan_get_mqa_quality_details` says why URL tests fail: `HTTP test: 1100 timeout ×21, no status recorded ×3`. Codes come from the metrics graph (`http:statusCodeValue` in v2, `dqv:value` in v1; ≥1000 are piveau's own, 1100 = timeout), latest per distribution, 2xx excluded. Fetched only by the details tool and only when a URL test fails (the graph is ~570 KB); best effort, a failed fetch leaves the details intact.
+- Bug caught by the tests: boolean result nodes share the metric id, and `Number(false)` read as status code 0.
+
 ### v0.4.125 - MQA scores on the new data.europa.eu methodology
 
 Ships #549 (closes #548). For a caller: `ckan_get_mqa_quality` and `ckan_get_mqa_quality_details` report the MQA v2 score (0-7.5, band, failing metrics by gain) instead of printing v2 numbers on the old 405 scale or failing with "identifier not aligned"; datasets not yet re-evaluated get the previous-methodology score, labelled. The MQA tools work again on the Cloudflare Worker. **BREAKING** for JSON consumers of the two MQA tools: compact shape with `methodology`, `metricsVersion`, `score`, `maxScore`.

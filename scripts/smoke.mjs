@@ -167,6 +167,10 @@ function check(expect, payload) {
     if (!(typeof payload[field] === "number" && payload[field] >= min))
       fail.push(`${field} is ${JSON.stringify(payload[field])}, expected a number of at least ${min}`);
   }
+  for (const [field, max] of Object.entries(expect.field_max ?? {})) {
+    if (!(typeof payload[field] === "number" && payload[field] <= max))
+      fail.push(`${field} is ${JSON.stringify(payload[field])}, expected a number of at most ${max}`);
+  }
   if (expect.margin_min !== undefined) {
     const [a, b] = (payload.results ?? []).map((r) => r.score ?? 0);
     if (a === undefined || b === undefined || a - b < expect.margin_min)

@@ -282,6 +282,77 @@ describe('ckan_get_mqa_quality integration', () => {
     });
   });
 
+  describe('getMqaQuality — HTTP status of failing URL tests', () => {
+    const METRICS_URL = `https://data.europa.eu/api/hub/repo/datasets/${DATASET_ID}/metrics`;
+    const statusNode = (metric: string, dist: string, code: Record<string, unknown>, time = '2026-09-23T18:00:00Z', description?: string) => ({
+      'dqv:isMeasurementOf': { '@id': `https://piveau.eu/ns/voc#${metric}` },
+      'dqv:computedOn': { '@id': `http://data.europa.eu/88u/distribution/${dist}` },
+      'prov:generatedAtTime': { '@value': time },
+      ...(description ? { 'dct:description': description } : {}),
+      ...code
+    });
+    const v2Code = (code: string) => ({ 'http://www.w3.org/2011/http#statusCodeValue': code });
+    const TIMEOUT = 'The timeout period of 5000ms has been exceeded while executing HEAD /x for server example.org:443';
+    const statusGraph = {
+      '@graph': [
+        statusNode('accessUrlStatusCode', 'd1', v2Code('1100'), undefined, TIMEOUT),
+        statusNode('accessUrlStatusCode', 'd2', v2Code('1100'), undefined, TIMEOUT),
+        // previous-methodology shape: the code sits in dqv:value
+        statusNode('accessUrlStatusCode', 'd3', { 'dqv:value': { '@value': '404' } }),
+        // an older measurement of the same distribution must not count twice
+        statusNode('accessUrlStatusCode', 'd3', v2Code('200'), '2026-07-01T00:00:00Z'),
+        // boolean result nodes carry no code
+        statusNode('accessUrlStatusCode', 'd1', { 'dqv:value': { '@value': 'false' } }),
+        // 2xx is a pass, not a reason
+        statusNode('downloadUrlStatusCode', 'd1', v2Code('200')),
+        statusNode('downloadUrlStatusCode', 'd2', v2Code('502'))
+      ]
+    };
+
+    it('explains failing URL tests with their status codes in the details', async () => {
+      vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
+      mockCache(mqaV2Success);
+      mockFetchJson(statusGraph);
+
+      const result = await getMqaQuality(SERVER, DATASET_ID, { httpStatus: true });
+      if (result.methodology !== 'v2') throw new Error('expected v2');
+
+      expect(fetch).toHaveBeenNthCalledWith(2, METRICS_URL, expect.any(Object));
+      expect(result.failing.find(f => f.metric === 'accessUrlStatusCode')?.httpStatus)
+        .toEqual({ '1100 timeout': 2, '404': 1 });
+      expect(result.failing.find(f => f.metric === 'downloadUrlStatusCode')?.httpStatus)
+        .toEqual({ '502': 1 });
+      expect(result.failing.find(f => f.metric === 'provenanceAvailability')).not.toHaveProperty('httpStatus');
+
+      const markdown = formatQualityDetailsMarkdown(result, 'test-dataset');
+      expect(markdown).toContain('HTTP test: 1100 timeout ×2, 404 ×1');
+      // 3 distributions fail downloadUrlStatusCode, only one has a code
+      expect(markdown).toContain('HTTP test: 502 ×1, no status recorded ×2');
+    });
+
+    it('does not fetch the metrics graph without failing URL tests', async () => {
+      const payload = JSON.parse(JSON.stringify(mqaV2Success));
+      for (const dist of payload.result.results[0].distributions) {
+        for (const m of dist.metrics) if (/StatusCode$/.test(m.metric)) m.result = 1;
+      }
+      vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
+      mockCache(payload);
+
+      await getMqaQuality(SERVER, DATASET_ID, { httpStatus: true });
+      expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('still returns the details when the metrics graph is unavailable', async () => {
+      vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
+      mockCache(mqaV2Success);
+      fetchMock().mockRejectedValueOnce(new Error('timeout'));
+
+      const result = await getMqaQuality(SERVER, DATASET_ID, { httpStatus: true });
+      if (result.methodology !== 'v2') throw new Error('expected v2');
+      expect(result.failing.find(f => f.metric === 'accessUrlStatusCode')).not.toHaveProperty('httpStatus');
+    });
+  });
+
   describe('getMqaQuality — previous methodology fallback', () => {
     it('falls back to the metrics endpoint when no v2 metrics exist', async () => {
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });

@@ -248,6 +248,27 @@
         "returned_min": 3,
         "first_matches": "[Ss]pese|[Bb]ilancio|[Cc]omune"
       }
+    },
+    {
+      "name": "MQA score follows the data.europa.eu v2 methodology",
+      "regression": "v0.4.124: MQA v2 rollout printed 6.5/405 or failed with 'identifier not aligned', tests green on stored fixtures",
+      "tool": "ckan_get_mqa_quality",
+      "server": "https://www.dati.gov.it/opendata",
+      "args": {
+        "dataset_id": "czrm-di-roma-capitale-dati-delle-segnalazioni-anno-2023"
+      },
+      "expect": {
+        "field_equals": {
+          "methodology": "v2",
+          "maxScore": 7.5
+        },
+        "field_min": {
+          "score": 0
+        },
+        "field_max": {
+          "score": 7.5
+        }
+      }
     }
   ]
 }

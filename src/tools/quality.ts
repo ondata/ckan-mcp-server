@@ -424,6 +424,8 @@ type MqaFailingMetric = {
   total: number;
   /** Exact increase of the final score if every failing entity passed this metric */
   gain: number;
+  /** Failing URL tests only (details tool): non-2xx status per distribution, counted by code */
+  httpStatus?: Record<string, number>;
 };
 
 type MqaGroupScore = { count: number; average: number };
@@ -625,7 +627,72 @@ async function fetchMqaV1(europeanId: string, links: MqaLinks): Promise<MqaV1Res
   };
 }
 
-export async function getMqaQuality(serverUrl: string, datasetId: string): Promise<MqaResult> {
+const STATUS_METRICS = new Set(["accessUrlStatusCode", "downloadUrlStatusCode"]);
+const HTTP_STATUS_CODE = "http://www.w3.org/2011/http#statusCodeValue";
+
+/**
+ * Count the non-2xx status codes of the URL tests in a metrics graph, per metric.
+ * v2 graphs carry the code in http:statusCodeValue, v1 graphs in dqv:value; codes from
+ * 1000 up are piveau's own (1100 = timeout). Only the latest code per distribution counts.
+ */
+function extractStatusCodes(metricsData: unknown): Map<string, Record<string, number>> {
+  const latest = new Map<string, { metric: string; code: number; label: string; time: string }>();
+  const graph = (decodeMetricsPayload(metricsData) as Record<string, unknown> | undefined)?.["@graph"];
+  for (const node of Array.isArray(graph) ? graph : []) {
+    if (!node || typeof node !== "object") continue;
+    const record = node as Record<string, unknown>;
+    const metricRef = record["dqv:isMeasurementOf"];
+    const metricId = typeof metricRef === "string" ? metricRef : (metricRef as Record<string, unknown> | undefined)?.["@id"];
+    if (typeof metricId !== "string") continue;
+    const metric = metricKeyFromId(metricId);
+    if (!STATUS_METRICS.has(metric)) continue;
+
+    // Boolean result nodes share the metric id but carry no code: Number(false) must not read as 0
+    const raw = record[HTTP_STATUS_CODE] !== undefined ? Number(record[HTTP_STATUS_CODE]) : parseMetricValue(record["dqv:value"]);
+    if (typeof raw !== "number" || !Number.isInteger(raw)) continue;
+    const code = raw;
+    const target = (record["dqv:computedOn"] as Record<string, unknown> | undefined)?.["@id"];
+    const time = String((record["prov:generatedAtTime"] as Record<string, unknown> | undefined)?.["@value"] ?? "");
+    const key = `${metric} ${typeof target === "string" ? target : ""}`;
+    const current = latest.get(key);
+    if (current && current.time > time) continue;
+
+    const description = typeof record["dct:description"] === "string" ? record["dct:description"] : "";
+    const label = code >= 1000 ? `${code} ${/timeout/i.test(description) ? "timeout" : "connection error"}` : String(code);
+    latest.set(key, { metric, code, label, time });
+  }
+
+  const counts = new Map<string, Record<string, number>>();
+  for (const { metric, code, label } of latest.values()) {
+    if (code >= 200 && code < 300) continue;
+    const perMetric = counts.get(metric) ?? {};
+    perMetric[label] = (perMetric[label] ?? 0) + 1;
+    counts.set(metric, perMetric);
+  }
+  return counts;
+}
+
+/** Details only: the ~0.5 MB metrics graph says why URL tests failed; best effort, never fatal. */
+async function addHttpStatus(result: MqaV2Result): Promise<void> {
+  const urlTests = result.failing.filter(item => item.entity === "distribution" && STATUS_METRICS.has(item.metric));
+  if (urlTests.length === 0) return;
+  let counts: Map<string, Record<string, number>>;
+  try {
+    counts = extractStatusCodes(await fetchMetricsGraph(`${MQA_METRICS_BASE}/${result.portalId}/metrics`));
+  } catch {
+    return;
+  }
+  for (const item of urlTests) {
+    const perCode = counts.get(item.metric);
+    if (perCode) item.httpStatus = perCode;
+  }
+}
+
+export async function getMqaQuality(
+  serverUrl: string,
+  datasetId: string,
+  opts: { httpStatus?: boolean } = {}
+): Promise<MqaResult> {
   // Step 1: Get dataset metadata from CKAN to extract identifier
   interface PackageShowResult {
     identifier?: string;
@@ -678,7 +745,11 @@ export async function getMqaQuality(serverUrl: string, datasetId: string): Promi
     if (!entry || typeof entry !== "object") {
       throw new Error("Unexpected MQA payload: no result");
     }
-    return parseMqaV2(entry as Record<string, unknown>, links);
+    const result = parseMqaV2(entry as Record<string, unknown>, links);
+    if (opts.httpStatus) {
+      await addHttpStatus(result);
+    }
+    return result;
   }
 
   throw new Error(
@@ -697,7 +768,15 @@ function describeFailing(item: MqaFailingMetric): string {
   const scope = item.entity === "dataset"
     ? "dataset"
     : `${item.failed} of ${item.total} ${item.entity === "distribution" ? "distributions" : "data services"}`;
-  return `\`${item.property}\` (${item.metric}, ${item.importance.toLowerCase()} ${item.weight}) - ${scope}, +${formatNumber(item.gain)}`;
+  let http = "";
+  if (item.httpStatus) {
+    const codes = Object.entries(item.httpStatus).sort((a, b) => b[1] - a[1]).map(([code, n]) => `${code} ×${n}`);
+    // e.g. distributions with no URL: the test did not run, so there is no code to show
+    const unexplained = item.failed - Object.values(item.httpStatus).reduce((sum, n) => sum + n, 0);
+    if (unexplained > 0) codes.push(`no status recorded ×${unexplained}`);
+    http = `; HTTP test: ${codes.join(", ")}`;
+  }
+  return `\`${item.property}\` (${item.metric}, ${item.importance.toLowerCase()} ${item.weight}) - ${scope}, +${formatNumber(item.gain)}${http}`;
 }
 
 function pushV2Scores(lines: string[], result: MqaV2Result): void {
@@ -892,7 +971,8 @@ export function registerQualityTools(server: McpServer): void {
       title: "Get MQA Quality Details",
       description: "Get detailed MQA (Metadata Quality Assessment) quality reasons for a dataset on dati.gov.it. " +
         "Lists every failing metric grouped by FAIR dimension, with DCAT-AP property, weight, how many distributions fail it " +
-        "and its gain on the final score (methodology v2); previous-methodology datasets get non-max reasons. " +
+        "and its gain on the final score, plus the HTTP status of failing URL tests (e.g. 1100 timeout, 404) (methodology v2); " +
+        "previous-methodology datasets get non-max reasons. " +
         "Only works with dati.gov.it server. " +
         "Typical workflow: ckan_get_mqa_quality (get overview scores) → ckan_get_mqa_quality_details (inspect failing metrics)",
       inputSchema: z.object({
@@ -925,7 +1005,7 @@ export function registerQualityTools(server: McpServer): void {
       }
 
       try {
-        const details = await getMqaQuality(server_url, dataset_id);
+        const details = await getMqaQuality(server_url, dataset_id, { httpStatus: true });
         // The demo footer is Markdown: appending it to JSON would break parsing (Workers only)
         const format = response_format || ResponseFormat.MARKDOWN;
         const output = format === ResponseFormat.JSON
