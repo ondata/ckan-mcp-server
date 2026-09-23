@@ -24,11 +24,20 @@ vi.mocked(axios.isAxiosError).mockImplementation((error: any) => {
 const DATASET_ID = '332be8b7-89b9-4dfe-a252-7fccd3efda76';
 const SERVER = 'https://www.dati.gov.it/opendata';
 
-const mqa404 = (body: unknown) => ({
-  isAxiosError: true,
-  response: { status: 404, data: body },
-  message: 'Request failed with status code 404'
+const response = (status: number, body: unknown) => ({
+  ok: status >= 200 && status < 300,
+  status,
+  statusText: status === 200 ? 'OK' : 'Not Found',
+  headers: { get: () => null },
+  json: async () => body,
+  text: async () => (typeof body === 'string' ? body : JSON.stringify(body))
 });
+
+const fetchMock = () => fetch as unknown as ReturnType<typeof vi.fn>;
+// MQA cache and metrics endpoint are both fetched in call order; package_show goes through axios
+const mockCache = (body: unknown) => fetchMock().mockResolvedValueOnce(response(200, body));
+const mockCache404 = (body: unknown) => fetchMock().mockResolvedValueOnce(response(404, body));
+const mockFetchJson = (payload: unknown) => fetchMock().mockResolvedValueOnce(response(200, payload));
 
 describe('ckan_get_mqa_quality integration', () => {
   beforeEach(() => {
@@ -36,17 +45,6 @@ describe('ckan_get_mqa_quality integration', () => {
     vi.mocked(axios.get).mockReset();
     vi.stubGlobal('fetch', vi.fn());
   });
-
-  const mockFetchJson = (payload: unknown) => {
-    (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok: true,
-      status: 200,
-      statusText: 'OK',
-      headers: { get: () => null },
-      json: async () => payload,
-      text: async () => JSON.stringify(payload)
-    });
-  };
 
   const mqaMetricsDetails = {
     '@graph': [
@@ -126,16 +124,16 @@ describe('ckan_get_mqa_quality integration', () => {
   describe('getMqaQuality — methodology v2', () => {
     it('parses the v2 cache payload without calling the metrics endpoint', async () => {
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: mqaV2Success });
+      mockCache(mqaV2Success);
 
       const result = await getMqaQuality(SERVER, DATASET_ID);
 
-      expect(axios.get).toHaveBeenNthCalledWith(
-        2,
+      expect(fetch).toHaveBeenNthCalledWith(
+        1,
         `https://data.europa.eu/api/mqa/cache/datasets/${DATASET_ID}`,
         expect.any(Object)
       );
-      expect(fetch).not.toHaveBeenCalled();
+      expect(fetch).toHaveBeenCalledTimes(1);
       if (result.methodology !== 'v2') throw new Error('expected v2');
       expect(result.metricsVersion).toBe('2.0.0');
       expect(result.score).toBeCloseTo(6.4583, 3);
@@ -148,7 +146,7 @@ describe('ckan_get_mqa_quality integration', () => {
 
     it('aggregates failing metrics across distributions and orders them by gain', async () => {
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: mqaV2Success });
+      mockCache(mqaV2Success);
 
       const result = await getMqaQuality(SERVER, DATASET_ID);
       if (result.methodology !== 'v2') throw new Error('expected v2');
@@ -188,7 +186,7 @@ describe('ckan_get_mqa_quality integration', () => {
       const distAvg = entry.distributions.reduce((s: number, d: any) => s + d.score, 0) / entry.distributions.length;
       entry.datasetFinal = (entry.dataset.score + distAvg) / 2;
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: payload });
+      mockCache(payload);
 
       const result = await getMqaQuality(SERVER, DATASET_ID);
       if (result.methodology !== 'v2') throw new Error('expected v2');
@@ -198,9 +196,26 @@ describe('ckan_get_mqa_quality integration', () => {
       expect(result.score + totalGain).toBeCloseTo(7.5, 3);
     });
 
+    it('scores a metadata-only dataset on the dataset alone', async () => {
+      const payload = JSON.parse(JSON.stringify(mqaV2Success));
+      const entry = payload.result.results[0];
+      entry.distributions = [];
+      delete entry.datasetFinal;
+      vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
+      mockCache(payload);
+
+      const result = await getMqaQuality(SERVER, DATASET_ID);
+      if (result.methodology !== 'v2') throw new Error('expected v2');
+
+      expect(result.score).toBe(6.5);
+      expect(result.distributions).toBeNull();
+      const provenance = result.failing.find(f => f.metric === 'provenanceAvailability');
+      expect(provenance?.gain).toBeCloseTo(0.25, 5);
+    });
+
     it('scores embedded data services as a third group', async () => {
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: withDataService() });
+      mockCache(withDataService());
 
       const result = await getMqaQuality(SERVER, DATASET_ID);
       if (result.methodology !== 'v2') throw new Error('expected v2');
@@ -215,12 +230,12 @@ describe('ckan_get_mqa_quality integration', () => {
 
     it('uses name as fallback when identifier is missing', async () => {
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithoutIdentifier });
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: mqaV2Success });
+      mockCache(mqaV2Success);
 
       await getMqaQuality('https://dati.gov.it/opendata', 'pkg-2');
 
-      expect(axios.get).toHaveBeenNthCalledWith(
-        2,
+      expect(fetch).toHaveBeenNthCalledWith(
+        1,
         'https://data.europa.eu/api/mqa/cache/datasets/example-dataset-no-identifier',
         expect.any(Object)
       );
@@ -230,12 +245,12 @@ describe('ckan_get_mqa_quality integration', () => {
       vi.mocked(axios.get).mockResolvedValueOnce({
         data: { success: true, result: { id: 'dummy', name: 'dummy-name', identifier: 'cmna:A064' } }
       });
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: mqaV2Success });
+      mockCache(mqaV2Success);
 
       await getMqaQuality(SERVER, 'dummy-id');
 
-      expect(axios.get).toHaveBeenNthCalledWith(
-        2,
+      expect(fetch).toHaveBeenNthCalledWith(
+        1,
         'https://data.europa.eu/api/mqa/cache/datasets/cmna-a064',
         expect.any(Object)
       );
@@ -253,13 +268,13 @@ describe('ckan_get_mqa_quality integration', () => {
           }
         }
       });
-      vi.mocked(axios.get).mockRejectedValueOnce(mqa404(mqaDatasetNotFound));
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: mqaV2Success });
+      mockCache404(mqaDatasetNotFound);
+      mockCache(mqaV2Success);
 
       const result = await getMqaQuality(SERVER, 'dummy-id');
 
-      expect(axios.get).toHaveBeenNthCalledWith(
-        3,
+      expect(fetch).toHaveBeenNthCalledWith(
+        2,
         `https://data.europa.eu/api/mqa/cache/datasets/${base}~~1`,
         expect.any(Object)
       );
@@ -270,7 +285,7 @@ describe('ckan_get_mqa_quality integration', () => {
   describe('getMqaQuality — previous methodology fallback', () => {
     it('falls back to the metrics endpoint when no v2 metrics exist', async () => {
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
-      vi.mocked(axios.get).mockRejectedValueOnce(mqa404(mqaNoV2Metrics));
+      mockCache404(mqaNoV2Metrics);
       mockFetchJson(mqaMetricsSuccess);
 
       const result = await getMqaQuality(SERVER, DATASET_ID);
@@ -286,10 +301,18 @@ describe('ckan_get_mqa_quality integration', () => {
       expect(result.breakdown.nonMaxDimensions).toEqual(['accessibility']);
     });
 
+    it('explains the missing v2 metrics when the metrics endpoint fails too', async () => {
+      vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
+      mockCache404(mqaNoV2Metrics);
+      fetchMock().mockResolvedValueOnce(response(404, 'Not Found'));
+
+      await expect(getMqaQuality(SERVER, DATASET_ID)).rejects.toThrow('not yet re-evaluated');
+    });
+
     it('uses the suffixed candidate that reports missing v2 metrics', async () => {
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
-      vi.mocked(axios.get).mockRejectedValueOnce(mqa404(mqaDatasetNotFound));
-      vi.mocked(axios.get).mockRejectedValueOnce(mqa404(mqaNoV2Metrics));
+      mockCache404(mqaDatasetNotFound);
+      mockCache404(mqaNoV2Metrics);
       mockFetchJson(mqaMetricsSuccess);
 
       const result = await getMqaQuality(SERVER, DATASET_ID);
@@ -303,7 +326,7 @@ describe('ckan_get_mqa_quality integration', () => {
 
     it('returns non-max reasons from the previous-methodology metrics', async () => {
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
-      vi.mocked(axios.get).mockRejectedValueOnce(mqa404(mqaNoV2Metrics));
+      mockCache404(mqaNoV2Metrics);
       mockFetchJson(mqaMetricsDetails);
 
       const result = await getMqaQuality(SERVER, DATASET_ID);
@@ -317,7 +340,7 @@ describe('ckan_get_mqa_quality integration', () => {
 
     it('refuses to show v2-scale numbers on the 405 scale', async () => {
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
-      vi.mocked(axios.get).mockRejectedValueOnce(mqa404(mqaNoV2Metrics));
+      mockCache404(mqaNoV2Metrics);
       mockFetchJson({
         '@graph': [
           {
@@ -347,35 +370,31 @@ describe('ckan_get_mqa_quality integration', () => {
 
     it('reports a missing MQA record when every candidate is not found', async () => {
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
-      vi.mocked(axios.get).mockRejectedValueOnce(mqa404(mqaDatasetNotFound));
-      vi.mocked(axios.get).mockRejectedValueOnce(mqa404(mqaDatasetNotFound));
-      vi.mocked(axios.get).mockRejectedValueOnce(mqa404(mqaDatasetNotFound));
+      mockCache404(mqaDatasetNotFound);
+      mockCache404(mqaDatasetNotFound);
+      mockCache404(mqaDatasetNotFound);
 
       await expect(getMqaQuality(SERVER, DATASET_ID)).rejects.toThrow('No MQA record');
     });
 
     it('throws error when MQA API is unavailable', async () => {
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
-      vi.mocked(axios.get).mockRejectedValueOnce({
-        isAxiosError: true,
-        code: 'ENOTFOUND',
-        message: 'Network error'
-      });
+      fetchMock().mockRejectedValueOnce(new Error('Network error'));
 
-      await expect(getMqaQuality(SERVER, DATASET_ID)).rejects.toThrow('MQA API error');
+      await expect(getMqaQuality(SERVER, DATASET_ID)).rejects.toThrow('MQA API error: Network error');
     });
   });
 
   describe('markdown rendering', () => {
     const loadV2 = async (payload: unknown = mqaV2Success) => {
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
-      vi.mocked(axios.get).mockResolvedValueOnce({ data: payload });
+      mockCache(payload);
       return getMqaQuality(SERVER, DATASET_ID);
     };
 
     const loadV1 = async (metrics: unknown = mqaMetricsSuccess) => {
       vi.mocked(axios.get).mockResolvedValueOnce({ data: packageShowWithIdentifier });
-      vi.mocked(axios.get).mockRejectedValueOnce(mqa404(mqaNoV2Metrics));
+      mockCache404(mqaNoV2Metrics);
       mockFetchJson(metrics);
       return getMqaQuality(SERVER, DATASET_ID);
     };

@@ -9,6 +9,7 @@
 - Now: v2 payload parsed directly — `datasetFinal`/7.5 with band, dataset/distribution/data service scores, failing metrics aggregated across distributions ("21 of 24") and ordered by their exact gain on the final score. Checked live: score + sum of gains = 7.5.
 - `result: null` (test not run, e.g. no URL) counts as failing, as it does in the official score; found only on the live payload.
 - No v2 yet → previous-methodology scores from the metrics endpoint, labelled; refused if the graph already carries v2-scale numbers.
+- MQA tools were already broken on the Worker (`The 'cache' field on 'RequestInitializerDict' is not implemented`, axios fetch adapter): the cache call now goes through `safeFetch` like the metrics call. Verified with `wrangler dev` and the Node HTTP server.
 - `DQV of dataset not found` and `No v2 metrics found` now give different errors. JSON output is compact (`methodology`, `metricsVersion`, `maxScore`), never the raw payload. OpenSpec change `update-mqa-methodology-v2`.
 
 ## 2026-09-06

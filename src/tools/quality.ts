@@ -3,7 +3,6 @@
  */
 
 import { z } from "zod";
-import axios from "axios";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { makeCkanRequest, formatCkanError, safeFetch } from "../utils/http.js";
 import { truncateText, truncateJson, formatError, addDemoFooter } from "../utils/formatting.js";
@@ -497,8 +496,7 @@ function groupScore(entities: MqaV2Entity[]): MqaGroupScore | null {
 
 function parseMqaV2(entry: Record<string, unknown>, links: MqaLinks): MqaV2Result {
   const dataset = entry.dataset as MqaV2Entity | undefined;
-  const score = entry.datasetFinal;
-  if (!dataset || typeof dataset.score !== "number" || typeof score !== "number") {
+  if (!dataset || typeof dataset.score !== "number") {
     throw new Error("Unexpected MQA payload: missing dataset score");
   }
 
@@ -508,6 +506,12 @@ function parseMqaV2(entry: Record<string, unknown>, links: MqaLinks): MqaV2Resul
     ["dataService", Array.isArray(entry.dataServices) ? entry.dataServices as MqaV2Entity[] : []]
   ];
   const groupsPresent = groups.filter(([, entities]) => entities.length > 0).length;
+
+  // A metadata-only dataset is scored on the dataset alone
+  const score = typeof entry.datasetFinal === "number" ? entry.datasetFinal : groupsPresent === 1 ? dataset.score : undefined;
+  if (score === undefined) {
+    throw new Error("Unexpected MQA payload: missing final dataset score");
+  }
 
   const failing: MqaFailingMetric[] = [];
   for (const [entity, entities] of groups) {
@@ -554,11 +558,19 @@ function parseMqaV2(entry: Record<string, unknown>, links: MqaLinks): MqaV2Resul
   };
 }
 
+const MQA_TIMEOUT_MS = 30000;
+
+// fetch, not axios: axios's fetch adapter breaks on Workers ("'cache' field ... not implemented")
+function fetchMqa(url: string): Promise<Response> {
+  return safeFetch(url, {
+    headers: { 'User-Agent': 'CKAN-MCP-Server/1.0' },
+    signal: AbortSignal.timeout(MQA_TIMEOUT_MS)
+  }, { httpsOnly: true });
+}
+
 async function fetchMetricsGraph(metricsUrl: string): Promise<unknown> {
   try {
-    const response = await safeFetch(metricsUrl, {
-      headers: { 'User-Agent': 'CKAN-MCP-Server/1.0' }
-    }, { httpsOnly: true });
+    const response = await fetchMqa(metricsUrl);
     if (!response.ok) {
       throw new Error(`${response.status} ${response.statusText}`);
     }
@@ -574,16 +586,21 @@ async function fetchMetricsGraph(metricsUrl: string): Promise<unknown> {
 
 async function fetchMqaV1(europeanId: string, links: MqaLinks): Promise<MqaV1Result> {
   const metricsUrl = `${MQA_METRICS_BASE}/${europeanId}/metrics`;
-  const metrics = await fetchMetricsGraph(metricsUrl);
+  const notReEvaluated = `Dataset ${europeanId} is on data.europa.eu but not yet re-evaluated with MQA methodology v2, ` +
+    `and previous-methodology metrics are not available`;
+
+  let metrics: unknown;
+  try {
+    metrics = await fetchMetricsGraph(metricsUrl);
+  } catch (error) {
+    throw new Error(`${notReEvaluated} (${error instanceof Error ? error.message : String(error)}).`);
+  }
   const scores = extractMetricsScores(metrics);
 
   // During the rollout the metrics endpoint may already hold v2 numbers: never print them on the 405 scale
   const looksV1 = scores.contextuality !== undefined || (scores.total ?? 0) > V2_MAX_SCORE;
   if (!looksV1) {
-    throw new Error(
-      `Dataset ${europeanId} is on data.europa.eu but not yet re-evaluated with MQA methodology v2, ` +
-      `and previous-methodology metrics are not available. Try again after the next harvest.`
-    );
+    throw new Error(`${notReEvaluated}. Try again after the next harvest.`);
   }
 
   const nonMaxDimensions = findNonMaxDimensions(scores);
@@ -601,12 +618,6 @@ async function fetchMqaV1(europeanId: string, links: MqaLinks): Promise<MqaV1Res
     details: extractMetricDetails(metrics, nonMaxDimensions),
     ...links
   };
-}
-
-function mqaErrorMessage(error: unknown): string {
-  if (!axios.isAxiosError(error)) return "";
-  const message = (error.response?.data as Record<string, unknown> | undefined)?.message;
-  return typeof message === "string" ? message : "";
 }
 
 export async function getMqaQuality(serverUrl: string, datasetId: string): Promise<MqaResult> {
@@ -638,31 +649,31 @@ export async function getMqaQuality(serverUrl: string, datasetId: string): Promi
       mqaUrl: `${MQA_API_BASE}/${europeanId}`
     };
 
+    let response: Response;
     try {
-      const response = await axios.get(links.mqaUrl, {
-        timeout: 30000,
-        headers: {
-          'User-Agent': 'CKAN-MCP-Server/1.0'
-        }
-      });
-      const entry = (response.data as any)?.result?.results?.[0];
-      if (!entry || typeof entry !== "object") {
-        throw new Error("Unexpected MQA payload: no result");
-      }
-      return parseMqaV2(entry, links);
+      response = await fetchMqa(links.mqaUrl);
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 404) {
-          // The dataset exists but has not been re-evaluated with the v2 methodology yet
-          if (/no v2 metrics/i.test(mqaErrorMessage(error))) {
-            return fetchMqaV1(europeanId, links);
-          }
-          continue;
-        }
-        throw new Error(`MQA API error: ${error.message}`);
-      }
-      throw error;
+      throw new Error(`MQA API error: ${error instanceof Error ? error.message : String(error)}`);
     }
+
+    if (response.status === 404) {
+      // "No v2 metrics found": the dataset exists but has not been re-evaluated with v2 yet.
+      // Anything else ("DQV of dataset not found") means this candidate id is not on data.europa.eu.
+      if (/no v2 metrics/i.test(await response.text())) {
+        return fetchMqaV1(europeanId, links);
+      }
+      continue;
+    }
+    if (!response.ok) {
+      throw new Error(`MQA API error: ${response.status} ${response.statusText}`);
+    }
+
+    const payload = await response.json() as { result?: { results?: unknown[] } };
+    const entry = payload?.result?.results?.[0];
+    if (!entry || typeof entry !== "object") {
+      throw new Error("Unexpected MQA payload: no result");
+    }
+    return parseMqaV2(entry as Record<string, unknown>, links);
   }
 
   throw new Error(
