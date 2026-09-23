@@ -160,14 +160,14 @@ ckan_get_mqa_quality({
 })
 ```
 
-Returns quality score and detailed metrics from data.europa.eu MQA (Metadata Quality Assurance) system:
-- Overall score (max 405 points)
-- Accessibility (URL status, download availability)
-- Reusability (license, contact point, publisher)
-- Interoperability (format, media type)
-- Findability (keywords, category, spatial/temporal coverage)
+Returns the quality score from the data.europa.eu MQA (Metadata Quality Assessment), [methodology v2](https://data.europa.eu/mqa/methodology):
+- Final score on a 0-7.5 scale and its band (Sufficient < 2.5 ≤ Good < 5 ≤ Excellent)
+- Dataset score, distribution average and data service average
+- The failing metrics with the largest gain on the final score (DCAT-AP property, weight, how many distributions fail it)
 
-**Note**: Only works with dati.gov.it datasets. Uses the `identifier` field (or falls back to `name`) to query the European MQA API.
+`ckan_get_mqa_quality_details` lists every failing metric grouped by FAIR dimension (findability, accessibility, interoperability, reusability).
+
+**Note**: Only works with dati.gov.it datasets. Uses the `identifier` field (or falls back to `name`) to query the European MQA API. Datasets that data.europa.eu has not re-evaluated with v2 yet are reported with the previous methodology (405-point scale), labelled as such.
 
 ## USA - data.gov
 

@@ -1,0 +1,751 @@
+{
+  "success": true,
+  "result": {
+    "count": 1,
+    "results": [
+      {
+        "metricsVersion": "2.0.0",
+        "dataset": {
+          "score": 6.5,
+          "maxScore": 7.5,
+          "metrics": [
+            {
+              "metric": "dctIdentifierAvailability",
+              "property": "http://purl.org/dc/terms/identifier",
+              "importance": "Optional",
+              "weight": 0.25,
+              "dimension": "accessibility",
+              "result": 1,
+              "score": 0.25
+            },
+            {
+              "metric": "spatialAvailability",
+              "property": "http://purl.org/dc/terms/spatial",
+              "importance": "Recommended",
+              "weight": 0.5,
+              "dimension": "findability",
+              "result": 1,
+              "score": 0.5
+            },
+            {
+              "metric": "dateModifiedAvailability",
+              "property": "http://purl.org/dc/terms/modified",
+              "importance": "Optional",
+              "weight": 0.25,
+              "dimension": "findability",
+              "result": 1,
+              "score": 0.25
+            },
+            {
+              "metric": "contactPointAvailability",
+              "property": "http://www.w3.org/ns/dcat#contactPoint",
+              "importance": "Recommended",
+              "weight": 0.5,
+              "dimension": "reusability",
+              "result": 1,
+              "score": 0.5
+            },
+            {
+              "metric": "provenanceAvailability",
+              "property": "http://purl.org/dc/terms/provenance",
+              "importance": "Optional",
+              "weight": 0.25,
+              "dimension": "reusability",
+              "result": 0,
+              "score": 0.0
+            },
+            {
+              "metric": "accessRightsAvailability",
+              "property": "http://purl.org/dc/terms/accessRights",
+              "importance": "Optional",
+              "weight": 0.25,
+              "dimension": "reusability",
+              "result": 1,
+              "score": 0.25
+            },
+            {
+              "metric": "titleAvailability",
+              "property": "http://purl.org/dc/terms/title",
+              "importance": "Mandatory",
+              "weight": 1.0,
+              "dimension": "findability",
+              "result": 1,
+              "score": 1.0
+            },
+            {
+              "metric": "descriptionAvailability",
+              "property": "http://purl.org/dc/terms/description",
+              "importance": "Mandatory",
+              "weight": 1.0,
+              "dimension": "findability",
+              "result": 1,
+              "score": 1.0
+            },
+            {
+              "metric": "applicableLegislationAvailability",
+              "property": "http://data.europa.eu/r5r/applicableLegislation",
+              "importance": "Optional",
+              "weight": 0.25,
+              "dimension": "findability",
+              "result": 0,
+              "score": 0.0
+            },
+            {
+              "metric": "admsIdentifierAvailability",
+              "property": "http://www.w3.org/ns/adms#identifier",
+              "importance": "Optional",
+              "weight": 0.25,
+              "dimension": "accessibility",
+              "result": 0,
+              "score": 0.0
+            },
+            {
+              "metric": "publisherAvailability",
+              "property": "http://purl.org/dc/terms/publisher",
+              "importance": "Recommended",
+              "weight": 0.5,
+              "dimension": "reusability",
+              "result": 1,
+              "score": 0.5
+            },
+            {
+              "metric": "relationAvailability",
+              "property": "http://purl.org/dc/terms/relation",
+              "importance": "Optional",
+              "weight": 0.25,
+              "dimension": "findability",
+              "result": 0,
+              "score": 0.0
+            },
+            {
+              "metric": "temporalAvailability",
+              "property": "http://purl.org/dc/terms/temporal",
+              "importance": "Recommended",
+              "weight": 0.5,
+              "dimension": "findability",
+              "result": 1,
+              "score": 0.5
+            },
+            {
+              "metric": "landingPageAvailability",
+              "property": "http://www.w3.org/ns/dcat#landingPage",
+              "importance": "Optional",
+              "weight": 0.25,
+              "dimension": "accessibility",
+              "result": 1,
+              "score": 0.25
+            },
+            {
+              "metric": "dateIssuedAvailability",
+              "property": "http://purl.org/dc/terms/issued",
+              "importance": "Optional",
+              "weight": 0.25,
+              "dimension": "findability",
+              "result": 1,
+              "score": 0.25
+            },
+            {
+              "metric": "accessRightsVocabularyAlignment",
+              "property": "http://purl.org/dc/terms/accessRights",
+              "importance": "Optional",
+              "weight": 0.25,
+              "dimension": "reusability",
+              "result": 1,
+              "score": 0.25
+            },
+            {
+              "metric": "categoryAvailability",
+              "property": "http://www.w3.org/ns/dcat#theme",
+              "importance": "Recommended",
+              "weight": 0.5,
+              "dimension": "findability",
+              "result": 1,
+              "score": 0.5
+            },
+            {
+              "metric": "keywordAvailability",
+              "property": "http://www.w3.org/ns/dcat#keyword",
+              "importance": "Recommended",
+              "weight": 0.5,
+              "dimension": "findability",
+              "result": 1,
+              "score": 0.5
+            }
+          ],
+          "dataset": "http://data.europa.eu/88u/dataset/c_h501-crm2023"
+        },
+        "datasetFinal": 6.458333333333334,
+        "distributions": [
+          {
+            "score": 6.5,
+            "maxScore": 7.5,
+            "metrics": [
+              {
+                "metric": "accessUrlAvailability",
+                "property": "http://www.w3.org/ns/dcat#accessURL",
+                "importance": "Mandatory",
+                "weight": 1.0,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 1.0
+              },
+              {
+                "metric": "downloadUrlStatusCode",
+                "property": "http://www.w3.org/ns/dcat#downloadURL",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 0,
+                "score": 0.0
+              },
+              {
+                "metric": "knownLicence",
+                "property": "http://purl.org/dc/terms/license",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "reusability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "descriptionAvailability",
+                "property": "http://purl.org/dc/terms/description",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "findability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "formatMediaTypeMachineInterpretable",
+                "property": "http://purl.org/dc/terms/format",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "interoperability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "mediaTypeFromVocabulary",
+                "property": "http://www.w3.org/ns/dcat#mediaType",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "interoperability",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "mediaTypeAvailability",
+                "property": "http://www.w3.org/ns/dcat#mediaType",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "dateIssuedAvailability",
+                "property": "http://purl.org/dc/terms/issued",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "findability",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "byteSizeAvailability",
+                "property": "http://www.w3.org/ns/dcat#byteSize",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "accessUrlStatusCode",
+                "property": "http://www.w3.org/ns/dcat#accessURL",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 0,
+                "score": 0.0
+              },
+              {
+                "metric": "licenceAvailability",
+                "property": "http://purl.org/dc/terms/license",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "reusability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "downloadUrlAvailability",
+                "property": "http://www.w3.org/ns/dcat#downloadURL",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "documentationAvailability",
+                "property": "http://xmlns.com/foaf/0.1/page",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "reusability",
+                "result": 0,
+                "score": 0.0
+              },
+              {
+                "metric": "titleAvailability",
+                "property": "http://purl.org/dc/terms/title",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "findability",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "dateModifiedAvailability",
+                "property": "http://purl.org/dc/terms/modified",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "findability",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "formatFromVocabulary",
+                "property": "http://purl.org/dc/terms/format",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "interoperability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "formatMediaTypeNonProprietary",
+                "property": "http://purl.org/dc/terms/format",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "interoperability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "formatAvailability",
+                "property": "http://purl.org/dc/terms/format",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "statusAvailability",
+                "property": "http://www.w3.org/ns/adms#status",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "reusability",
+                "result": 0,
+                "score": 0.0
+              },
+              {
+                "metric": "rightsAvailability",
+                "property": "http://purl.org/dc/terms/rights",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "reusability",
+                "result": 1,
+                "score": 0.25
+              }
+            ],
+            "distribution": "http://data.europa.eu/88u/distribution/8e0af1b0-5f4b-4e93-91d1-400ed437060e",
+            "validation": {},
+            "title": "Casi Chiusi Dicembre"
+          },
+          {
+            "score": 6.5,
+            "maxScore": 7.5,
+            "metrics": [
+              {
+                "metric": "accessUrlAvailability",
+                "property": "http://www.w3.org/ns/dcat#accessURL",
+                "importance": "Mandatory",
+                "weight": 1.0,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 1.0
+              },
+              {
+                "metric": "downloadUrlStatusCode",
+                "property": "http://www.w3.org/ns/dcat#downloadURL",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 0,
+                "score": 0.0
+              },
+              {
+                "metric": "knownLicence",
+                "property": "http://purl.org/dc/terms/license",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "reusability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "descriptionAvailability",
+                "property": "http://purl.org/dc/terms/description",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "findability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "formatMediaTypeMachineInterpretable",
+                "property": "http://purl.org/dc/terms/format",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "interoperability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "mediaTypeFromVocabulary",
+                "property": "http://www.w3.org/ns/dcat#mediaType",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "interoperability",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "mediaTypeAvailability",
+                "property": "http://www.w3.org/ns/dcat#mediaType",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "dateIssuedAvailability",
+                "property": "http://purl.org/dc/terms/issued",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "findability",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "byteSizeAvailability",
+                "property": "http://www.w3.org/ns/dcat#byteSize",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "accessUrlStatusCode",
+                "property": "http://www.w3.org/ns/dcat#accessURL",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 0,
+                "score": 0.0
+              },
+              {
+                "metric": "licenceAvailability",
+                "property": "http://purl.org/dc/terms/license",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "reusability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "downloadUrlAvailability",
+                "property": "http://www.w3.org/ns/dcat#downloadURL",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "documentationAvailability",
+                "property": "http://xmlns.com/foaf/0.1/page",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "reusability",
+                "result": 0,
+                "score": 0.0
+              },
+              {
+                "metric": "titleAvailability",
+                "property": "http://purl.org/dc/terms/title",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "findability",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "dateModifiedAvailability",
+                "property": "http://purl.org/dc/terms/modified",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "findability",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "formatFromVocabulary",
+                "property": "http://purl.org/dc/terms/format",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "interoperability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "formatMediaTypeNonProprietary",
+                "property": "http://purl.org/dc/terms/format",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "interoperability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "formatAvailability",
+                "property": "http://purl.org/dc/terms/format",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "statusAvailability",
+                "property": "http://www.w3.org/ns/adms#status",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "reusability",
+                "result": 0,
+                "score": 0.0
+              },
+              {
+                "metric": "rightsAvailability",
+                "property": "http://purl.org/dc/terms/rights",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "reusability",
+                "result": 1,
+                "score": 0.25
+              }
+            ],
+            "distribution": "http://data.europa.eu/88u/distribution/218b2161-d230-4e20-b43e-c2796978b42c",
+            "validation": {},
+            "title": "Casi Aperti Febbraio"
+          },
+          {
+            "score": 6.25,
+            "maxScore": 7.5,
+            "metrics": [
+              {
+                "metric": "accessUrlAvailability",
+                "property": "http://www.w3.org/ns/dcat#accessURL",
+                "importance": "Mandatory",
+                "weight": 1.0,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 1.0
+              },
+              {
+                "metric": "downloadUrlStatusCode",
+                "property": "http://www.w3.org/ns/dcat#downloadURL",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 0,
+                "score": 0.0
+              },
+              {
+                "metric": "knownLicence",
+                "property": "http://purl.org/dc/terms/license",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "reusability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "descriptionAvailability",
+                "property": "http://purl.org/dc/terms/description",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "findability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "formatMediaTypeMachineInterpretable",
+                "property": "http://purl.org/dc/terms/format",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "interoperability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "mediaTypeFromVocabulary",
+                "property": "http://www.w3.org/ns/dcat#mediaType",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "interoperability",
+                "result": 0,
+                "score": 0.0
+              },
+              {
+                "metric": "mediaTypeAvailability",
+                "property": "http://www.w3.org/ns/dcat#mediaType",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "dateIssuedAvailability",
+                "property": "http://purl.org/dc/terms/issued",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "findability",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "byteSizeAvailability",
+                "property": "http://www.w3.org/ns/dcat#byteSize",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "accessUrlStatusCode",
+                "property": "http://www.w3.org/ns/dcat#accessURL",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 0,
+                "score": 0.0
+              },
+              {
+                "metric": "licenceAvailability",
+                "property": "http://purl.org/dc/terms/license",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "reusability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "downloadUrlAvailability",
+                "property": "http://www.w3.org/ns/dcat#downloadURL",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "documentationAvailability",
+                "property": "http://xmlns.com/foaf/0.1/page",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "reusability",
+                "result": 0,
+                "score": 0.0
+              },
+              {
+                "metric": "titleAvailability",
+                "property": "http://purl.org/dc/terms/title",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "findability",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "dateModifiedAvailability",
+                "property": "http://purl.org/dc/terms/modified",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "findability",
+                "result": 1,
+                "score": 0.25
+              },
+              {
+                "metric": "formatFromVocabulary",
+                "property": "http://purl.org/dc/terms/format",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "interoperability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "formatMediaTypeNonProprietary",
+                "property": "http://purl.org/dc/terms/format",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "interoperability",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "formatAvailability",
+                "property": "http://purl.org/dc/terms/format",
+                "importance": "Recommended",
+                "weight": 0.5,
+                "dimension": "accessibility",
+                "result": 1,
+                "score": 0.5
+              },
+              {
+                "metric": "statusAvailability",
+                "property": "http://www.w3.org/ns/adms#status",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "reusability",
+                "result": 0,
+                "score": 0.0
+              },
+              {
+                "metric": "rightsAvailability",
+                "property": "http://purl.org/dc/terms/rights",
+                "importance": "Optional",
+                "weight": 0.25,
+                "dimension": "reusability",
+                "result": 1,
+                "score": 0.25
+              }
+            ],
+            "distribution": "http://data.europa.eu/88u/distribution/c1b853f1-5608-49fb-ae5d-918535e46eda",
+            "validation": {},
+            "title": "Casi Aperti Luglio"
+          }
+        ],
+        "dataServices": []
+      }
+    ]
+  }
+}

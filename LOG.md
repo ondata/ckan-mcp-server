@@ -1,5 +1,16 @@
 # LOG
 
+## 2026-09-23
+
+### MQA tools follow the data.europa.eu methodology v2 (#548)
+
+- data.europa.eu switched the MQA to a new methodology (DCAT-AP 3, weights 1/0.5/0.25, 0-7.5 scale, four FAIR dimensions, no Contextuality, SHACL not scored). The dataset cache now serves only v2 and answers `404 No v2 metrics found` for datasets not yet re-evaluated: on day one, 1,051 of 61,897 dati.gov.it datasets.
+- Both MQA tools were broken: re-evaluated datasets printed `6.5/405` and `Accessibility 2.25/100`, the JSON of a 24-distribution dataset exceeded 50k and came back `{_truncated}`; the others failed with a wrong "identifier not aligned" error.
+- Now: v2 payload parsed directly — `datasetFinal`/7.5 with band, dataset/distribution/data service scores, failing metrics aggregated across distributions ("21 of 24") and ordered by their exact gain on the final score. Checked live: score + sum of gains = 7.5.
+- `result: null` (test not run, e.g. no URL) counts as failing, as it does in the official score; found only on the live payload.
+- No v2 yet → previous-methodology scores from the metrics endpoint, labelled; refused if the graph already carries v2-scale numbers.
+- `DQV of dataset not found` and `No v2 metrics found` now give different errors. JSON output is compact (`methodology`, `metricsVersion`, `maxScore`), never the raw payload. OpenSpec change `update-mqa-methodology-v2`.
+
 ## 2026-09-06
 
 ### v0.4.124 - search that answers the question that was asked

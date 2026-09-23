@@ -254,8 +254,10 @@ Use when: user asks about data quality, MQA score, or metadata completeness.
 **Portal scope**: MQA tools currently work only with `dati.gov.it`. Do not
 use them on any other portal — they will return an error or no result.
 
-1. `ckan_get_mqa_quality(dataset_id=..., server_url=...)` — overall score
-2. `ckan_get_mqa_quality_details(dataset_id=..., server_url=...)` — dimension breakdown
+1. `ckan_get_mqa_quality(dataset_id=..., server_url=...)` — score on the 0-7.5 scale of MQA methodology v2, band, top fixes
+2. `ckan_get_mqa_quality_details(dataset_id=..., server_url=...)` — every failing metric by FAIR dimension, with its gain
+
+Scores use the v2 methodology (https://data.europa.eu/mqa/methodology). If the output says the dataset is not yet re-evaluated, its numbers are on the previous 405-point scale: never compare them with v2 scores.
 
 ```
 Example: "What is the metadata quality of this dataset?"
@@ -431,8 +433,8 @@ fq: "res_format:CSV OR res_format:JSON"
 | `ckan_group_show` | Group details + datasets |
 | `ckan_group_search` | Find groups by name pattern |
 | `ckan_tag_list` | List available tags on a portal |
-| `ckan_get_mqa_quality` | MQA overall quality score |
-| `ckan_get_mqa_quality_details` | MQA dimension-by-dimension breakdown |
+| `ckan_get_mqa_quality` | MQA quality score (v2, 0-7.5) and top fixes |
+| `ckan_get_mqa_quality_details` | Every failing MQA metric, by FAIR dimension |
 | `sparql_query` | SPARQL on data.europa.eu and dati.gov.it |
 
 ## SPARQL via curl

@@ -320,8 +320,8 @@ The MCP server will be available at `http://localhost:3000/mcp`. See [`docker/RE
 
 ### Quality Metrics
 
-- **ckan_get_mqa_quality**: Get MQA quality score and metrics for dati.gov.it datasets (accessibility, reusability, interoperability, findability)
-- **ckan_get_mqa_quality_details**: Get detailed MQA quality reasons and failing flags for dati.gov.it datasets
+- **ckan_get_mqa_quality**: Get the MQA quality score (methodology v2, 0-7.5 scale with band) for dati.gov.it datasets, with the failing metrics that would raise it most
+- **ckan_get_mqa_quality_details**: List every failing MQA metric for dati.gov.it datasets, grouped by FAIR dimension, with DCAT-AP property, weight and gain
 
 ### Portal Discovery
 
