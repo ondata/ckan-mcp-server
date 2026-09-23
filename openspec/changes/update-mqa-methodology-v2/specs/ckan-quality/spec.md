@@ -46,5 +46,7 @@ The system SHALL support both markdown and JSON output formats for quality metri
 #### Scenario: JSON format
 - **GIVEN** user specifies response_format as "json"
 - **WHEN** quality metrics are retrieved
-- **THEN** system SHALL return a compact JSON object that includes `methodology` (`v2` or `v1`), `metricsVersion`, `score`, `maxScore`, band, component scores and failing metrics
+- **THEN** system SHALL return a compact JSON object whose common fields are `methodology` (`v2` or `v1`), `metricsVersion`, `score`, `maxScore` and the data.europa.eu links
+- **AND** a v2 result SHALL also include `band`, `dataset`, `distributions`, `dataServices` and `failing`
+- **AND** a v1 (previous methodology) result SHALL instead include `note`, `breakdown` (dimension scores) and `details` (non-max reasons), since that methodology has no bands or per-metric weights
 - **AND** the raw MQA payload SHALL NOT be included

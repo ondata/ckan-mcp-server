@@ -295,6 +295,9 @@ describe('ckan_get_mqa_quality integration', () => {
         expect.any(Object)
       );
       if (result.methodology !== 'v1') throw new Error('expected v1');
+      // Common JSON fields shared with v2
+      expect(result.metricsVersion).toBe('1');
+      expect(result.score).toBe(395);
       expect(result.maxScore).toBe(405);
       expect(result.breakdown.scores.total).toBe(395);
       expect(result.breakdown.scores.accessibility).toBe(90);

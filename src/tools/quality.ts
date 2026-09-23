@@ -446,9 +446,12 @@ export type MqaV2Result = MqaLinks & {
   failing: MqaFailingMetric[];
 };
 
+/** Shares `methodology`, `metricsVersion`, `score`, `maxScore` with v2; v1 has no bands or per-metric weights */
 export type MqaV1Result = MqaLinks & {
   methodology: "v1";
+  metricsVersion: string;
   note: string;
+  score: number | null;
   maxScore: number;
   breakdown: MqaBreakdown;
   details: MqaMetricDetails;
@@ -606,7 +609,9 @@ async function fetchMqaV1(europeanId: string, links: MqaLinks): Promise<MqaV1Res
   const nonMaxDimensions = findNonMaxDimensions(scores);
   return {
     methodology: "v1",
+    metricsVersion: "1",
     note: V1_NOTE,
+    score: scores.total ?? null,
     maxScore: V1_MAX_SCORE,
     breakdown: {
       scores,
