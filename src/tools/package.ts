@@ -357,33 +357,44 @@ const readExtra = (dataset: CkanPackage, key: string): unknown => {
   return undefined;
 };
 
-const parseTemporalCoverage = (raw: unknown): TemporalCoverage | null => {
-  let value = raw;
-  if (typeof value === "string") {
-    try { value = JSON.parse(value); } catch { return null; }
-  }
-  const first = Array.isArray(value) ? value[0] : value;
-  if (!first || typeof first !== "object") return null;
-  const { temporal_start, temporal_end } = first as { temporal_start?: unknown; temporal_end?: unknown };
+const toPeriod = (item: unknown): TemporalCoverage | null => {
+  if (!item || typeof item !== "object") return null;
+  const { temporal_start, temporal_end } = item as { temporal_start?: unknown; temporal_end?: unknown };
   const start = typeof temporal_start === "string" && temporal_start ? temporal_start : null;
   const end = typeof temporal_end === "string" && temporal_end ? temporal_end : null;
   return start || end ? { start, end } : null;
 };
 
+const parseTemporalCoverage = (raw: unknown): TemporalCoverage[] => {
+  let value = raw;
+  if (typeof value === "string") {
+    try { value = JSON.parse(value); } catch { return []; }
+  }
+  const items = Array.isArray(value) ? value : [value];
+  return items.map(toPeriod).filter((p): p is TemporalCoverage => p !== null);
+};
+
 /**
- * dct:temporal as exposed by ckanext-dcat, in the two shapes seen on dati.gov.it:
+ * dct:temporal periods as exposed by ckanext-dcat, in the shapes seen on dati.gov.it:
  * root `temporal_coverage` (JSON string or array of {temporal_start, temporal_end}),
  * or the same under extras, or flat extras `temporal_start` / `temporal_end`.
+ * Returns every period the portal lists; empty when none.
  */
-export const readTemporalCoverage = (dataset: CkanPackage): TemporalCoverage | null => {
+export const readTemporalCoverage = (dataset: CkanPackage): TemporalCoverage[] => {
   const fromRoot = parseTemporalCoverage(dataset.temporal_coverage);
-  if (fromRoot) return fromRoot;
+  if (fromRoot.length > 0) return fromRoot;
   const fromExtra = parseTemporalCoverage(readExtra(dataset, "temporal_coverage"));
-  if (fromExtra) return fromExtra;
-  const start = readExtra(dataset, "temporal_start");
-  const end = readExtra(dataset, "temporal_end");
-  return parseTemporalCoverage({ temporal_start: start, temporal_end: end });
+  if (fromExtra.length > 0) return fromExtra;
+  return parseTemporalCoverage({ temporal_start: readExtra(dataset, "temporal_start"), temporal_end: readExtra(dataset, "temporal_end") });
 };
+
+/**
+ * dcatapit portals emit dct:temporal with startDate = dct:issued and no endDate
+ * when the publisher left the coverage empty; a third of dati.gov.it datasets with
+ * temporal_start look like this. Flag it so a caller does not read it as a data period.
+ */
+export const isLikelyPublishDate = (period: TemporalCoverage, issued: unknown): boolean =>
+  period.end === null && typeof issued === "string" && period.start !== null && period.start.slice(0, 10) === issued.slice(0, 10);
 
 export const scoreDatasetRelevance = (
   query: string,
@@ -526,10 +537,13 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
   if (language) markdown += `- **Language (dct:language)**: ${sanitizeInline(language)}\n`;
   const accessRights = dcatField("access_rights");
   if (accessRights) markdown += `- **Access Rights (dct:accessRights)**: ${sanitizeInline(accessRights)}\n`;
-  const temporal = readTemporalCoverage(result);
-  if (temporal) {
-    const span = `${temporal.start ? formatDate(temporal.start) : "?"} → ${temporal.end ? formatDate(temporal.end) : "open"}`;
-    markdown += `- **Temporal Coverage (dct:temporal)**: ${sanitizeInline(span)}\n`;
+  const periods = readTemporalCoverage(result);
+  if (periods.length > 0) {
+    const spans = periods.map((p) => {
+      const span = `${p.start ? formatDate(p.start) : "?"} → ${p.end ? formatDate(p.end) : "open"}`;
+      return isLikelyPublishDate(p, result.issued) ? `${span} (equals issued, no end: likely a publish date, not a data period)` : span;
+    });
+    markdown += `- **Temporal Coverage (dct:temporal)**: ${sanitizeInline(spans.join("; "))}\n`;
   }
   markdown += `\n`;
 
@@ -757,7 +771,7 @@ export function compactPackageShow(result: CkanPackage, serverUrl?: string): obj
     holder_name: result.holder_name || null,
     hvd_category: result.hvd_category || null,
     applicable_legislation: result.applicable_legislation || null,
-    temporal_coverage: readTemporalCoverage(result),
+    temporal_coverage: readTemporalCoverage(result).map((p) => ({ ...p, likely_publish_date: isLikelyPublishDate(p, result.issued) })),
     resources: (result.resources || []).map((r: CkanResource) => ({
       id: r.id,
       name: r.name || null,
@@ -1434,7 +1448,8 @@ Returns (JSON format):
   author, maintainer,
   frequency, language, publisher_name, holder_name,
   hvd_category, applicable_legislation,
-  temporal_coverage ({start, end} from dct:temporal, null if absent),
+  temporal_coverage (array of {start, end, likely_publish_date} from dct:temporal; empty if absent;
+    likely_publish_date=true when start = issued and no end, a dcatapit default rather than a data period),
   resources (id, name, format, url, size, datastore_active, created, last_modified, api_json_url),
   view_url, api_json_url
 
