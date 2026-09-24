@@ -389,11 +389,13 @@ export const readTemporalCoverage = (dataset: CkanPackage): TemporalCoverage[] =
 };
 
 /**
- * dcatapit portals emit dct:temporal with startDate = dct:issued and no endDate
- * when the publisher left the coverage empty; a third of dati.gov.it datasets with
- * temporal_start look like this. Flag it so a caller does not read it as a data period.
+ * True when the period starts on the dataset's issued date and has no end.
+ * A factual check, exposed as-is: on dcatapit portals this shape is an export
+ * default (dct:temporal emitted with startDate = dct:issued when the publisher
+ * left coverage empty), so a third of dati.gov.it datasets with temporal_start
+ * carry a publish date rather than a data period. Other portals may mean it.
  */
-export const isLikelyPublishDate = (period: TemporalCoverage, issued: unknown): boolean =>
+export const startEqualsIssued = (period: TemporalCoverage, issued: unknown): boolean =>
   period.end === null && typeof issued === "string" && period.start !== null && period.start.slice(0, 10) === issued.slice(0, 10);
 
 export const scoreDatasetRelevance = (
@@ -541,7 +543,7 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
   if (periods.length > 0) {
     const spans = periods.map((p) => {
       const span = `${p.start ? formatDate(p.start) : "?"} → ${p.end ? formatDate(p.end) : "open"}`;
-      return isLikelyPublishDate(p, result.issued) ? `${span} (equals issued, no end: likely a publish date, not a data period)` : span;
+      return startEqualsIssued(p, result.issued) ? `${span} (start equals issued, no end)` : span;
     });
     markdown += `- **Temporal Coverage (dct:temporal)**: ${sanitizeInline(spans.join("; "))}\n`;
   }
@@ -771,7 +773,7 @@ export function compactPackageShow(result: CkanPackage, serverUrl?: string): obj
     holder_name: result.holder_name || null,
     hvd_category: result.hvd_category || null,
     applicable_legislation: result.applicable_legislation || null,
-    temporal_coverage: readTemporalCoverage(result).map((p) => ({ ...p, likely_publish_date: isLikelyPublishDate(p, result.issued) })),
+    temporal_coverage: readTemporalCoverage(result).map((p) => ({ ...p, start_equals_issued: startEqualsIssued(p, result.issued) })),
     resources: (result.resources || []).map((r: CkanResource) => ({
       id: r.id,
       name: r.name || null,
@@ -1448,8 +1450,8 @@ Returns (JSON format):
   author, maintainer,
   frequency, language, publisher_name, holder_name,
   hvd_category, applicable_legislation,
-  temporal_coverage (array of {start, end, likely_publish_date} from dct:temporal; empty if absent;
-    likely_publish_date=true when start = issued and no end, a dcatapit default rather than a data period),
+  temporal_coverage (array of {start, end, start_equals_issued} from dct:temporal; empty if absent;
+    start_equals_issued=true when start = issued and no end: on dcatapit portals an export default, not a data period),
   resources (id, name, format, url, size, datastore_active, created, last_modified, api_json_url),
   view_url, api_json_url
 

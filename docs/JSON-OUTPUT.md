@@ -76,7 +76,7 @@ Error paths respect the requested format too: with `response_format: "json"` a f
   "modified": "2026-02-28",
   "author": "Author Name",
   "maintainer": "Maintainer Name",
-  "temporal_coverage": [{ "start": "2024-01-01", "end": "2024-12-31", "likely_publish_date": false }],
+  "temporal_coverage": [{ "start": "2024-01-01", "end": "2024-12-31", "start_equals_issued": false }],
   "resources": [
     {
       "id": "uuid",
@@ -108,7 +108,7 @@ Error paths respect the requested format too: with `response_format: "json"` a f
 | `modified` | string\|null | Content update date (may be absent) |
 | `author` | string\|null | |
 | `maintainer` | string\|null | |
-| `temporal_coverage` | array | Every `dct:temporal` period as `{ start, end, likely_publish_date }` (root `temporal_coverage` or extras `temporal_start`/`temporal_end`); empty when absent. `likely_publish_date` is true when start = `issued` and there is no end: dcatapit portals emit that when the publisher left coverage empty, so it is not a data period |
+| `temporal_coverage` | array | Every `dct:temporal` period as `{ start, end, start_equals_issued }` (root `temporal_coverage` or extras `temporal_start`/`temporal_end`); empty when absent. `start_equals_issued` is true when start = `issued` and there is no end. On dcatapit portals (most Italian ones) that shape is an export default emitted when the publisher left coverage empty, so it is a publish date rather than a data period; other portals may mean it |
 | `resources[].id` | string | Resource UUID |
 | `resources[].name` | string\|null | |
 | `resources[].format` | string\|null | e.g. "CSV", "JSON" |

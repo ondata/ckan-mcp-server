@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import packageShowFixture from "../fixtures/responses/package-show-success.json";
-import { enrichPackageShowResult, formatPackageShowMarkdown, compactPackageShow, readTemporalCoverage, isLikelyPublishDate } from "../../src/tools/package";
+import { enrichPackageShowResult, formatPackageShowMarkdown, compactPackageShow, readTemporalCoverage, startEqualsIssued } from "../../src/tools/package";
 
 describe("ckan_package_show formatting", () => {
   it("enriches JSON with harvested and endpoint fields", () => {
@@ -62,7 +62,7 @@ describe("temporal coverage (dct:temporal)", () => {
     expect(formatPackageShowMarkdown(pkg, "https://www.dati.gov.it/opendata"))
       .toContain("**Temporal Coverage (dct:temporal)**: 2026-04-28 → 2027-04-28\n");
     expect((compactPackageShow(pkg) as any).temporal_coverage)
-      .toEqual([{ start: "2026-04-28", end: "2027-04-28", likely_publish_date: false }]);
+      .toEqual([{ start: "2026-04-28", end: "2027-04-28", start_equals_issued: false }]);
   });
 
   it("keeps every period when the portal lists more than one", () => {
@@ -76,23 +76,23 @@ describe("temporal coverage (dct:temporal)", () => {
     expect((compactPackageShow(pkg) as any).temporal_coverage).toHaveLength(2);
   });
 
-  it("flags start = issued with no end as a likely publish date (dati.gov.it, Regione Toscana shape)", () => {
+  it("flags start = issued with no end (dati.gov.it, Regione Toscana shape)", () => {
     const pkg = { ...base, issued: "2020-11-19", extras: [
       { key: "temporal_start", value: "2020-11-19" },
       { key: "temporal_coverage", value: '[{"temporal_start": "2020-11-19"}]' }
     ] } as any;
     expect(readTemporalCoverage(pkg)).toEqual([{ start: "2020-11-19", end: null }]);
-    expect(isLikelyPublishDate({ start: "2020-11-19", end: null }, "2020-11-19T00:00:00")).toBe(true);
+    expect(startEqualsIssued({ start: "2020-11-19", end: null }, "2020-11-19T00:00:00")).toBe(true);
     expect(formatPackageShowMarkdown(pkg, "https://www.dati.gov.it/opendata"))
-      .toContain("2020-11-19 → open (equals issued, no end: likely a publish date, not a data period)");
-    expect((compactPackageShow(pkg) as any).temporal_coverage[0].likely_publish_date).toBe(true);
+      .toContain("2020-11-19 → open (start equals issued, no end)");
+    expect((compactPackageShow(pkg) as any).temporal_coverage[0].start_equals_issued).toBe(true);
   });
 
   it("does not flag an open period whose start differs from issued", () => {
     const pkg = { ...base, issued: "2025-01-07", extras: [{ key: "temporal_start", value: "2018-07-03" }] } as any;
     expect(formatPackageShowMarkdown(pkg, "https://www.dati.gov.it/opendata"))
       .toContain("**Temporal Coverage (dct:temporal)**: 2018-07-03 → open\n");
-    expect((compactPackageShow(pkg) as any).temporal_coverage[0].likely_publish_date).toBe(false);
+    expect((compactPackageShow(pkg) as any).temporal_coverage[0].start_equals_issued).toBe(false);
   });
 
   it("falls back to flat extras when temporal_coverage is absent", () => {
