@@ -2,6 +2,10 @@
 
 ## 2026-09-24
 
+### v0.4.127
+
+Ships #554: `dct:temporal` coverage in `ckan_package_show` (markdown + JSON, every period, `start_equals_issued` flag) and `CKAN_ALLOWED_DOMAINS` declared optional in `server.json` for the MCP Registry. Smoke 17/17.
+
 ### `ckan_package_show`: temporal coverage (dct:temporal)
 
 New `readTemporalCoverage()` reads `dct:temporal` in both shapes dati.gov.it uses: root `temporal_coverage` (JSON string, e.g. Comune di Coriano) and extras `temporal_start`/`temporal_end`/`temporal_coverage` (Regione Toscana, 12,426 datasets). Rendered as **Temporal Coverage (dct:temporal)** in markdown and `temporal_coverage: [{start, end, start_equals_issued}]` in JSON, every period kept; before, JSON had nothing and markdown only the extras case. `start_equals_issued` is a factual flag for start = issued with no end: a full scan of the 17,860 datasets with `temporal_start` found a third like that, and on the origin portals (dati.toscana.it, opendata.maggioli.cloud, opendata.uniba.it, all dcatapit) `temporal_coverage` is empty in the CKAN API while their RDF export emits `dct:temporal` with `startDate` = `dct:issued`. So it is an export artefact, not a publisher entry. INPS, MIT, LaMMA weather runs and Camera di Commercio Marche carry real spans.
