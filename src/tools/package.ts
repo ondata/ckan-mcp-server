@@ -342,6 +342,49 @@ export const readDcatExtra = (dataset: CkanPackage, key: "holder_name" | "publis
   return typeof rootValue === "string" ? rootValue : "";
 };
 
+export interface TemporalCoverage {
+  start: string | null;
+  end: string | null;
+}
+
+const readExtra = (dataset: CkanPackage, key: string): unknown => {
+  const extras = Array.isArray(dataset.extras) ? dataset.extras : [];
+  for (const e of extras) {
+    if (e && typeof e === "object" && (e as { key?: unknown }).key === key) {
+      return (e as { value?: unknown }).value;
+    }
+  }
+  return undefined;
+};
+
+const parseTemporalCoverage = (raw: unknown): TemporalCoverage | null => {
+  let value = raw;
+  if (typeof value === "string") {
+    try { value = JSON.parse(value); } catch { return null; }
+  }
+  const first = Array.isArray(value) ? value[0] : value;
+  if (!first || typeof first !== "object") return null;
+  const { temporal_start, temporal_end } = first as { temporal_start?: unknown; temporal_end?: unknown };
+  const start = typeof temporal_start === "string" && temporal_start ? temporal_start : null;
+  const end = typeof temporal_end === "string" && temporal_end ? temporal_end : null;
+  return start || end ? { start, end } : null;
+};
+
+/**
+ * dct:temporal as exposed by ckanext-dcat, in the two shapes seen on dati.gov.it:
+ * root `temporal_coverage` (JSON string or array of {temporal_start, temporal_end}),
+ * or the same under extras, or flat extras `temporal_start` / `temporal_end`.
+ */
+export const readTemporalCoverage = (dataset: CkanPackage): TemporalCoverage | null => {
+  const fromRoot = parseTemporalCoverage(dataset.temporal_coverage);
+  if (fromRoot) return fromRoot;
+  const fromExtra = parseTemporalCoverage(readExtra(dataset, "temporal_coverage"));
+  if (fromExtra) return fromExtra;
+  const start = readExtra(dataset, "temporal_start");
+  const end = readExtra(dataset, "temporal_end");
+  return parseTemporalCoverage({ temporal_start: start, temporal_end: end });
+};
+
 export const scoreDatasetRelevance = (
   query: string,
   dataset: CkanPackage,
@@ -483,6 +526,11 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
   if (language) markdown += `- **Language (dct:language)**: ${sanitizeInline(language)}\n`;
   const accessRights = dcatField("access_rights");
   if (accessRights) markdown += `- **Access Rights (dct:accessRights)**: ${sanitizeInline(accessRights)}\n`;
+  const temporal = readTemporalCoverage(result);
+  if (temporal) {
+    const span = `${temporal.start ? formatDate(temporal.start) : "?"} → ${temporal.end ? formatDate(temporal.end) : "open"}`;
+    markdown += `- **Temporal Coverage (dct:temporal)**: ${sanitizeInline(span)}\n`;
+  }
   markdown += `\n`;
 
   if (result.organization) {
@@ -709,6 +757,7 @@ export function compactPackageShow(result: CkanPackage, serverUrl?: string): obj
     holder_name: result.holder_name || null,
     hvd_category: result.hvd_category || null,
     applicable_legislation: result.applicable_legislation || null,
+    temporal_coverage: readTemporalCoverage(result),
     resources: (result.resources || []).map((r: CkanResource) => ({
       id: r.id,
       name: r.name || null,
@@ -1385,6 +1434,7 @@ Returns (JSON format):
   author, maintainer,
   frequency, language, publisher_name, holder_name,
   hvd_category, applicable_legislation,
+  temporal_coverage ({start, end} from dct:temporal, null if absent),
   resources (id, name, format, url, size, datastore_active, created, last_modified, api_json_url),
   view_url, api_json_url
 

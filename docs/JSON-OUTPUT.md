@@ -76,6 +76,7 @@ Error paths respect the requested format too: with `response_format: "json"` a f
   "modified": "2026-02-28",
   "author": "Author Name",
   "maintainer": "Maintainer Name",
+  "temporal_coverage": { "start": "2024-01-01", "end": "2024-12-31" },
   "resources": [
     {
       "id": "uuid",
@@ -107,6 +108,7 @@ Error paths respect the requested format too: with `response_format: "json"` a f
 | `modified` | string\|null | Content update date (may be absent) |
 | `author` | string\|null | |
 | `maintainer` | string\|null | |
+| `temporal_coverage` | object\|null | `{ start, end }` from `dct:temporal` (root `temporal_coverage` or extras `temporal_start`/`temporal_end`); each side may be null |
 | `resources[].id` | string | Resource UUID |
 | `resources[].name` | string\|null | |
 | `resources[].format` | string\|null | e.g. "CSV", "JSON" |
