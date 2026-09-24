@@ -18,7 +18,7 @@
       "environmentVariables": [
         {
           "name": "CKAN_ALLOWED_DOMAINS",
-          "description": "Optional comma-separated allowlist of CKAN hostnames the server may query (default-deny when set). Leave empty to allow any public portal. Only required for the HTTP transport.",
+          "description": "Comma-separated CKAN hostnames to allow. Empty = any portal.",
           "isRequired": false,
           "placeholder": "www.dati.gov.it,open.canada.ca"
         }
