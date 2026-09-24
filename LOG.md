@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-09-24
+
+### server.json: declare `CKAN_ALLOWED_DOMAINS` as optional
+
+Claude Desktop's configure dialog asked for six env vars, `CKAN_ALLOWED_DOMAINS` marked required, inferred from the README HTTP table. The registry package is stdio, where the allowlist is optional. `server.json` now declares the one variable explicitly (`isRequired: false`, placeholder). Takes effect on the next registry publish.
+
 ## 2026-09-23
 
 ### v0.4.126 - why MQA URL tests fail
