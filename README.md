@@ -861,7 +861,7 @@ start** unless you set a domain allowlist:
 
 | Variable | Effect |
 |---|---|
-| `CKAN_ALLOWED_DOMAINS` | Comma-separated allowlist of hostnames the server may query (default-deny). **Required** to start the HTTP transport. Example: `CKAN_ALLOWED_DOMAINS="www.dati.gov.it,dati.comune.messina.it"` |
+| `CKAN_ALLOWED_DOMAINS` | Comma-separated allowlist of hostnames the server may query (default-deny). **Required** to start the HTTP transport. Exact hostname match, no wildcards or subdomains. Also enforced on every redirect hop: if a portal redirects to another host, list that host too. Example: `CKAN_ALLOWED_DOMAINS="www.dati.gov.it,dati.comune.messina.it"` |
 | `CKAN_HTTP_ALLOW_ALL=true` | Explicit opt-out: start the HTTP transport **without** an allowlist (logs a security warning). Not recommended when network-exposed. |
 | `CKAN_HTTP_HOST` | Interface to bind (default `127.0.0.1`). Set `0.0.0.0` to expose it, ideally behind an authenticating reverse proxy. |
 | `CKAN_HTTP_ALLOWED_HOSTS` | Extra `Host` header values accepted by the DNS-rebinding guard (comma-separated). Add your public hostname when binding beyond loopback. |

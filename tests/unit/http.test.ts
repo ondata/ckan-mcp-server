@@ -353,6 +353,42 @@ describe('makeCkanRequest', () => {
     vi.clearAllMocks();
   });
 
+  describe('redirect validation (GHSA-279h-fmcr-4rwv)', () => {
+    const origAllowed = process.env.CKAN_ALLOWED_DOMAINS;
+    afterEach(() => {
+      if (origAllowed === undefined) delete process.env.CKAN_ALLOWED_DOMAINS; else process.env.CKAN_ALLOWED_DOMAINS = origAllowed;
+    });
+
+    async function getBeforeRedirect() {
+      vi.mocked(axios.get).mockResolvedValue({ data: successResponse });
+      await makeCkanRequest('https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false });
+      const hook = (vi.mocked(axios.get).mock.calls[0][1] as any).beforeRedirect;
+      expect(typeof hook).toBe('function');
+      return hook as (o: { href: string }) => void;
+    }
+
+    it('rejects redirects to private IP literals', async () => {
+      delete process.env.CKAN_ALLOWED_DOMAINS;
+      const hook = await getBeforeRedirect();
+      expect(() => hook({ href: 'http://169.254.169.254/latest/meta-data/' })).toThrow(/private|internal/i);
+      expect(() => hook({ href: 'http://127.0.0.1:8080/' })).toThrow(/private|internal/i);
+      expect(() => hook({ href: 'http://[::1]/' })).toThrow(/private|internal/i);
+    });
+
+    it('rejects redirects to hosts outside CKAN_ALLOWED_DOMAINS', async () => {
+      process.env.CKAN_ALLOWED_DOMAINS = 'www.dati.gov.it';
+      const hook = await getBeforeRedirect();
+      expect(() => hook({ href: 'https://evil.example.com/api/3/action/status_show' })).toThrow(/allowed list/);
+      expect(() => hook({ href: 'https://www.dati.gov.it/opendata/api/3/action/status_show' })).not.toThrow();
+    });
+
+    it('allows redirects to public hosts when no allowlist is set', async () => {
+      delete process.env.CKAN_ALLOWED_DOMAINS;
+      const hook = await getBeforeRedirect();
+      expect(() => hook({ href: 'https://open.canada.ca/data/api/3/action/status_show' })).not.toThrow();
+    });
+  });
+
   it('makes successful request and returns result', async () => {
     vi.mocked(axios.get).mockResolvedValue({ data: successResponse });
 

@@ -733,6 +733,12 @@ export async function makeCkanRequest<T>(
         timeout: 30000,
         responseType: "arraybuffer",
         maxRedirects: 5,
+        // Re-validate every redirect hop: Node skips the agent's `lookup` for IP
+        // literals, so a public host 302-ing to e.g. 169.254.169.254 would otherwise
+        // be followed. Also enforces CKAN_ALLOWED_DOMAINS on redirect targets.
+        beforeRedirect: (redirectOptions: { href: string }) => {
+          validateServerUrl(redirectOptions.href);
+        },
         // Never route through HTTP_PROXY/HTTPS_PROXY: a proxy would connect to the
         // target itself, bypassing the SSRF-safe lookup pinned in the agents below.
         proxy: false,
@@ -773,7 +779,8 @@ export async function makeCkanRequest<T>(
       const timeoutId = setTimeout(() => controller.abort(), 30000);
       let response: Response;
       try {
-        response = await fetch(fetchUrl, {
+        // safeFetch re-validates each redirect hop (same guard as the axios branch)
+        response = await safeFetch(fetchUrl, {
           method: "GET",
           signal: controller.signal,
           headers: {
@@ -782,7 +789,7 @@ export async function makeCkanRequest<T>(
             "User-Agent":
               "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
           }
-        });
+        }, { maxHops: 5 });
       } finally {
         clearTimeout(timeoutId);
       }
