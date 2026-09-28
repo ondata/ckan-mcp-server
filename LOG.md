@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-09-28
+
+### Security: validate every redirect hop in `makeCkanRequest` (GHSA-279h-fmcr-4rwv)
+
+`makeCkanRequest` followed up to 5 redirects via axios without re-validating the target. The SSRF-safe agent `lookup` is skipped by Node for IP literals, so a public URL 302-ing to `http://127.0.0.1/` or `169.254.169.254` was followed, and an internal endpoint answering `success: true` was returned in full (reproduced end-to-end via httpbin `redirect-to`). Fix: axios `beforeRedirect` calls `validateServerUrl` on each hop; the Workers `fetch` branch now uses `safeFetch` (`maxHops: 5`). Side effect: `CKAN_ALLOWED_DOMAINS` now applies to redirect targets too, so a portal redirecting to another host needs both listed. The public Worker (no allowlist) is unaffected for public portals.
+
 ## 2026-09-24
 
 ### v0.4.127

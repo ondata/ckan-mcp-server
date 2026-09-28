@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from 'vites
 import { brotliCompressSync, deflateSync, gzipSync } from 'node:zlib';
 import type { AddressInfo } from 'node:net';
 import axios from 'axios';
+import type { AxiosRequestConfig } from 'axios';
 import { makeCkanRequest, validateServerUrl, CkanApiError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, getSafeDispatcher, __setDnsResolverForTests } from '../../src/utils/http';
 import { __resetCacheForTests } from '../../src/utils/cache';
 import successResponse from '../fixtures/responses/status-success.json';
@@ -351,6 +352,115 @@ describe('assertHttpAllowlistConfigured', () => {
 describe('makeCkanRequest', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  describe('redirect validation (GHSA-279h-fmcr-4rwv)', () => {
+    const origAllowed = process.env.CKAN_ALLOWED_DOMAINS;
+    afterEach(() => {
+      if (origAllowed === undefined) delete process.env.CKAN_ALLOWED_DOMAINS; else process.env.CKAN_ALLOWED_DOMAINS = origAllowed;
+    });
+
+    type RedirectHook = (options: { href: string }) => void;
+
+    // The axios config makeCkanRequest actually builds (agents, maxRedirects, hook).
+    async function getRequestConfig(): Promise<AxiosRequestConfig> {
+      vi.mocked(axios.get).mockResolvedValue({ data: successResponse });
+      await makeCkanRequest('https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false });
+      const config = vi.mocked(axios.get).mock.calls[0][1];
+      expect(config).toBeDefined();
+      return config as AxiosRequestConfig;
+    }
+
+    async function getBeforeRedirect(): Promise<RedirectHook> {
+      const hook = (await getRequestConfig()).beforeRedirect;
+      expect(typeof hook).toBe('function');
+      return hook as unknown as RedirectHook;
+    }
+
+    // Two loopback listeners: `target` counts hits, `redirector` 302s to `location(port)`.
+    async function withRedirector(
+      location: (targetPort: number) => string,
+      run: (redirectorPort: number, hits: () => number) => Promise<void>
+    ): Promise<void> {
+      const http = await import('node:http');
+      let hits = 0;
+      const target = http.createServer((_req, res) => { hits++; res.end('{"success":true,"result":"INTERNAL"}'); });
+      await new Promise<void>(resolve => target.listen(0, '127.0.0.1', () => resolve()));
+      const targetPort = (target.address() as AddressInfo).port;
+      const redirector = http.createServer((_req, res) => {
+        res.writeHead(302, { Location: location(targetPort) });
+        res.end();
+      });
+      await new Promise<void>(resolve => redirector.listen(0, '127.0.0.1', () => resolve()));
+      try {
+        await run((redirector.address() as AddressInfo).port, () => hits);
+      } finally {
+        await new Promise<void>(resolve => redirector.close(() => resolve()));
+        await new Promise<void>(resolve => target.close(() => resolve()));
+      }
+    }
+
+    it('real axios with the built config refuses a live redirect to a loopback IP literal', async () => {
+      delete process.env.CKAN_ALLOWED_DOMAINS;
+      const config = await getRequestConfig();
+      const realAxios = (await vi.importActual<typeof import('axios')>('axios')).default;
+      await withRedirector(port => `http://127.0.0.1:${port}/secret`, async (redirectorPort, hits) => {
+        // The first hop is itself an IP literal only because the test cannot use DNS;
+        // makeCkanRequest's own validateServerUrl would refuse it, the point is the hop.
+        await expect(realAxios.get(`http://127.0.0.1:${redirectorPort}/`, config)).rejects.toThrow(/private|internal/i);
+        expect(hits()).toBe(0);
+      });
+    });
+
+    it('real axios with the built config refuses a live redirect outside CKAN_ALLOWED_DOMAINS', async () => {
+      process.env.CKAN_ALLOWED_DOMAINS = 'www.dati.gov.it';
+      const config = await getRequestConfig();
+      const realAxios = (await vi.importActual<typeof import('axios')>('axios')).default;
+      await withRedirector(() => 'http://outside.example.invalid/', async (redirectorPort) => {
+        await expect(realAxios.get(`http://127.0.0.1:${redirectorPort}/`, config)).rejects.toThrow(/allowed list/);
+      });
+    });
+
+    it('Workers (fetch) path refuses a redirect to a private IP literal without following it', async () => {
+      delete process.env.CKAN_ALLOWED_DOMAINS;
+      const fetchMock = vi.fn(async () => new Response(null, {
+        status: 302,
+        headers: { Location: 'http://169.254.169.254/latest/meta-data/' }
+      }));
+      vi.stubGlobal('fetch', fetchMock);
+      // makeCkanRequest takes the fetch branch when process.versions.node is absent.
+      vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
+      try {
+        await expect(
+          makeCkanRequest('https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false, rateLimit: false })
+        ).rejects.toThrow(/private|internal/i);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(axios.get).not.toHaveBeenCalled();
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
+
+    it('rejects redirects to private IP literals', async () => {
+      delete process.env.CKAN_ALLOWED_DOMAINS;
+      const hook = await getBeforeRedirect();
+      expect(() => hook({ href: 'http://169.254.169.254/latest/meta-data/' })).toThrow(/private|internal/i);
+      expect(() => hook({ href: 'http://127.0.0.1:8080/' })).toThrow(/private|internal/i);
+      expect(() => hook({ href: 'http://[::1]/' })).toThrow(/private|internal/i);
+    });
+
+    it('rejects redirects to hosts outside CKAN_ALLOWED_DOMAINS', async () => {
+      process.env.CKAN_ALLOWED_DOMAINS = 'www.dati.gov.it';
+      const hook = await getBeforeRedirect();
+      expect(() => hook({ href: 'https://evil.example.com/api/3/action/status_show' })).toThrow(/allowed list/);
+      expect(() => hook({ href: 'https://www.dati.gov.it/opendata/api/3/action/status_show' })).not.toThrow();
+    });
+
+    it('allows redirects to public hosts when no allowlist is set', async () => {
+      delete process.env.CKAN_ALLOWED_DOMAINS;
+      const hook = await getBeforeRedirect();
+      expect(() => hook({ href: 'https://open.canada.ca/data/api/3/action/status_show' })).not.toThrow();
+    });
   });
 
   it('makes successful request and returns result', async () => {
