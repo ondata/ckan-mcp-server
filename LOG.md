@@ -2,6 +2,10 @@
 
 ## 2026-09-28
 
+### Advisory GHSA-279h-fmcr-4rwv published
+
+Reported by @manus-pi, accepted and published as Medium (CVSS 5.8): affected `<= 0.4.127`, patched `0.4.128`. CVE requested, not yet assigned. v0.4.128 is live on npm (with provenance), the MCP Registry and the Worker. `SECURITY.md` table updated; GHSA-x32r-mh7g-q2rf got CVE-2026-92146 in the meantime.
+
 ### v0.4.128
 
 Ships #556: every redirect hop in `makeCkanRequest` is re-validated (GHSA-279h-fmcr-4rwv), on both the Node/axios and Workers/fetch paths. Smoke 17/17.
