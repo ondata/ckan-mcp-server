@@ -202,4 +202,5 @@
 {"date":"2026-09-29","calls":100,"ok":25,"errors":75}
 {"date":"2026-09-30","calls":100,"ok":83,"errors":17}
 {"date":"2026-10-01","calls":25,"ok":8,"errors":17}
-{"date":"2026-10-02","calls":15,"ok":7,"errors":8}
+{"date":"2026-10-02","calls":56,"ok":31,"errors":25}
+{"date":"2026-10-03","calls":7,"ok":2,"errors":5}
