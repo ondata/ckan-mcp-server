@@ -34,7 +34,64 @@ export class CkanApiError extends Error {
   }
 }
 
+/**
+ * A request that never reached CKAN: DNS, socket, or our own 30s timeout.
+ *
+ * Deliberately not a `CkanApiError`: nothing answered, so there is no status and no
+ * upstream message to quote. `formatCkanError` still turns it into a hint, because
+ * "Request timeout connecting to X" alone does not tell an LLM whether to retry.
+ */
+export class CkanTransportError extends Error {
+  /** The portal the request went to, as the caller wrote it. */
+  readonly serverUrl: string | undefined;
+
+  constructor(message: string, serverUrl?: string) {
+    super(message);
+    this.name = 'CkanTransportError';
+    this.serverUrl = serverUrl;
+  }
+}
+
+/**
+ * A request refused by one of the SSRF/domain-safety guards before any connection
+ * was made: `validateServerUrl`, the connection-time DNS `lookup`, or the per-hop
+ * redirect re-check. The guard's message is a verdict — the destination will never
+ * pass — so a "Portal unreachable. Retry later" hint would send the caller round a
+ * loop. Neither the fetch branch nor the axios branch wraps it; both rethrow it
+ * as-is, exactly as a failed-connection error keeps its own text.
+ */
+export class SsrfGuardError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SsrfGuardError';
+  }
+}
+
+/**
+ * The SSRF guards surface inside an `AxiosError` in two shapes: directly in `cause`
+ * (connection-time `lookup` refusals) or one level deeper, under axios' own
+ * `ERR_FR_REDIRECTION_FAILURE` wrap of the `beforeRedirect` throw (redirect hops).
+ * Return the guard error, or null when the failure came from the network itself.
+ */
+function unwrapSsrfGuardError(axiosError: AxiosError): SsrfGuardError | null {
+  if (axiosError.cause instanceof SsrfGuardError) return axiosError.cause;
+  const redirected = (axiosError.cause as { cause?: unknown } | null | undefined)?.cause;
+  return redirected instanceof SsrfGuardError ? redirected : null;
+}
+
 export function formatCkanError(error: unknown, _toolName: string): string {
+  if (error instanceof CkanTransportError) {
+    const migration = error.serverUrl ? getPortalMigration(error.serverUrl) : null;
+    if (migration) {
+      return `${error.message}\n→ ${migration.notice} See ${migration.docs_url}`;
+    }
+    // The request never arrived, so retrying is the first thing to try and the
+    // status tool is how the caller finds out whether the portal is up at all. Its
+    // own answer can be served from the cache for an hour (see `getTtlForAction`),
+    // which is a deliberate TTL rather than an oversight, so the hint says so
+    // instead of promising a live check.
+    return `${error.message}\n→ Portal unreachable. Retry later, or call \`ckan_status_show\` to check portal health (its answer can come from the cache for up to an hour).`;
+  }
   if (!(error instanceof CkanApiError)) {
     return error instanceof Error ? error.message : String(error);
   }
@@ -62,6 +119,8 @@ export function formatCkanError(error: unknown, _toolName: string): string {
       hint = '→ Use `ckan_package_search` to find a valid dataset name or ID.';
     } else if (action === 'organization_show') {
       hint = '→ Use `ckan_organization_list` or `ckan_organization_search` to discover valid organization names.';
+    } else if (action === 'group_show') {
+      hint = '→ Use `ckan_group_list` or `ckan_group_search` to discover valid group names.';
     }
   } else if (status === 400) {
     if (action === 'datastore_search_sql') {
@@ -72,9 +131,9 @@ export function formatCkanError(error: unknown, _toolName: string): string {
   } else if (status === 409 || status === 422) {
     hint = '→ Portal rejected the request — parameters may conflict; simplify filters and retry.';
   } else if (status === 503 || status === 502 || status === 504) {
-    hint = '→ Portal temporarily unavailable — retry in a few seconds.';
+    hint = '→ Portal temporarily unavailable — retry in a few seconds, or call `ckan_status_show` to check portal health (cached up to an hour).';
   } else if (status === 500) {
-    hint = '→ Portal internal error — try a different portal or retry later.';
+    hint = '→ Portal internal error — try a different portal or retry later, and call `ckan_status_show` to check portal health (cached up to an hour).';
   } else if (status === undefined) {
     hint = '→ The portal may not support this action, or the endpoint is unavailable.';
   }
@@ -383,11 +442,11 @@ export function validateServerUrl(serverUrl: string): void {
   try {
     parsed = new URL(serverUrl);
   } catch {
-    throw new Error(`Invalid URL: ${serverUrl}`);
+    throw new SsrfGuardError(`Invalid URL: ${serverUrl}`);
   }
 
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new Error(`Disallowed protocol "${parsed.protocol}". Only http and https are allowed.`);
+    throw new SsrfGuardError(`Disallowed protocol "${parsed.protocol}". Only http and https are allowed.`);
   }
 
   const hostname = parsed.hostname.toLowerCase();
@@ -398,26 +457,26 @@ export function validateServerUrl(serverUrl: string): void {
     'ip6-loopback',
   ]);
   if (BLOCKED_HOSTNAMES.has(hostname)) {
-    throw new Error(`Access to "${hostname}" is not allowed.`);
+    throw new SsrfGuardError(`Access to "${hostname}" is not allowed.`);
   }
 
   // Block IPv4 private/special literals. WHATWG URL already normalizes integer/hex/
   // octal/short IPv4 forms (e.g. 0x7f000001 → 127.0.0.1) to dotted-decimal here, so a
   // single dotted-quad check covers all those encodings (GHSA-8hxx).
   if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname) && isBlockedIp(hostname)) {
-    throw new Error(`Access to private/internal IP addresses is not allowed.`);
+    throw new SsrfGuardError(`Access to private/internal IP addresses is not allowed.`);
   }
 
   // Block IPv6 private/loopback literals (URL hostname keeps the brackets)
   if (hostname.startsWith('[') && isBlockedIp(hostname.slice(1, -1))) {
-    throw new Error(`Access to private/internal IPv6 addresses is not allowed.`);
+    throw new SsrfGuardError(`Access to private/internal IPv6 addresses is not allowed.`);
   }
 
   // Optional domain allowlist: CKAN_ALLOWED_DOMAINS=domain1.com,domain2.org
   const rawAllowed = typeof process !== 'undefined' ? (process.env.CKAN_ALLOWED_DOMAINS ?? '') : '';
   const allowedDomains = rawAllowed.split(',').map(s => s.trim()).filter(Boolean);
   if (allowedDomains.length > 0 && !allowedDomains.includes(hostname)) {
-    throw new Error(`Domain "${hostname}" is not in the allowed list (CKAN_ALLOWED_DOMAINS).`);
+    throw new SsrfGuardError(`Domain "${hostname}" is not in the allowed list (CKAN_ALLOWED_DOMAINS).`);
   }
 }
 
@@ -479,7 +538,7 @@ export function createSsrfSafeLookup(dnsModule: DnsLookupModule) {
       const list = Array.isArray(addresses) ? addresses : [addresses as ResolvedAddress];
       for (const a of list) {
         if (isBlockedIp(a.address)) {
-          callback(new Error(
+          callback(new SsrfGuardError(
             `Access to private/internal IP addresses is not allowed ` +
             `("${hostname}" resolves to ${a.address}).`
           ));
@@ -590,12 +649,12 @@ export async function assertHostnameResolvesSafe(hostname: string): Promise<void
   } catch {
     // Fail closed: if we cannot resolve the name, do NOT let the request proceed to a
     // socket that would resolve it independently (TOCTOU / SSRF bypass).
-    throw new Error(`Cannot resolve "${hostname}" for SSRF validation (failing closed).`);
+    throw new SsrfGuardError(`Cannot resolve "${hostname}" for SSRF validation (failing closed).`);
   }
 
   for (const a of addresses) {
     if (isBlockedIp(a.address)) {
-      throw new Error(
+      throw new SsrfGuardError(
         `Access to private/internal IP addresses is not allowed ` +
         `("${hostname}" resolves to ${a.address}).`
       );
@@ -790,6 +849,18 @@ export async function makeCkanRequest<T>(
               "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
           }
         }, { maxHops: 5 });
+      } catch (error) {
+        // Workers has no axios, so this branch is the only place a fetch failure can be
+        // classified: a bare `TypeError` reaches `formatCkanError` and the caller gets
+        // no retry guidance. The SSRF guards throw `SsrfGuardError` with their own
+        // message, and those keep it.
+        if (controller.signal.aborted) {
+          throw new CkanTransportError(`Request timeout connecting to ${serverUrl}`, serverUrl);
+        }
+        if (error instanceof TypeError) {
+          throw new CkanTransportError(`Network error: ${error.message}`, serverUrl);
+        }
+        throw error;
       } finally {
         clearTimeout(timeoutId);
       }
@@ -850,17 +921,25 @@ export async function makeCkanRequest<T>(
     if (error instanceof CkanApiError) throw error;
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
+      const guardError = unwrapSsrfGuardError(axiosError);
+      if (guardError) throw guardError;
+      // The SSRF guards refuse before any connection; axios surfaces the refusal
+      // directly in `cause` (connection-time `lookup`) or one level deeper, under
+      // its ERR_FR_REDIRECTION_FAILURE wrap of the `beforeRedirect` throw. The
+      // guard's verdict must keep its own message — wrapping it in the
+      // "Portal unreachable. Retry later" hint would tell the LLM to retry a
+      // destination that will never pass, which the fetch branch already avoids.
       if (axiosError.response) {
         const status = axiosError.response.status;
         const data = axiosError.response.data as any;
         const errorMsg = data?.error?.message || data?.error || 'Unknown error';
         throw new CkanApiError(`CKAN API error (${status}): ${errorMsg}`, status, action, serverUrl);
       } else if (axiosError.code === 'ECONNABORTED') {
-        throw new Error(`Request timeout connecting to ${serverUrl}`);
+        throw new CkanTransportError(`Request timeout connecting to ${serverUrl}`, serverUrl);
       } else if (axiosError.code === 'ENOTFOUND') {
-        throw new Error(`Server not found: ${serverUrl}`);
+        throw new CkanTransportError(`Server not found: ${serverUrl}`, serverUrl);
       } else {
-        throw new Error(`Network error: ${axiosError.message}`);
+        throw new CkanTransportError(`Network error: ${axiosError.message}`, serverUrl);
       }
     }
     throw error;

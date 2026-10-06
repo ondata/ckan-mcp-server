@@ -3,7 +3,7 @@ import { brotliCompressSync, deflateSync, gzipSync } from 'node:zlib';
 import type { AddressInfo } from 'node:net';
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
-import { makeCkanRequest, validateServerUrl, CkanApiError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, getSafeDispatcher, __setDnsResolverForTests } from '../../src/utils/http';
+import { makeCkanRequest, validateServerUrl, CkanApiError, CkanTransportError, SsrfGuardError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, getSafeDispatcher, __setDnsResolverForTests } from '../../src/utils/http';
 import { __resetCacheForTests } from '../../src/utils/cache';
 import successResponse from '../fixtures/responses/status-success.json';
 
@@ -24,6 +24,11 @@ describe('validateServerUrl', () => {
 
   it('blocks non-http/s protocol (ftp://)', () => {
     expect(() => validateServerUrl('ftp://example.com')).toThrow('Disallowed protocol');
+  });
+
+  it('refuses blocked literals as SsrfGuardError', () => {
+    expect(() => validateServerUrl('http://169.254.169.254/')).toThrow(SsrfGuardError);
+    expect(() => validateServerUrl('http://[::1]/')).toThrow(SsrfGuardError);
   });
 
   it('blocks localhost', () => {
@@ -190,6 +195,11 @@ describe('GHSA-x32r-mh7g-q2rf bypass chain', () => {
 describe('assertHostnameResolvesSafe', () => {
   afterEach(() => __setDnsResolverForTests(null));
 
+  it('throws SsrfGuardError (never a transport hint) when a hostname resolves to an internal IP', async () => {
+    __setDnsResolverForTests(async () => [{ address: '169.254.169.254', family: 4 }]);
+    await expect(assertHostnameResolvesSafe('metadata.evil')).rejects.toBeInstanceOf(SsrfGuardError);
+  });
+
   it('passes for a hostname resolving to a public IP', async () => {
     __setDnsResolverForTests(async () => [{ address: '93.184.216.34', family: 4 }]);
     await expect(assertHostnameResolvesSafe('example.com')).resolves.toBeUndefined();
@@ -352,6 +362,12 @@ describe('assertHttpAllowlistConfigured', () => {
 describe('makeCkanRequest', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  // Restore the mock state before the following describes run: the Workers tests
+  // in `formatCkanError` depend on isAxiosError being false.
+  afterEach(() => {
+    vi.mocked(axios.isAxiosError).mockReturnValue(false);
   });
 
   describe('redirect validation (GHSA-279h-fmcr-4rwv)', () => {
@@ -712,6 +728,54 @@ describe('makeCkanRequest', () => {
     ).rejects.toThrow('Unexpected failure');
   });
 
+  it('Node: a connection-time SSRF refusal keeps its own message, not the unreachable hint', async () => {
+    // Mirror of the Workers test: a guard refusal must not be wrapped in the
+    // "Portal unreachable. Retry later" hint.
+    const lookup = createSsrfSafeLookup({
+      lookup: (_h: string, _o: any, cb: any) => cb(null, [{ address: '127.0.0.1', family: 4 }])
+    } as any);
+    const guardError = await new Promise<Error>((resolve) =>
+      lookup('metadata.evil', {}, (err: any) => resolve(err)));
+    expect(guardError).toBeInstanceOf(SsrfGuardError);
+
+    // axios surfaces the lookup rejection as an AxiosError with the guard error in `cause`.
+    vi.mocked(axios.isAxiosError).mockReturnValue(true);
+    vi.mocked(axios.get).mockRejectedValue({ message: 'Network Error', cause: guardError });
+
+    const err = await makeCkanRequest(
+      'https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false, rateLimit: false }
+    ).catch(e => e);
+
+    expect(err).toBeInstanceOf(SsrfGuardError);
+    expect(err.message).toContain('private/internal');
+    expect(formatCkanError(err, 'ckan_package_search')).not.toContain('Portal unreachable');
+    expect(formatCkanError(err, 'ckan_package_search')).not.toContain('Network error');
+  });
+
+  it('Node: a redirect hop refused by the SSRF guard keeps its own message, not the unreachable hint', async () => {
+    // The beforeRedirect guard throws SsrfGuardError; axios wraps that throw in
+    // ERR_FR_REDIRECTION_FAILURE with the guard error one level below `cause`
+    // (verified against axios 1.20 in a live probe). makeCkanRequest must unwrap it.
+    const hookError = new SsrfGuardError('Access to private/internal IP addresses is not allowed.');
+    const frFailure = new Error(`Redirected request failed: ${hookError.message}`);
+    (frFailure as Error & { cause?: Error }).cause = hookError;
+    vi.mocked(axios.isAxiosError).mockReturnValue(true);
+    vi.mocked(axios.get).mockRejectedValue({
+      code: 'ERR_FR_REDIRECTION_FAILURE',
+      message: frFailure.message,
+      cause: frFailure
+    });
+
+    const err = await makeCkanRequest(
+      'https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false, rateLimit: false }
+    ).catch(e => e);
+
+    expect(err).toBeInstanceOf(SsrfGuardError);
+    expect(err.message).toContain('private/internal');
+    expect(formatCkanError(err, 'ckan_package_search')).not.toContain('Portal unreachable');
+    expect(formatCkanError(err, 'ckan_package_search')).not.toContain('Redirected request failed');
+  });
+
   it('uses correct timeout setting', async () => {
     vi.mocked(axios.get).mockResolvedValue({ data: successResponse });
 
@@ -934,6 +998,21 @@ describe('formatCkanError', () => {
     expect(result).toContain('ckan_organization_list');
   });
 
+  it('404 on group_show mentions ckan_group_list', () => {
+    const err = new CkanApiError('CKAN API error (404): Not Found', 404, 'group_show');
+    const result = formatCkanError(err, 'ckan_group_show');
+    expect(result).toContain('ckan_group_list');
+    expect(result).toContain('ckan_group_search');
+  });
+
+  it('a portal that answered success=false keeps the generic hint, not the unreachable one', () => {
+    // The portal replied: it is up, so sending the caller to ckan_status_show
+    // would be a detour to the same answer.
+    const err = new CkanApiError('CKAN API returned success=false for action "group_list".', undefined, 'group_list');
+    const result = formatCkanError(err, 'ckan_group_list');
+    expect(result).not.toContain('ckan_status_show');
+  });
+
   it('400 on datastore_search_sql mentions ckan_datastore_search', () => {
     const err = new CkanApiError('CKAN API error (400): Bad Request', 400, 'datastore_search_sql');
     const result = formatCkanError(err, 'ckan_datastore_search_sql');
@@ -944,6 +1023,97 @@ describe('formatCkanError', () => {
     const err = new CkanApiError('CKAN API error (503): Service Unavailable', 503, 'package_search');
     const result = formatCkanError(err, 'ckan_package_search');
     expect(result).toContain('retry');
+  });
+
+  it('5xx mentions ckan_status_show', () => {
+    for (const status of [500, 502, 503, 504]) {
+      const err = new CkanApiError(`CKAN API error (${status}): upstream trouble`, status, 'package_search');
+      expect(formatCkanError(err, 'ckan_package_search')).toContain('ckan_status_show');
+    }
+  });
+
+  it('a transport error gets the unreachable hint, and stays a plain Error', () => {
+    // formatCkanError is what the tools call: the hint has to be added there,
+    // without turning a request that never arrived into a CkanApiError.
+    // AGENTS.md: tests never use demo.ckan.org, so this names the allowed portal.
+    const err = new CkanTransportError('Request timeout connecting to https://www.dati.gov.it/opendata', 'https://www.dati.gov.it/opendata');
+    const result = formatCkanError(err, 'ckan_package_search');
+    expect(result).toContain('Request timeout connecting to https://www.dati.gov.it/opendata');
+    expect(result).toContain('Portal unreachable');
+    expect(result).toContain('ckan_status_show');
+    // status_show answers from the cache for an hour by design, so the hint cannot
+    // promise a live check.
+    expect(result).toContain('can come from the cache for up to an hour');
+    expect(err).not.toBeInstanceOf(CkanApiError);
+  });
+
+  it('Workers: a fetch network failure becomes a CkanTransportError with the unreachable hint', async () => {
+    // Workers has no axios, so the fetch branch is the only place this can be classified.
+    const fetchMock = vi.fn(async () => { throw new TypeError('fetch failed'); });
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
+    try {
+      const err = await makeCkanRequest(
+        'https://www.dati.gov.it/opendata', 'package_search', {}, { cache: false, rateLimit: false }
+      ).catch(e => e);
+
+      expect(err).toBeInstanceOf(CkanTransportError);
+      expect(err.message).toContain('Network error: fetch failed');
+      expect(formatCkanError(err, 'ckan_package_search')).toContain('ckan_status_show');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('Workers: the 30s abort becomes the same timeout error the Node path raises', async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.fn((_url: string, init: RequestInit) => new Promise((_resolve, reject) => {
+      init.signal?.addEventListener('abort', () => {
+        reject(Object.assign(new Error('The operation was aborted'), { name: 'AbortError' }));
+      });
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
+    try {
+      const pending = makeCkanRequest(
+        'https://www.dati.gov.it/opendata', 'package_search', {}, { cache: false, rateLimit: false }
+      ).catch(e => e);
+      await vi.advanceTimersByTimeAsync(30000);
+
+      const err = await pending;
+      expect(err).toBeInstanceOf(CkanTransportError);
+      expect(err.message).toBe('Request timeout connecting to https://www.dati.gov.it/opendata');
+      expect(formatCkanError(err, 'ckan_package_search')).toContain('Portal unreachable');
+    } finally {
+      vi.unstubAllGlobals();
+      vi.useRealTimers();
+    }
+  });
+
+  it('Workers: an SSRF guard failure keeps its own message, not the unreachable hint', async () => {
+    const fetchMock = vi.fn(async () => new Response(null, {
+      status: 302,
+      headers: { Location: 'http://169.254.169.254/latest/meta-data/' }
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
+    try {
+      const err = await makeCkanRequest(
+        'https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false, rateLimit: false }
+      ).catch(e => e);
+
+      expect(err).not.toBeInstanceOf(CkanTransportError);
+      expect(formatCkanError(err, 'ckan_package_search')).not.toContain('Portal unreachable');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('a transport error to a portal that moved gets the migration notice instead', () => {
+    const err = new CkanTransportError('Request timeout connecting to https://catalog.data.gov', 'https://catalog.data.gov');
+    const result = formatCkanError(err, 'ckan_package_search');
+    expect(result).toContain('stopped being a CKAN portal');
+    expect(result).not.toContain('Portal unreachable');
   });
 
   it('500 mentions portal internal error', () => {
