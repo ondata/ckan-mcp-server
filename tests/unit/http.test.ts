@@ -3,7 +3,7 @@ import { brotliCompressSync, deflateSync, gzipSync } from 'node:zlib';
 import type { AddressInfo } from 'node:net';
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
-import { makeCkanRequest, validateServerUrl, CkanApiError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, getSafeDispatcher, __setDnsResolverForTests } from '../../src/utils/http';
+import { makeCkanRequest, validateServerUrl, CkanApiError, CkanTransportError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, getSafeDispatcher, __setDnsResolverForTests } from '../../src/utils/http';
 import { __resetCacheForTests } from '../../src/utils/cache';
 import successResponse from '../fixtures/responses/status-success.json';
 
@@ -934,6 +934,21 @@ describe('formatCkanError', () => {
     expect(result).toContain('ckan_organization_list');
   });
 
+  it('404 on group_show mentions ckan_group_list', () => {
+    const err = new CkanApiError('CKAN API error (404): Not Found', 404, 'group_show');
+    const result = formatCkanError(err, 'ckan_group_show');
+    expect(result).toContain('ckan_group_list');
+    expect(result).toContain('ckan_group_search');
+  });
+
+  it('a portal that answered success=false keeps the generic hint, not the unreachable one', () => {
+    // The portal replied: it is up, so sending the caller to ckan_status_show
+    // would be a detour to the same answer.
+    const err = new CkanApiError('CKAN API returned success=false for action "group_list".', undefined, 'group_list');
+    const result = formatCkanError(err, 'ckan_group_list');
+    expect(result).not.toContain('ckan_status_show');
+  });
+
   it('400 on datastore_search_sql mentions ckan_datastore_search', () => {
     const err = new CkanApiError('CKAN API error (400): Bad Request', 400, 'datastore_search_sql');
     const result = formatCkanError(err, 'ckan_datastore_search_sql');
@@ -944,6 +959,31 @@ describe('formatCkanError', () => {
     const err = new CkanApiError('CKAN API error (503): Service Unavailable', 503, 'package_search');
     const result = formatCkanError(err, 'ckan_package_search');
     expect(result).toContain('retry');
+  });
+
+  it('5xx mentions ckan_status_show', () => {
+    for (const status of [500, 502, 503, 504]) {
+      const err = new CkanApiError(`CKAN API error (${status}): upstream trouble`, status, 'package_search');
+      expect(formatCkanError(err, 'ckan_package_search')).toContain('ckan_status_show');
+    }
+  });
+
+  it('a transport error gets the unreachable hint, and stays a plain Error', () => {
+    // formatCkanError is what the tools call: the hint has to be added there,
+    // without turning a request that never arrived into a CkanApiError.
+    const err = new CkanTransportError('Request timeout connecting to http://demo.ckan.org', 'http://demo.ckan.org');
+    const result = formatCkanError(err, 'ckan_package_search');
+    expect(result).toContain('Request timeout connecting to http://demo.ckan.org');
+    expect(result).toContain('Portal unreachable');
+    expect(result).toContain('ckan_status_show');
+    expect(err).not.toBeInstanceOf(CkanApiError);
+  });
+
+  it('a transport error to a portal that moved gets the migration notice instead', () => {
+    const err = new CkanTransportError('Request timeout connecting to https://catalog.data.gov', 'https://catalog.data.gov');
+    const result = formatCkanError(err, 'ckan_package_search');
+    expect(result).toContain('stopped being a CKAN portal');
+    expect(result).not.toContain('Portal unreachable');
   });
 
   it('500 mentions portal internal error', () => {

@@ -34,7 +34,34 @@ export class CkanApiError extends Error {
   }
 }
 
+/**
+ * A request that never reached CKAN: DNS, socket, or our own 30s timeout.
+ *
+ * Deliberately not a `CkanApiError`: nothing answered, so there is no status and no
+ * upstream message to quote. `formatCkanError` still turns it into a hint, because
+ * "Request timeout connecting to X" alone does not tell an LLM whether to retry.
+ */
+export class CkanTransportError extends Error {
+  /** The portal the request went to, as the caller wrote it. */
+  readonly serverUrl: string | undefined;
+
+  constructor(message: string, serverUrl?: string) {
+    super(message);
+    this.name = 'CkanTransportError';
+    this.serverUrl = serverUrl;
+  }
+}
+
 export function formatCkanError(error: unknown, _toolName: string): string {
+  if (error instanceof CkanTransportError) {
+    const migration = error.serverUrl ? getPortalMigration(error.serverUrl) : null;
+    if (migration) {
+      return `${error.message}\n→ ${migration.notice} See ${migration.docs_url}`;
+    }
+    // The request never arrived, so retrying is the first thing to try and the
+    // status tool is how the caller finds out whether the portal is up at all.
+    return `${error.message}\n→ Portal unreachable. Retry later, or call \`ckan_status_show\` to check portal health.`;
+  }
   if (!(error instanceof CkanApiError)) {
     return error instanceof Error ? error.message : String(error);
   }
@@ -62,6 +89,8 @@ export function formatCkanError(error: unknown, _toolName: string): string {
       hint = '→ Use `ckan_package_search` to find a valid dataset name or ID.';
     } else if (action === 'organization_show') {
       hint = '→ Use `ckan_organization_list` or `ckan_organization_search` to discover valid organization names.';
+    } else if (action === 'group_show') {
+      hint = '→ Use `ckan_group_list` or `ckan_group_search` to discover valid group names.';
     }
   } else if (status === 400) {
     if (action === 'datastore_search_sql') {
@@ -72,9 +101,9 @@ export function formatCkanError(error: unknown, _toolName: string): string {
   } else if (status === 409 || status === 422) {
     hint = '→ Portal rejected the request — parameters may conflict; simplify filters and retry.';
   } else if (status === 503 || status === 502 || status === 504) {
-    hint = '→ Portal temporarily unavailable — retry in a few seconds.';
+    hint = '→ Portal temporarily unavailable — retry in a few seconds, or call `ckan_status_show` to check portal health.';
   } else if (status === 500) {
-    hint = '→ Portal internal error — try a different portal or retry later.';
+    hint = '→ Portal internal error — try a different portal or retry later, and call `ckan_status_show` to check portal health.';
   } else if (status === undefined) {
     hint = '→ The portal may not support this action, or the endpoint is unavailable.';
   }
@@ -856,11 +885,11 @@ export async function makeCkanRequest<T>(
         const errorMsg = data?.error?.message || data?.error || 'Unknown error';
         throw new CkanApiError(`CKAN API error (${status}): ${errorMsg}`, status, action, serverUrl);
       } else if (axiosError.code === 'ECONNABORTED') {
-        throw new Error(`Request timeout connecting to ${serverUrl}`);
+        throw new CkanTransportError(`Request timeout connecting to ${serverUrl}`, serverUrl);
       } else if (axiosError.code === 'ENOTFOUND') {
-        throw new Error(`Server not found: ${serverUrl}`);
+        throw new CkanTransportError(`Server not found: ${serverUrl}`, serverUrl);
       } else {
-        throw new Error(`Network error: ${axiosError.message}`);
+        throw new CkanTransportError(`Network error: ${axiosError.message}`, serverUrl);
       }
     }
     throw error;
