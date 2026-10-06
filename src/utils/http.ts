@@ -59,8 +59,11 @@ export function formatCkanError(error: unknown, _toolName: string): string {
       return `${error.message}\n→ ${migration.notice} See ${migration.docs_url}`;
     }
     // The request never arrived, so retrying is the first thing to try and the
-    // status tool is how the caller finds out whether the portal is up at all.
-    return `${error.message}\n→ Portal unreachable. Retry later, or call \`ckan_status_show\` to check portal health.`;
+    // status tool is how the caller finds out whether the portal is up at all. Its
+    // own answer can be served from the cache for an hour (see `getTtlForAction`),
+    // which is a deliberate TTL rather than an oversight, so the hint says so
+    // instead of promising a live check.
+    return `${error.message}\n→ Portal unreachable. Retry later, or call \`ckan_status_show\` to check portal health (its answer can come from the cache for up to an hour).`;
   }
   if (!(error instanceof CkanApiError)) {
     return error instanceof Error ? error.message : String(error);
@@ -101,9 +104,9 @@ export function formatCkanError(error: unknown, _toolName: string): string {
   } else if (status === 409 || status === 422) {
     hint = '→ Portal rejected the request — parameters may conflict; simplify filters and retry.';
   } else if (status === 503 || status === 502 || status === 504) {
-    hint = '→ Portal temporarily unavailable — retry in a few seconds, or call `ckan_status_show` to check portal health.';
+    hint = '→ Portal temporarily unavailable — retry in a few seconds, or call `ckan_status_show` to check portal health (cached up to an hour).';
   } else if (status === 500) {
-    hint = '→ Portal internal error — try a different portal or retry later, and call `ckan_status_show` to check portal health.';
+    hint = '→ Portal internal error — try a different portal or retry later, and call `ckan_status_show` to check portal health (cached up to an hour).';
   } else if (status === undefined) {
     hint = '→ The portal may not support this action, or the endpoint is unavailable.';
   }
@@ -819,6 +822,18 @@ export async function makeCkanRequest<T>(
               "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
           }
         }, { maxHops: 5 });
+      } catch (error) {
+        // Workers has no axios, so this branch is the only place a fetch failure can be
+        // classified: a bare `TypeError` reaches `formatCkanError` and the caller gets
+        // no retry guidance. The SSRF guards throw plain `Error`s with their own
+        // message, and those keep it.
+        if (controller.signal.aborted) {
+          throw new CkanTransportError(`Request timeout connecting to ${serverUrl}`, serverUrl);
+        }
+        if (error instanceof TypeError) {
+          throw new CkanTransportError(`Network error: ${error.message}`, serverUrl);
+        }
+        throw error;
       } finally {
         clearTimeout(timeoutId);
       }

@@ -971,12 +971,78 @@ describe('formatCkanError', () => {
   it('a transport error gets the unreachable hint, and stays a plain Error', () => {
     // formatCkanError is what the tools call: the hint has to be added there,
     // without turning a request that never arrived into a CkanApiError.
-    const err = new CkanTransportError('Request timeout connecting to http://demo.ckan.org', 'http://demo.ckan.org');
+    // AGENTS.md: tests never use demo.ckan.org, so this names the allowed portal.
+    const err = new CkanTransportError('Request timeout connecting to https://www.dati.gov.it/opendata', 'https://www.dati.gov.it/opendata');
     const result = formatCkanError(err, 'ckan_package_search');
-    expect(result).toContain('Request timeout connecting to http://demo.ckan.org');
+    expect(result).toContain('Request timeout connecting to https://www.dati.gov.it/opendata');
     expect(result).toContain('Portal unreachable');
     expect(result).toContain('ckan_status_show');
+    // status_show answers from the cache for an hour by design, so the hint cannot
+    // promise a live check.
+    expect(result).toContain('can come from the cache for up to an hour');
     expect(err).not.toBeInstanceOf(CkanApiError);
+  });
+
+  it('Workers: a fetch network failure becomes a CkanTransportError with the unreachable hint', async () => {
+    // Workers has no axios, so the fetch branch is the only place this can be classified.
+    const fetchMock = vi.fn(async () => { throw new TypeError('fetch failed'); });
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
+    try {
+      const err = await makeCkanRequest(
+        'https://www.dati.gov.it/opendata', 'package_search', {}, { cache: false, rateLimit: false }
+      ).catch(e => e);
+
+      expect(err).toBeInstanceOf(CkanTransportError);
+      expect(err.message).toContain('Network error: fetch failed');
+      expect(formatCkanError(err, 'ckan_package_search')).toContain('ckan_status_show');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('Workers: the 30s abort becomes the same timeout error the Node path raises', async () => {
+    vi.useFakeTimers();
+    const fetchMock = vi.fn((_url: string, init: RequestInit) => new Promise((_resolve, reject) => {
+      init.signal?.addEventListener('abort', () => {
+        reject(Object.assign(new Error('The operation was aborted'), { name: 'AbortError' }));
+      });
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
+    try {
+      const pending = makeCkanRequest(
+        'https://www.dati.gov.it/opendata', 'package_search', {}, { cache: false, rateLimit: false }
+      ).catch(e => e);
+      await vi.advanceTimersByTimeAsync(30000);
+
+      const err = await pending;
+      expect(err).toBeInstanceOf(CkanTransportError);
+      expect(err.message).toBe('Request timeout connecting to https://www.dati.gov.it/opendata');
+      expect(formatCkanError(err, 'ckan_package_search')).toContain('Portal unreachable');
+    } finally {
+      vi.unstubAllGlobals();
+      vi.useRealTimers();
+    }
+  });
+
+  it('Workers: an SSRF guard failure keeps its own message, not the unreachable hint', async () => {
+    const fetchMock = vi.fn(async () => new Response(null, {
+      status: 302,
+      headers: { Location: 'http://169.254.169.254/latest/meta-data/' }
+    }));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
+    try {
+      const err = await makeCkanRequest(
+        'https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false, rateLimit: false }
+      ).catch(e => e);
+
+      expect(err).not.toBeInstanceOf(CkanTransportError);
+      expect(formatCkanError(err, 'ckan_package_search')).not.toContain('Portal unreachable');
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it('a transport error to a portal that moved gets the migration notice instead', () => {
