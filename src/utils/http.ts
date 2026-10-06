@@ -52,6 +52,33 @@ export class CkanTransportError extends Error {
   }
 }
 
+/**
+ * A request refused by one of the SSRF/domain-safety guards before any connection
+ * was made: `validateServerUrl`, the connection-time DNS `lookup`, or the per-hop
+ * redirect re-check. The guard's message is a verdict — the destination will never
+ * pass — so a "Portal unreachable. Retry later" hint would send the caller round a
+ * loop. Neither the fetch branch nor the axios branch wraps it; both rethrow it
+ * as-is, exactly as a failed-connection error keeps its own text.
+ */
+export class SsrfGuardError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'SsrfGuardError';
+  }
+}
+
+/**
+ * The SSRF guards surface inside an `AxiosError` in two shapes: directly in `cause`
+ * (connection-time `lookup` refusals) or one level deeper, under axios' own
+ * `ERR_FR_REDIRECTION_FAILURE` wrap of the `beforeRedirect` throw (redirect hops).
+ * Return the guard error, or null when the failure came from the network itself.
+ */
+function unwrapSsrfGuardError(axiosError: AxiosError): SsrfGuardError | null {
+  if (axiosError.cause instanceof SsrfGuardError) return axiosError.cause;
+  const redirected = (axiosError.cause as { cause?: unknown } | null | undefined)?.cause;
+  return redirected instanceof SsrfGuardError ? redirected : null;
+}
+
 export function formatCkanError(error: unknown, _toolName: string): string {
   if (error instanceof CkanTransportError) {
     const migration = error.serverUrl ? getPortalMigration(error.serverUrl) : null;
@@ -415,11 +442,11 @@ export function validateServerUrl(serverUrl: string): void {
   try {
     parsed = new URL(serverUrl);
   } catch {
-    throw new Error(`Invalid URL: ${serverUrl}`);
+    throw new SsrfGuardError(`Invalid URL: ${serverUrl}`);
   }
 
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new Error(`Disallowed protocol "${parsed.protocol}". Only http and https are allowed.`);
+    throw new SsrfGuardError(`Disallowed protocol "${parsed.protocol}". Only http and https are allowed.`);
   }
 
   const hostname = parsed.hostname.toLowerCase();
@@ -430,26 +457,26 @@ export function validateServerUrl(serverUrl: string): void {
     'ip6-loopback',
   ]);
   if (BLOCKED_HOSTNAMES.has(hostname)) {
-    throw new Error(`Access to "${hostname}" is not allowed.`);
+    throw new SsrfGuardError(`Access to "${hostname}" is not allowed.`);
   }
 
   // Block IPv4 private/special literals. WHATWG URL already normalizes integer/hex/
   // octal/short IPv4 forms (e.g. 0x7f000001 → 127.0.0.1) to dotted-decimal here, so a
   // single dotted-quad check covers all those encodings (GHSA-8hxx).
   if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname) && isBlockedIp(hostname)) {
-    throw new Error(`Access to private/internal IP addresses is not allowed.`);
+    throw new SsrfGuardError(`Access to private/internal IP addresses is not allowed.`);
   }
 
   // Block IPv6 private/loopback literals (URL hostname keeps the brackets)
   if (hostname.startsWith('[') && isBlockedIp(hostname.slice(1, -1))) {
-    throw new Error(`Access to private/internal IPv6 addresses is not allowed.`);
+    throw new SsrfGuardError(`Access to private/internal IPv6 addresses is not allowed.`);
   }
 
   // Optional domain allowlist: CKAN_ALLOWED_DOMAINS=domain1.com,domain2.org
   const rawAllowed = typeof process !== 'undefined' ? (process.env.CKAN_ALLOWED_DOMAINS ?? '') : '';
   const allowedDomains = rawAllowed.split(',').map(s => s.trim()).filter(Boolean);
   if (allowedDomains.length > 0 && !allowedDomains.includes(hostname)) {
-    throw new Error(`Domain "${hostname}" is not in the allowed list (CKAN_ALLOWED_DOMAINS).`);
+    throw new SsrfGuardError(`Domain "${hostname}" is not in the allowed list (CKAN_ALLOWED_DOMAINS).`);
   }
 }
 
@@ -511,7 +538,7 @@ export function createSsrfSafeLookup(dnsModule: DnsLookupModule) {
       const list = Array.isArray(addresses) ? addresses : [addresses as ResolvedAddress];
       for (const a of list) {
         if (isBlockedIp(a.address)) {
-          callback(new Error(
+          callback(new SsrfGuardError(
             `Access to private/internal IP addresses is not allowed ` +
             `("${hostname}" resolves to ${a.address}).`
           ));
@@ -622,12 +649,12 @@ export async function assertHostnameResolvesSafe(hostname: string): Promise<void
   } catch {
     // Fail closed: if we cannot resolve the name, do NOT let the request proceed to a
     // socket that would resolve it independently (TOCTOU / SSRF bypass).
-    throw new Error(`Cannot resolve "${hostname}" for SSRF validation (failing closed).`);
+    throw new SsrfGuardError(`Cannot resolve "${hostname}" for SSRF validation (failing closed).`);
   }
 
   for (const a of addresses) {
     if (isBlockedIp(a.address)) {
-      throw new Error(
+      throw new SsrfGuardError(
         `Access to private/internal IP addresses is not allowed ` +
         `("${hostname}" resolves to ${a.address}).`
       );
@@ -825,7 +852,7 @@ export async function makeCkanRequest<T>(
       } catch (error) {
         // Workers has no axios, so this branch is the only place a fetch failure can be
         // classified: a bare `TypeError` reaches `formatCkanError` and the caller gets
-        // no retry guidance. The SSRF guards throw plain `Error`s with their own
+        // no retry guidance. The SSRF guards throw `SsrfGuardError` with their own
         // message, and those keep it.
         if (controller.signal.aborted) {
           throw new CkanTransportError(`Request timeout connecting to ${serverUrl}`, serverUrl);
@@ -894,6 +921,14 @@ export async function makeCkanRequest<T>(
     if (error instanceof CkanApiError) throw error;
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
+      const guardError = unwrapSsrfGuardError(axiosError);
+      if (guardError) throw guardError;
+      // The SSRF guards refuse before any connection; axios surfaces the refusal
+      // directly in `cause` (connection-time `lookup`) or one level deeper, under
+      // its ERR_FR_REDIRECTION_FAILURE wrap of the `beforeRedirect` throw. The
+      // guard's verdict must keep its own message — wrapping it in the
+      // "Portal unreachable. Retry later" hint would tell the LLM to retry a
+      // destination that will never pass, which the fetch branch already avoids.
       if (axiosError.response) {
         const status = axiosError.response.status;
         const data = axiosError.response.data as any;

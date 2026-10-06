@@ -3,7 +3,7 @@ import { brotliCompressSync, deflateSync, gzipSync } from 'node:zlib';
 import type { AddressInfo } from 'node:net';
 import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
-import { makeCkanRequest, validateServerUrl, CkanApiError, CkanTransportError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, getSafeDispatcher, __setDnsResolverForTests } from '../../src/utils/http';
+import { makeCkanRequest, validateServerUrl, CkanApiError, CkanTransportError, SsrfGuardError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, getSafeDispatcher, __setDnsResolverForTests } from '../../src/utils/http';
 import { __resetCacheForTests } from '../../src/utils/cache';
 import successResponse from '../fixtures/responses/status-success.json';
 
@@ -24,6 +24,11 @@ describe('validateServerUrl', () => {
 
   it('blocks non-http/s protocol (ftp://)', () => {
     expect(() => validateServerUrl('ftp://example.com')).toThrow('Disallowed protocol');
+  });
+
+  it('refuses blocked literals as SsrfGuardError', () => {
+    expect(() => validateServerUrl('http://169.254.169.254/')).toThrow(SsrfGuardError);
+    expect(() => validateServerUrl('http://[::1]/')).toThrow(SsrfGuardError);
   });
 
   it('blocks localhost', () => {
@@ -190,6 +195,11 @@ describe('GHSA-x32r-mh7g-q2rf bypass chain', () => {
 describe('assertHostnameResolvesSafe', () => {
   afterEach(() => __setDnsResolverForTests(null));
 
+  it('throws SsrfGuardError (never a transport hint) when a hostname resolves to an internal IP', async () => {
+    __setDnsResolverForTests(async () => [{ address: '169.254.169.254', family: 4 }]);
+    await expect(assertHostnameResolvesSafe('metadata.evil')).rejects.toBeInstanceOf(SsrfGuardError);
+  });
+
   it('passes for a hostname resolving to a public IP', async () => {
     __setDnsResolverForTests(async () => [{ address: '93.184.216.34', family: 4 }]);
     await expect(assertHostnameResolvesSafe('example.com')).resolves.toBeUndefined();
@@ -352,6 +362,12 @@ describe('assertHttpAllowlistConfigured', () => {
 describe('makeCkanRequest', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  // Restore the mock state before the following describes run: the Workers tests
+  // in `formatCkanError` depend on isAxiosError being false.
+  afterEach(() => {
+    vi.mocked(axios.isAxiosError).mockReturnValue(false);
   });
 
   describe('redirect validation (GHSA-279h-fmcr-4rwv)', () => {
@@ -710,6 +726,54 @@ describe('makeCkanRequest', () => {
     await expect(
       makeCkanRequest('http://demo.ckan.org', 'ckan_status_show')
     ).rejects.toThrow('Unexpected failure');
+  });
+
+  it('Node: a connection-time SSRF refusal keeps its own message, not the unreachable hint', async () => {
+    // Mirror of the Workers test: a guard refusal must not be wrapped in the
+    // "Portal unreachable. Retry later" hint.
+    const lookup = createSsrfSafeLookup({
+      lookup: (_h: string, _o: any, cb: any) => cb(null, [{ address: '127.0.0.1', family: 4 }])
+    } as any);
+    const guardError = await new Promise<Error>((resolve) =>
+      lookup('metadata.evil', {}, (err: any) => resolve(err)));
+    expect(guardError).toBeInstanceOf(SsrfGuardError);
+
+    // axios surfaces the lookup rejection as an AxiosError with the guard error in `cause`.
+    vi.mocked(axios.isAxiosError).mockReturnValue(true);
+    vi.mocked(axios.get).mockRejectedValue({ message: 'Network Error', cause: guardError });
+
+    const err = await makeCkanRequest(
+      'https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false, rateLimit: false }
+    ).catch(e => e);
+
+    expect(err).toBeInstanceOf(SsrfGuardError);
+    expect(err.message).toContain('private/internal');
+    expect(formatCkanError(err, 'ckan_package_search')).not.toContain('Portal unreachable');
+    expect(formatCkanError(err, 'ckan_package_search')).not.toContain('Network error');
+  });
+
+  it('Node: a redirect hop refused by the SSRF guard keeps its own message, not the unreachable hint', async () => {
+    // The beforeRedirect guard throws SsrfGuardError; axios wraps that throw in
+    // ERR_FR_REDIRECTION_FAILURE with the guard error one level below `cause`
+    // (verified against axios 1.20 in a live probe). makeCkanRequest must unwrap it.
+    const hookError = new SsrfGuardError('Access to private/internal IP addresses is not allowed.');
+    const frFailure = new Error(`Redirected request failed: ${hookError.message}`);
+    (frFailure as Error & { cause?: Error }).cause = hookError;
+    vi.mocked(axios.isAxiosError).mockReturnValue(true);
+    vi.mocked(axios.get).mockRejectedValue({
+      code: 'ERR_FR_REDIRECTION_FAILURE',
+      message: frFailure.message,
+      cause: frFailure
+    });
+
+    const err = await makeCkanRequest(
+      'https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false, rateLimit: false }
+    ).catch(e => e);
+
+    expect(err).toBeInstanceOf(SsrfGuardError);
+    expect(err.message).toContain('private/internal');
+    expect(formatCkanError(err, 'ckan_package_search')).not.toContain('Portal unreachable');
+    expect(formatCkanError(err, 'ckan_package_search')).not.toContain('Redirected request failed');
   });
 
   it('uses correct timeout setting', async () => {
