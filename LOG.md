@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-10-06
+
+### v0.4.129
+
+Ships #558 (by @paoValle, closes #31): error messages now tell the caller what to try next where they said nothing. A timeout, DNS failure or network error gets "Portal unreachable. Retry later, or call `ckan_status_show`" (noting its answer can be cached up to an hour), on both Node and Workers; 5xx errors point at `ckan_status_show` too; a 404 on `ckan_group_show` suggests `ckan_group_list`/`ckan_group_search`. A request refused by the SSRF guard keeps the guard's own message instead of a retry hint. Released the same day as the merge, by explicit exception to the release cadence rule. Tests 587 passed, smoke 17/17.
+
 ## 2026-09-28
 
 ### Advisory GHSA-279h-fmcr-4rwv published
