@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-10-19
+
+### Security: linear shrink in `truncateJson` (GHSA-w3gp-3hrh-v465)
+
+Reported by @olevasseur. `truncateJson()` popped one array element at a time and re-serialized the whole object after each pop: O(n²). A portal answering `status_show` (or any tool in `response_format: json`) with a ~3 MB, 32,000-item array blocked the event loop for ~59 s. Replaced with a binary search on the largest fitting prefix: same output (543 rows kept), 17 `JSON.stringify` calls instead of 31,459, 55 ms instead of 59 s. Regression test counts serializations. Tests 589 passed; e2e on dati.gov.it `status_show` and messina DataStore JSON (1000 records → 254 kept, valid JSON).
+
 ## 2026-10-06
 
 ### v0.4.129

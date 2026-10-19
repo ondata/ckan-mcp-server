@@ -42,14 +42,29 @@ export function truncateJson(obj: unknown, limit: number = CHARACTER_LIMIT): str
   const data = structuredClone(obj) as Record<string, unknown>;
   for (const key of SHRINKABLE_KEYS) {
     if (Array.isArray(data[key]) && data[key].length > 0) {
-      const originalCount = data[key].length;
+      const original = data[key] as unknown[];
+      const originalCount = original.length;
       data['_truncated'] = true;
       data['_original_count'] = originalCount;
-      while (data[key].length > 0) {
-        data[key].pop();
-        json = JSON.stringify(data);
-        if (json.length <= limit) return json;
+      // Binary search for the largest fitting prefix: re-serializing after every
+      // single removal is quadratic, and lets a few MB from a hostile portal
+      // block the event loop for seconds (GHSA-w3gp-3hrh-v465).
+      let low = 0;
+      let high = originalCount - 1;
+      let best: string | null = null;
+      while (low <= high) {
+        const mid = Math.floor((low + high) / 2);
+        data[key] = original.slice(0, mid);
+        const candidate = JSON.stringify(data);
+        if (candidate.length <= limit) {
+          best = candidate;
+          low = mid + 1;
+        } else {
+          high = mid - 1;
+        }
       }
+      if (best !== null) return best;
+      data[key] = [];
     }
   }
 

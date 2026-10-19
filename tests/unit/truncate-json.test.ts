@@ -75,6 +75,34 @@ describe('truncateJson', () => {
     }
   });
 
+  it('keeps the largest fitting prefix of a shrunk array', () => {
+    const results = Array.from({ length: 200 }, (_, i) => ({ i, pad: 'x'.repeat(20) }));
+    const limit = 3000;
+    const parsed = JSON.parse(truncateJson({ results }, limit));
+    const kept = parsed.results.length;
+    expect(parsed.results).toEqual(results.slice(0, kept));
+    const oneMore = { results: results.slice(0, kept + 1), _truncated: true, _original_count: 200 };
+    expect(JSON.stringify(oneMore).length).toBeGreaterThan(limit);
+  });
+
+  // GHSA-w3gp-3hrh-v465: one serialization per removed element made the shrink
+  // quadratic, so a few MB from a hostile portal blocked the event loop for seconds.
+  it('serializes a logarithmic number of times, not once per element', () => {
+    const obj = { results: Array.from({ length: 32000 }, (_, i) => ({ v: `row-${i}-${'x'.repeat(72)}` })) };
+    const original = JSON.stringify;
+    let calls = 0;
+    JSON.stringify = ((...args: Parameters<typeof JSON.stringify>) => {
+      calls++;
+      return original(...args);
+    }) as typeof JSON.stringify;
+    try {
+      truncateJson(obj);
+    } finally {
+      JSON.stringify = original;
+    }
+    expect(calls).toBeLessThan(40);
+  });
+
   it('never emits the invalid-JSON tail the old fallback produced', () => {
     const obj = { id: 'x', blob: 'y'.repeat(200000) };
     const out = truncateJson(obj, 1000);
