@@ -639,7 +639,7 @@ describe('makeCkanRequest', () => {
     it('the retry acquires its own rate-limit token', async () => {
       vi.stubEnv('CKAN_RATE_LIMIT_ENABLED', 'true');
       __resetRateLimiterForTests();
-      const acquire = vi.spyOn(getRateLimiter(), 'acquire');
+      const acquire = vi.spyOn(getRateLimiter(), 'acquire').mockResolvedValue(undefined);
       vi.mocked(axios.get)
         .mockResolvedValueOnce({ data: challengePage })
         .mockResolvedValueOnce({ data: successResponse });
