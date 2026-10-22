@@ -109,6 +109,8 @@ Notable non-standard portals:
 
 **Migrated portals stay listed**: a portal that has left CKAN keeps its entry, marked `migrated` with a notice and a docs URL, rather than being deleted. `catalog.data.gov` moved to a non-CKAN API in 2025 and answers 404 to every CKAN request; deleting the entry would turn the notice back into "Unknown error" for the callers who still try it (47 in five months). The lookup is by hostname, as request routing is, so any spelling of the host gets the notice (#540).
 
+**CKAN API User-Agent**: `makeCkanRequest` sends a Chrome 120 UA plus `Sec-CH-UA*` headers by default, because WAFs like dati.anticorruzione.it reject anything else. Anubis anti-bot gates (e.g. canwin-datahub.ad.umanitoba.ca) do the opposite: they challenge any UA containing `Mozilla` with an HTML proof-of-work page. When the body carries the `anubis_challenge` marker, the request is retried once with `CKAN-MCP-Server/1.0` and no `Sec-CH-UA*` headers (#7).
+
 **SPARQL endpoint User-Agent**: `lod.dati.gov.it/sparql` returns 403 without a browser-like `User-Agent`. The server sends `Mozilla/5.0 (compatible; CKAN-MCP-Server/1.0)` for all SPARQL requests. Direct curl calls without this header will fail — always include `-H "User-Agent: Mozilla/5.0 (compatible; CKAN-MCP-Server/1.0)"`.
 
 ---

@@ -726,6 +726,21 @@ function auditLog(serverUrl: string, action: string, params: Record<string, any>
   try { process.stderr.write(JSON.stringify(entry) + '\n'); } catch { /* ignore */ }
 }
 
+// Default identity: some WAFs (dati.anticorruzione.it) reject anything but a Chrome UA.
+const BROWSER_USER_AGENT =
+  'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+// Fallback identity: Anubis challenges any UA naming Mozilla, and lets honest bots through.
+const HONEST_USER_AGENT = 'CKAN-MCP-Server/1.0';
+
+/**
+ * True when the body is an Anubis proof-of-work challenge page (https://anubis.techaro.lol/)
+ * instead of CKAN JSON. No fixed User-Agent satisfies both Anubis and Chrome-only WAFs
+ * (issue #7), so `makeCkanRequest` retries once with `HONEST_USER_AGENT` when it sees one.
+ */
+export function isAnubisChallenge(body: unknown): boolean {
+  return typeof body === 'string' && body.includes('anubis_challenge');
+}
+
 /**
  * Make HTTP request to CKAN API
  */
@@ -783,105 +798,113 @@ export async function makeCkanRequest<T>(
   }
 
   try {
-    let decodedData: unknown;
-
-    if (isNode) {
-      const safeAgents = await getSafeAgents();
-      const response = await axios.get(url, {
-        params,
-        timeout: 30000,
-        responseType: "arraybuffer",
-        maxRedirects: 5,
-        // Re-validate every redirect hop: Node skips the agent's `lookup` for IP
-        // literals, so a public host 302-ing to e.g. 169.254.169.254 would otherwise
-        // be followed. Also enforces CKAN_ALLOWED_DOMAINS on redirect targets.
-        beforeRedirect: (redirectOptions: { href: string }) => {
-          validateServerUrl(redirectOptions.href);
-        },
-        // Never route through HTTP_PROXY/HTTPS_PROXY: a proxy would connect to the
-        // target itself, bypassing the SSRF-safe lookup pinned in the agents below.
-        proxy: false,
-        maxContentLength: MAX_RESPONSE_BYTES,
-        maxBodyLength: MAX_RESPONSE_BYTES,
-        ...(safeAgents
-          ? { httpAgent: safeAgents.httpAgent, httpsAgent: safeAgents.httpsAgent }
-          : {}),
-        headers: {
-          Accept: 'application/json, text/plain, */*',
-          'Accept-Language': 'en-US,en;q=0.9,it;q=0.8',
-          'Accept-Encoding': 'gzip, deflate, br',
-          Connection: 'keep-alive',
-          'Sec-CH-UA': '"Chromium";v="120", "Not?A_Brand";v="24", "Google Chrome";v="120"',
-          'Sec-CH-UA-Mobile': '?0',
-          'Sec-CH-UA-Platform': '"Linux"',
-          'User-Agent':
-            'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-      });
-
-      decodedData = await decodePossiblyCompressed(
-        response.data,
-        response.headers
-      );
-    } else {
-      const searchParams = new URLSearchParams();
-      for (const [key, value] of Object.entries(params)) {
-        if (value === undefined || value === null) {
-          continue;
-        }
-        searchParams.set(key, String(value));
-      }
-      const fetchUrl = searchParams.toString()
-        ? `${url}?${searchParams.toString()}`
-        : url;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      let response: Response;
-      try {
-        // safeFetch re-validates each redirect hop (same guard as the axios branch)
-        response = await safeFetch(fetchUrl, {
-          method: "GET",
-          signal: controller.signal,
+    // One retry, only for Anubis: see isAnubisChallenge.
+    const fetchDecoded = async (honest: boolean): Promise<unknown> => {
+      if (isNode) {
+        const safeAgents = await getSafeAgents();
+        const response = await axios.get(url, {
+          params,
+          timeout: 30000,
+          responseType: "arraybuffer",
+          maxRedirects: 5,
+          // Re-validate every redirect hop: Node skips the agent's `lookup` for IP
+          // literals, so a public host 302-ing to e.g. 169.254.169.254 would otherwise
+          // be followed. Also enforces CKAN_ALLOWED_DOMAINS on redirect targets.
+          beforeRedirect: (redirectOptions: { href: string }) => {
+            validateServerUrl(redirectOptions.href);
+          },
+          // Never route through HTTP_PROXY/HTTPS_PROXY: a proxy would connect to the
+          // target itself, bypassing the SSRF-safe lookup pinned in the agents below.
+          proxy: false,
+          maxContentLength: MAX_RESPONSE_BYTES,
+          maxBodyLength: MAX_RESPONSE_BYTES,
+          ...(safeAgents
+            ? { httpAgent: safeAgents.httpAgent, httpsAgent: safeAgents.httpsAgent }
+            : {}),
           headers: {
-            Accept: "application/json, text/plain, */*",
-            "Accept-Encoding": "identity",
-            "User-Agent":
-              "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            Accept: 'application/json, text/plain, */*',
+            'Accept-Language': 'en-US,en;q=0.9,it;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            Connection: 'keep-alive',
+            ...(honest
+              ? {}
+              : {
+                  'Sec-CH-UA': '"Chromium";v="120", "Not?A_Brand";v="24", "Google Chrome";v="120"',
+                  'Sec-CH-UA-Mobile': '?0',
+                  'Sec-CH-UA-Platform': '"Linux"'
+                }),
+            'User-Agent': honest ? HONEST_USER_AGENT : BROWSER_USER_AGENT
           }
-        }, { maxHops: 5 });
-      } catch (error) {
-        // Workers has no axios, so this branch is the only place a fetch failure can be
-        // classified: a bare `TypeError` reaches `formatCkanError` and the caller gets
-        // no retry guidance. The SSRF guards throw `SsrfGuardError` with their own
-        // message, and those keep it.
-        if (controller.signal.aborted) {
-          throw new CkanTransportError(`Request timeout connecting to ${serverUrl}`, serverUrl);
-        }
-        if (error instanceof TypeError) {
-          throw new CkanTransportError(`Network error: ${error.message}`, serverUrl);
-        }
-        throw error;
-      } finally {
-        clearTimeout(timeoutId);
-      }
+        });
 
-      if (!response.ok) {
-        throw new CkanApiError(`CKAN API error (${response.status}): ${response.statusText}`, response.status, action, serverUrl);
-      }
+        return decodePossiblyCompressed(
+          response.data,
+          response.headers
+        );
+      } else {
+        const searchParams = new URLSearchParams();
+        for (const [key, value] of Object.entries(params)) {
+          if (value === undefined || value === null) {
+            continue;
+          }
+          searchParams.set(key, String(value));
+        }
+        const fetchUrl = searchParams.toString()
+          ? `${url}?${searchParams.toString()}`
+          : url;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000);
+        let response: Response;
+        try {
+          // safeFetch re-validates each redirect hop (same guard as the axios branch)
+          response = await safeFetch(fetchUrl, {
+            method: "GET",
+            signal: controller.signal,
+            headers: {
+              Accept: "application/json, text/plain, */*",
+              "Accept-Encoding": "identity",
+              "User-Agent": honest ? HONEST_USER_AGENT : BROWSER_USER_AGENT
+            }
+          }, { maxHops: 5 });
+        } catch (error) {
+          // Workers has no axios, so this branch is the only place a fetch failure can be
+          // classified: a bare `TypeError` reaches `formatCkanError` and the caller gets
+          // no retry guidance. The SSRF guards throw `SsrfGuardError` with their own
+          // message, and those keep it.
+          if (controller.signal.aborted) {
+            throw new CkanTransportError(`Request timeout connecting to ${serverUrl}`, serverUrl);
+          }
+          if (error instanceof TypeError) {
+            throw new CkanTransportError(`Network error: ${error.message}`, serverUrl);
+          }
+          throw error;
+        } finally {
+          clearTimeout(timeoutId);
+        }
 
-      const declaredLength = Number(response.headers.get("content-length"));
-      if (Number.isFinite(declaredLength) && declaredLength > MAX_RESPONSE_BYTES) {
-        throw new CkanApiError(`Response too large (${declaredLength} bytes)`, undefined, action, serverUrl);
+        if (!response.ok) {
+          throw new CkanApiError(`CKAN API error (${response.status}): ${response.statusText}`, response.status, action, serverUrl);
+        }
+
+        const declaredLength = Number(response.headers.get("content-length"));
+        if (Number.isFinite(declaredLength) && declaredLength > MAX_RESPONSE_BYTES) {
+          throw new CkanApiError(`Response too large (${declaredLength} bytes)`, undefined, action, serverUrl);
+        }
+        const buffer = await response.arrayBuffer();
+        if (buffer.byteLength > MAX_RESPONSE_BYTES) {
+          throw new CkanApiError(`Response too large (${buffer.byteLength} bytes)`, undefined, action, serverUrl);
+        }
+        const headers: Record<string, string> = {};
+        response.headers.forEach((headerValue, headerKey) => {
+          headers[headerKey] = headerValue;
+        });
+        return decodePossiblyCompressed(buffer, headers);
       }
-      const buffer = await response.arrayBuffer();
-      if (buffer.byteLength > MAX_RESPONSE_BYTES) {
-        throw new CkanApiError(`Response too large (${buffer.byteLength} bytes)`, undefined, action, serverUrl);
-      }
-      const headers: Record<string, string> = {};
-      response.headers.forEach((headerValue, headerKey) => {
-        headers[headerKey] = headerValue;
-      });
-      decodedData = await decodePossiblyCompressed(buffer, headers);
+    };
+
+    let decodedData = await fetchDecoded(false);
+    if (isAnubisChallenge(decodedData)) {
+      decodedData = await fetchDecoded(true);
     }
 
     if (decodedData && (decodedData as { success?: boolean }).success === true) {
