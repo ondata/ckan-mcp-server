@@ -5,6 +5,7 @@ import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
 import { makeCkanRequest, validateServerUrl, CkanApiError, CkanTransportError, SsrfGuardError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, getSafeDispatcher, __setDnsResolverForTests, isAnubisChallenge } from '../../src/utils/http';
 import { __resetCacheForTests } from '../../src/utils/cache';
+import { getRateLimiter, __resetRateLimiterForTests } from '../../src/utils/rate-limiter';
 import successResponse from '../fixtures/responses/status-success.json';
 
 vi.mock('axios');
@@ -582,7 +583,7 @@ describe('makeCkanRequest', () => {
         .mockResolvedValueOnce({ data: successResponse });
 
       const result = await makeCkanRequest(
-        'https://canwin-datahub.ad.umanitoba.ca/data', 'status_show', {}, { cache: false, rateLimit: false }
+        'https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false, rateLimit: false }
       );
 
       expect(result).toEqual(successResponse.result);
@@ -608,12 +609,13 @@ describe('makeCkanRequest', () => {
       vi.mocked(axios.get).mockResolvedValue({ data: challengePage });
 
       await expect(
-        makeCkanRequest('https://canwin-datahub.ad.umanitoba.ca/data', 'status_show', {}, { cache: false, rateLimit: false })
+        makeCkanRequest('https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false, rateLimit: false })
       ).rejects.toThrow('CKAN API returned success=false');
       expect(axios.get).toHaveBeenCalledTimes(2);
     });
 
     it('Workers (fetch) path retries with the honest UA too', async () => {
+      const origAllowed = process.env.CKAN_ALLOWED_DOMAINS;
       delete process.env.CKAN_ALLOWED_DOMAINS;
       const fetchMock = vi.fn()
         .mockResolvedValueOnce(new Response(challengePage, { status: 200, headers: { 'Content-Type': 'text/html' } }))
@@ -622,7 +624,7 @@ describe('makeCkanRequest', () => {
       vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
       try {
         const result = await makeCkanRequest(
-          'https://canwin-datahub.ad.umanitoba.ca/data', 'status_show', {}, { cache: false, rateLimit: false }
+          'https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false, rateLimit: false }
         );
         expect(result).toEqual(successResponse.result);
         expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -630,6 +632,25 @@ describe('makeCkanRequest', () => {
         expect(retryHeaders.get('User-Agent')).toBe('CKAN-MCP-Server/1.0');
       } finally {
         vi.unstubAllGlobals();
+        if (origAllowed === undefined) delete process.env.CKAN_ALLOWED_DOMAINS; else process.env.CKAN_ALLOWED_DOMAINS = origAllowed;
+      }
+    });
+
+    it('the retry acquires its own rate-limit token', async () => {
+      vi.stubEnv('CKAN_RATE_LIMIT_ENABLED', 'true');
+      __resetRateLimiterForTests();
+      const acquire = vi.spyOn(getRateLimiter(), 'acquire');
+      vi.mocked(axios.get)
+        .mockResolvedValueOnce({ data: challengePage })
+        .mockResolvedValueOnce({ data: successResponse });
+      try {
+        await makeCkanRequest('https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false });
+        expect(acquire).toHaveBeenCalledTimes(2);
+        expect(acquire).toHaveBeenNthCalledWith(2, 'www.dati.gov.it');
+      } finally {
+        acquire.mockRestore();
+        vi.unstubAllEnvs();
+        __resetRateLimiterForTests();
       }
     });
   });

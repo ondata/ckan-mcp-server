@@ -792,10 +792,13 @@ export async function makeCkanRequest<T>(
 
   const rateLimitConfig = getRateLimitConfig();
   const rateLimitEnabled = rateLimitConfig.enabled && opts.rateLimit !== false;
-  if (rateLimitEnabled) {
-    const hostname = new URL(resolvedServerUrl).hostname;
-    await getRateLimiter().acquire(hostname);
-  }
+  const acquireRateToken = async (): Promise<void> => {
+    if (rateLimitEnabled) {
+      const hostname = new URL(resolvedServerUrl).hostname;
+      await getRateLimiter().acquire(hostname);
+    }
+  };
+  await acquireRateToken();
 
   try {
     // One retry, only for Anubis: see isAnubisChallenge.
@@ -904,6 +907,8 @@ export async function makeCkanRequest<T>(
 
     let decodedData = await fetchDecoded(false);
     if (isAnubisChallenge(decodedData)) {
+      // The retry is a second upstream request: it pays its own rate token.
+      await acquireRateToken();
       decodedData = await fetchDecoded(true);
     }
 
