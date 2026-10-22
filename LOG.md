@@ -2,6 +2,10 @@
 
 ## 2026-10-22
 
+### v0.4.131
+
+Ships #563: Anubis challenge retry with an honest User-Agent (#7). Tests 595 passed, smoke 17/17.
+
 ### Anubis-fronted portals: retry once with an honest User-Agent (#7)
 
 Reported by @umlwbin: our Chrome-impersonating headers (needed by dati.anticorruzione.it's WAF) trip Anubis anti-bot gates, which answer with an HTML proof-of-work page that axios cannot solve. Anubis challenges any UA containing `Mozilla`, including `Mozilla/5.0 (compatible; ...)`, so no fixed UA serves both portals. `makeCkanRequest` now detects the challenge page (`anubis_challenge` marker, `isAnubisChallenge`) and retries once with `CKAN-MCP-Server/1.0` and no `Sec-CH-UA*` headers, on both the axios and fetch/Workers paths. The retry acquires its own rate-limit token (Greptile review). +6 tests (fail without the fix). Tests 595 passed; e2e `package_search` OK on canwin-datahub.ad.umanitoba.ca/data (48,947), dati.anticorruzione.it (70), dati.gov.it.
