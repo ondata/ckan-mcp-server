@@ -2,6 +2,10 @@
 
 ## 2026-10-28
 
+### v0.4.133
+
+Ships #568. For callers: `ckan_find_portals` works again on the hosted Worker (it failed on every call since at least 2026-09-05); `ckan_status_show` on a site that is not a CKAN API now says so and points at `ckan_find_portals`, instead of telling the caller to call `ckan_status_show`; `open.toronto.ca` works as a server URL in every tool (routed to its CKAN host). Tests 616 passed. Smoke 16/17: same MQA outage as v0.4.132 (per-dataset `/api/mqa/cache/*/{id}` still not answering, `/global` 0.2 s), tagged with `SKIP_RELEASE_GATE=1` on the user's decision.
+
 ### Telemetry errors: find_portals fixed on Workers, error messages logged, non-CKAN hints
 
 From the error analysis of `worker_events_flat.jsonl` (app errors are logged only since 2026-09-05: 754 of 3,752 calls, 537 of them invalid input from scanners).
