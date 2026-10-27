@@ -5,6 +5,7 @@
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanTag, CkanResource, CkanPackage } from "../types.js";
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
+import { recordSearchResults } from "../utils/search-telemetry.js";
 import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter, wrapUntrusted, safeUrlText, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
 import { getDatasetViewUrl, extractSourcePortal } from "../utils/url-generator.js";
 import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery, mayNeedTextWrapping, hasExplicitBooleanOperator } from "../utils/search.js";
@@ -1073,6 +1074,8 @@ Typical workflow: ckan_status_show (check locale) → ckan_package_search (query
           }
         }
 
+        recordSearchResults(server, result.count ?? 0, effectiveStart, result.results ?? []);
+
         if (params.response_format === ResponseFormat.JSON) {
           const compact = compactSearchResult(
             result,
@@ -1362,6 +1365,8 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
           returned: top.length,
           results: top
         };
+
+        recordSearchResults(server, payload.total_results, 0, top);
 
         if (params.response_format === ResponseFormat.JSON) {
           return jsonToolResult(payload);

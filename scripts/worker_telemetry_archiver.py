@@ -44,6 +44,12 @@ FLAT_FIELDS = (
     "cache_hit",
     "duration_ms",
     "limit",
+    "fq",
+    "sort",
+    "result_count",
+    "result_start",
+    "result_ids",
+    "result_names",
 )
 DAY_MS = 86400 * 1000
 
@@ -188,6 +194,12 @@ def flatten(event: dict) -> dict | None:
         "cache_hit": source.get("cache_hit") if isinstance(source, dict) else None,
         "duration_ms": source.get("duration_ms") if isinstance(source, dict) else None,
         "limit": source.get("limit") if isinstance(source, dict) else None,
+        "fq": source.get("fq") if isinstance(source, dict) else None,
+        "sort": source.get("sort") if isinstance(source, dict) else None,
+        "result_count": source.get("result_count") if isinstance(source, dict) else None,
+        "result_start": source.get("result_start") if isinstance(source, dict) else None,
+        "result_ids": source.get("result_ids") if isinstance(source, dict) else None,
+        "result_names": source.get("result_names") if isinstance(source, dict) else None,
     }
 
 

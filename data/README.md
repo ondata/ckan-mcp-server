@@ -47,6 +47,12 @@ Flattened log of tool invocations received by the [Cloudflare Workers](https://c
 | `server` | string | Target CKAN portal URL |
 | `query` | string | Query or resource ID passed to the tool |
 | `error` | string\|null | Error message if outcome is not `ok` |
+| `fq` | string\|null | Solr filter query passed to the tool (since 2026-10-27) |
+| `sort` | string\|null | Sort parameter passed to the tool (since 2026-10-27) |
+| `result_count` | integer\|null | Total matches reported by the portal, `0` included. Only `ckan_package_search` and `ckan_find_relevant_datasets` (since 2026-10-27) |
+| `result_start` | integer\|null | Offset of the first returned dataset in the ranking (`0` for `ckan_find_relevant_datasets`) |
+| `result_ids` | string[]\|null | Ids of the returned datasets, in rank order, max 20 |
+| `result_names` | string[]\|null | Names (slugs) of the same datasets, same order as `result_ids` |
 
 **Example**:
 ```json

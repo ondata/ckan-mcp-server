@@ -7,6 +7,7 @@
 import { createServer, registerAll } from "./server.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { getLastCacheHit } from "./utils/http.js";
+import { takeSearchResults } from "./utils/search-telemetry.js";
 
 interface AnalyticsEngineDataset {
   writeDataPoint(event: { blobs?: string[]; doubles?: number[]; indexes?: string[] }): void;
@@ -304,6 +305,8 @@ export default {
         if (logEntry) {
           const cacheHit = getLastCacheHit();
           if (cacheHit !== null) logEntry['cache_hit'] = cacheHit;
+          const searchResults = takeSearchResults(server);
+          if (searchResults) Object.assign(logEntry, searchResults);
           logEntry['duration_ms'] = durationMs;
 
           let callStatus = 'ok';

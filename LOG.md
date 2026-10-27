@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-10-27
+
+### Worker telemetry: returned search results
+
+`ckan_package_search` and `ckan_find_relevant_datasets` now record the datasets they return (ids and names in rank order, max 20), the total count (zero included) and the start offset. The worker adds them to its log line (`result_count`, `result_start`, `result_ids`, `result_names`), and the archiver carries them, plus `fq` and `sort`, into `data/worker_events_flat.jsonl`. Goal: query → result pairs for search fine-tuning. No session id exists (stateless worker): a later `package_show` on an id in `result_ids` links to the search. Side channel keyed by the per-request `McpServer` (`src/utils/search-telemetry.ts`), so concurrent requests cannot mix. Checked with `wrangler dev` on dati.gov.it, zero-result case included.
+
 ## 2026-10-26
 
 ### Update Worker Telemetry: DuckDB pinned to v2.0.0
