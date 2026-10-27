@@ -4,7 +4,7 @@
 
 ### Archiver: empty result lists for zero-result searches
 
-Manual archiver run on a scratchpad copy (7 live events): search fields reach `worker_events_flat.jsonl`, but a zero-result search came in with `result_ids`/`result_names` null, since the Observability API drops empty arrays from `source`. `flatten()` now restores `[]` whenever `result_count` is present, so "0 results" stays distinct from "not a search". Rechecked on a fresh copy: `zzqxkwvnonesiste` → `result_count` 0, lists `[]`.
+Manual archiver run on a scratchpad copy (7 live events): search fields reach `worker_events_flat.jsonl`, but a zero-result search came in with `result_ids`/`result_names` null, since the Observability API drops empty arrays from `source`. `flatten()` now restores `[]` whenever `result_count` is present, so "0 results" stays distinct from "not a search". Rechecked on a fresh copy: `zzqxkwvnonesiste` → `result_count` 0, lists `[]`. Tests in `tests/python/test_worker_telemetry_archiver.py` (stdlib `unittest`: zero count with omitted lists, non-empty lists, non-search event, field set); the zero-count case fails on the previous `flatten()`. They run in `update-telemetry.yml` before each archiver run (Greptile review).
 
 ### v0.4.132
 
