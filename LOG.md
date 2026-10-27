@@ -1,5 +1,16 @@
 # LOG
 
+## 2026-10-28
+
+### Telemetry errors: find_portals fixed on Workers, error messages logged, non-CKAN hints
+
+From the error analysis of `worker_events_flat.jsonl` (app errors are logged only since 2026-09-05: 754 of 3,752 calls, 537 of them invalid input from scanners).
+
+- `ckan_find_portals` failed on every Worker call (96/96 since 2026-09-05): it was the only tool calling axios directly, and axios's fetch adapter breaks on Workers ("The 'cache' field on 'RequestInitializerDict' is not implemented"). Now uses `safeFetch`, like MQA; SSRF checks on redirects come with it. Checked with `wrangler dev`: 945 portals, about 5 s (the datashades.info list is 22 MB).
+- The worker log line of a failed call now has `error_message` (first 200 chars, one line) and `error_kind` (`validation`, `not_allowed`, `timeout`, `upstream_http`, `unreachable`, `other`, `src/utils/error-telemetry.ts`); the archiver carries both into the flat file. The find_portals failure stayed hidden for weeks because the log only said `error`.
+- `ckan_status_show` on a site that is not the CKAN API (47% failure on real URLs: open.toronto.ca, open.ottawa.ca, data.europa.eu/data, ...) told the caller to call `ckan_status_show`. It now says the site may not run CKAN or keep the API on another host, and points at `ckan_find_portals`. `open.toronto.ca` is routed to its CKAN host `ckan0.cf.opendata.inter.prod-toronto.ca` via `portals.json`.
+- Tests 615 passed (+14, each new test fails without its fix), Python tests 5.
+
 ## 2026-10-27
 
 ### Archiver: empty result lists for zero-result searches

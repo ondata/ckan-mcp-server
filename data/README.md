@@ -53,6 +53,8 @@ Flattened log of tool invocations received by the [Cloudflare Workers](https://c
 | `result_start` | integer\|null | Offset of the first returned dataset in the ranking (`0` for `ckan_find_relevant_datasets`) |
 | `result_ids` | string[]\|null | Ids of the returned datasets, in rank order, max 20. `[]` when `result_count` is `0`, `null` for other tools |
 | `result_names` | string[]\|null | Names (slugs) of the same datasets, same order as `result_ids` |
+| `error_message` | string\|null | First 200 characters of the error a failed tool call returned, on one line (since 2026-10-28) |
+| `error_kind` | string\|null | Coarse class of that error: `validation`, `not_allowed`, `timeout`, `upstream_http`, `unreachable`, `other` |
 
 **Example**:
 ```json

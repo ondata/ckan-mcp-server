@@ -3,9 +3,8 @@
  */
 
 import { z } from "zod";
-import axios from "axios";
 import { truncateText, cappedStructured, addDemoFooter } from "../utils/formatting.js";
-import { formatCkanError } from "../utils/http.js";
+import { formatCkanError, safeFetch } from "../utils/http.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const DATASHADES_URL = "https://datashades.info/api/portal/list";
@@ -21,12 +20,17 @@ interface DatashadesPortal {
   status: string;
 }
 
+// fetch, not axios: axios's fetch adapter breaks on Workers ("'cache' field ... not implemented")
 async function fetchPortals(): Promise<DatashadesPortal[]> {
-  const resp = await axios.get<{ portals: DatashadesPortal[] }>(DATASHADES_URL, {
-    timeout: 15000,
-    headers: { "User-Agent": "CKAN-MCP-Server/1.0" }
-  });
-  return resp.data.portals;
+  const resp = await safeFetch(DATASHADES_URL, {
+    headers: { "User-Agent": "CKAN-MCP-Server/1.0" },
+    signal: AbortSignal.timeout(15000)
+  }, { httpsOnly: true });
+  if (!resp.ok) {
+    throw new Error(`datashades.info returned ${resp.status} ${resp.statusText}`);
+  }
+  const data = await resp.json() as { portals: DatashadesPortal[] };
+  return data.portals;
 }
 
 function deduplicateByHostname(portals: DatashadesPortal[]): DatashadesPortal[] {

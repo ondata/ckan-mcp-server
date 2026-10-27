@@ -8,6 +8,7 @@ import { createServer, registerAll } from "./server.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { getLastCacheHit } from "./utils/http.js";
 import { takeSearchResults } from "./utils/search-telemetry.js";
+import { summarizeToolError } from "./utils/error-telemetry.js";
 
 interface AnalyticsEngineDataset {
   writeDataPoint(event: { blobs?: string[]; doubles?: number[]; indexes?: string[] }): void;
@@ -313,7 +314,13 @@ export default {
           try {
             const rj = await response.clone().json() as Record<string, unknown>;
             const result = rj?.result as Record<string, unknown> | undefined;
-            if (result?.isError || rj?.error) callStatus = 'error';
+            if (result?.isError || rj?.error) {
+              callStatus = 'error';
+              const content = result?.content as { text?: unknown }[] | undefined;
+              const rpcError = rj?.error as { message?: unknown } | undefined;
+              const text = content?.[0]?.text ?? rpcError?.message;
+              if (typeof text === 'string') Object.assign(logEntry, summarizeToolError(text));
+            }
           } catch { /* ignore */ }
           logEntry['status'] = callStatus;
 

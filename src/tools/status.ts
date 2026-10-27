@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import { makeCkanRequest, formatCkanError, CkanApiError } from "../utils/http.js";
+import { makeCkanRequest, formatCkanError, CkanApiError, CkanTransportError } from "../utils/http.js";
 import { truncateText, cappedStructured, addDemoFooter } from "../utils/formatting.js";
 import { getPortalSparqlConfig, getPortalHvdConfig, getPortalMigration } from "../utils/portal-config.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -81,12 +81,19 @@ Typical workflow: ckan_status_show (verify server is up) → ckan_package_search
         // is the whole diagnosis, and the usual prefix would contradict it.
         const migrated =
           error instanceof CkanApiError && error.serverUrl && getPortalMigration(error.serverUrl);
-        const detail = formatCkanError(error, "ckan_status_show");
+        if (migrated) {
+          return { content: [{ type: "text", text: formatCkanError(error, "ckan_status_show") }], isError: true };
+        }
+        // The generic hints send the caller to `ckan_status_show`, which is this tool. Most
+        // failures here are a site that is up but is not the CKAN API (open.ottawa.ca is an
+        // ArcGIS Hub, data.europa.eu/data answers 404), so say that and point at discovery.
+        const detail = error instanceof CkanApiError || error instanceof CkanTransportError
+          ? `${error.message}\n→ No CKAN API answered at this address. The site may be up but not run CKAN, ` +
+            `or keep its CKAN API on another host. Use \`ckan_find_portals\` to look up the portal's CKAN API URL; ` +
+            `retry later only if this address usually works.`
+          : formatCkanError(error, "ckan_status_show");
         return {
-          content: [{
-            type: "text",
-            text: migrated ? detail : `Server appears to be offline or not a valid CKAN instance:\n${detail}`
-          }],
+          content: [{ type: "text", text: `Server appears to be offline or not a valid CKAN instance:\n${detail}` }],
           isError: true
         };
       }

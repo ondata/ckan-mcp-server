@@ -47,6 +47,17 @@ class FlattenSearchResultsTest(unittest.TestCase):
         self.assertIsNone(flat["result_ids"])
         self.assertIsNone(flat["result_names"])
 
+    def test_error_summary_is_kept(self):
+        flat = flatten(event({
+            "tool": "ckan_find_portals",
+            "status": "error",
+            "error_message": "Could not fetch portal list from datashades.info",
+            "error_kind": "other",
+        }))
+        self.assertEqual(flat["outcome"], "error")
+        self.assertEqual(flat["error_message"], "Could not fetch portal list from datashades.info")
+        self.assertEqual(flat["error_kind"], "other")
+
     def test_every_flat_field_is_present(self):
         flat = flatten(event({"tool": "ckan_package_show", "id": "x"}))
         self.assertEqual(set(flat), set(FLAT_FIELDS))

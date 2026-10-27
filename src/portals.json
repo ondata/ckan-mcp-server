@@ -75,6 +75,16 @@
       ]
     },
     {
+      "id": "open-toronto",
+      "name": "open.toronto.ca",
+      "api_url": "https://ckan0.cf.opendata.inter.prod-toronto.ca",
+      "api_url_aliases": [
+        "https://open.toronto.ca",
+        "http://open.toronto.ca"
+      ],
+      "dataset_view_url": "https://open.toronto.ca/dataset/{name}/"
+    },
+    {
       "id": "data-gov-au",
       "name": "data.gov.au",
       "api_url": "https://data.gov.au",

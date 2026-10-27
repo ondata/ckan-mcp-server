@@ -50,6 +50,8 @@ FLAT_FIELDS = (
     "result_start",
     "result_ids",
     "result_names",
+    "error_message",
+    "error_kind",
 )
 DAY_MS = 86400 * 1000
 
@@ -204,6 +206,8 @@ def flatten(event: dict) -> dict | None:
         "result_start": source.get("result_start") if isinstance(source, dict) else None,
         "result_ids": source.get("result_ids", []) if has_results else None,
         "result_names": source.get("result_names", []) if has_results else None,
+        "error_message": source.get("error_message") if isinstance(source, dict) else None,
+        "error_kind": source.get("error_kind") if isinstance(source, dict) else None,
     }
 
 
