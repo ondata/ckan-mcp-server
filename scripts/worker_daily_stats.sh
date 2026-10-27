@@ -37,7 +37,10 @@ duckdb -c "
         error IS NOT NULL
           OR coalesce(outcome IN ('exception', 'exceededCpu', 'canceled', 'error'), false)
           AS is_error,
-        CASE
+        -- coalesce: a runtime crash can carry no tool and no server (the March 2026
+        -- 'Stateless transport' errors), and a NULL here would drop the call from
+        -- both errors and invalid_input
+        coalesce(CASE
           -- logged since v0.4.133
           WHEN error_kind IS NOT NULL THEN error_kind IN ('validation', 'not_allowed')
           -- older lines: infer it from the server value
@@ -45,7 +48,7 @@ duckdb -c "
           WHEN srv = '' THEN tool LIKE 'ckan_%' AND tool <> 'ckan_find_portals'
           ELSE NOT regexp_matches(srv, '^https?://')
             OR regexp_matches(srv, '^https?://([^/]*\\.)?example\\.(com|org|net)([:/]|\$)')
-        END AS is_invalid
+        END, false) AS is_invalid
       FROM (
         SELECT *, trim(coalesce(server::VARCHAR, ''), '\"') AS srv
         FROM read_json('$INPUT', format='newline_delimited', columns={

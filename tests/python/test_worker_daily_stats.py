@@ -26,6 +26,9 @@ EVENTS = [
     line("https://open.ottawa.ca"),
     line("", tool="ckan_find_portals"),  # takes no server: a real failure
     line("https://open.toronto.ca", error_kind="timeout"),
+    # runtime crash with no tool and no server: a real failure
+    {"id": "crash", "timestamp": f"{DAY}T11:00:00Z", "outcome": "ok", "tool": None, "server": None,
+     "error": "Stateless transport cannot be reused across requests"},
     # rejected input, legacy lines (no error_kind)
     line("test"),
     line({"not": "a string"}),
@@ -50,8 +53,12 @@ class DailyStatsTest(unittest.TestCase):
 
     def test_invalid_input_is_counted_apart_from_errors(self):
         self.assertEqual(self.run_stats(EVENTS), [
-            {"date": DAY, "calls": 10, "ok": 1, "errors": 3, "invalid_input": 6}
+            {"date": DAY, "calls": 11, "ok": 1, "errors": 4, "invalid_input": 6}
         ])
+
+    def test_every_call_is_counted_once(self):
+        row = self.run_stats(EVENTS)[0]
+        self.assertEqual(row["calls"], row["ok"] + row["errors"] + row["invalid_input"])
 
     def test_file_without_error_kind_key_still_works(self):
         events = [{k: v for k, v in e.items() if k != "error_kind"} for e in EVENTS[:3]]
