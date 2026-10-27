@@ -2,6 +2,10 @@
 
 ## 2026-10-27
 
+### v0.4.132
+
+Ships #565: worker telemetry logs returned search results. Tests 601 passed. Smoke 16/17: the MQA case times out because data.europa.eu `/api/mqa/cache/datasets/{id}` (and its successor `/resources/{id}`) hang for every dataset id tried, while `/global`, `/countries`, `/catalogues/dati-gov-it` answer in 0.2 s; released anyway on the user's decision. The official spec (`openapi.yaml` 6.0.1-SNAPSHOT) marks `/datasets/{id}` deprecated, alias of `/resources/{id}`: switching is a separate change.
+
 ### Worker telemetry: returned search results
 
 `ckan_package_search` and `ckan_find_relevant_datasets` now record the datasets they return (ids and names in rank order, max 20), the total count (zero included) and the start offset. The worker adds them to its log line (`result_count`, `result_start`, `result_ids`, `result_names`), and the archiver carries them, plus `fq` and `sort`, into `data/worker_events_flat.jsonl`. Goal: query → result pairs for search fine-tuning. No session id exists (stateless worker): a later `package_show` on an id in `result_ids` links to the search. Side channel keyed by the per-request `McpServer` (`src/utils/search-telemetry.ts`), so concurrent requests cannot mix. Checked with `wrangler dev` on dati.gov.it, zero-result case included.
