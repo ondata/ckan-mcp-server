@@ -2,9 +2,13 @@
 
 ## 2026-10-27
 
+### Archiver: empty result lists for zero-result searches
+
+Manual archiver run on a scratchpad copy (7 live events): search fields reach `worker_events_flat.jsonl`, but a zero-result search came in with `result_ids`/`result_names` null, since the Observability API drops empty arrays from `source`. `flatten()` now restores `[]` whenever `result_count` is present, so "0 results" stays distinct from "not a search". Rechecked on a fresh copy: `zzqxkwvnonesiste` → `result_count` 0, lists `[]`.
+
 ### v0.4.132
 
-Ships #565: worker telemetry logs returned search results. Tests 601 passed. Smoke 16/17: the MQA case times out because data.europa.eu `/api/mqa/cache/datasets/{id}` (and its successor `/resources/{id}`) hang for every dataset id tried, while `/global`, `/countries`, `/catalogues/dati-gov-it` answer in 0.2 s; released anyway on the user's decision. The official spec (`openapi.yaml` 6.0.1-SNAPSHOT) marks `/datasets/{id}` deprecated, alias of `/resources/{id}`: switching is a separate change.
+Ships #565: worker telemetry logs returned search results. Tests 601 passed. Smoke 16/17: the MQA case times out because data.europa.eu `/api/mqa/cache/datasets/{id}` (and its successor `/resources/{id}`) hang for every dataset id tried, while `/global`, `/countries`, `/catalogues/dati-gov-it` answer in 0.2 s; released anyway on the user's decision. Live on npm (provenance), the MCP Registry (`isLatest`), the Worker (`/health` 0.4.132) and the GitHub release (DXT + skill attached). Observability API checked read-only: `result_ids` arrives as a list and `flatten()` maps it. The official spec (`openapi.yaml` 6.0.1-SNAPSHOT) marks `/datasets/{id}` deprecated, alias of `/resources/{id}`: switching is a separate change.
 
 ### Worker telemetry: returned search results
 
