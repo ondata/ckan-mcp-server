@@ -40,6 +40,17 @@ describe("ckan_status_show on a site that is not the CKAN API", () => {
     expect(text).not.toContain("call `ckan_status_show`");
   });
 
+  it("keeps the migration notice when a migrated portal times out", async () => {
+    vi.mocked(axios.get).mockRejectedValue({ code: "ECONNABORTED" });
+
+    const result = await callStatus("https://catalog.data.gov");
+    const text = result.content[0].text;
+
+    expect(result.isError).toBe(true);
+    expect(text).toContain("stopped being a CKAN portal");
+    expect(text).not.toContain("ckan_find_portals");
+  });
+
   it("routes open.toronto.ca to its CKAN API host", async () => {
     vi.mocked(axios.get).mockResolvedValue({
       data: { success: true, result: { ckan_version: "2.10", site_title: "Toronto", site_url: "https://open.toronto.ca" } }

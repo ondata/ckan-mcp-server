@@ -80,7 +80,8 @@ Typical workflow: ckan_status_show (verify server is up) → ckan_package_search
         // A portal that left CKAN is neither offline nor invalid: the migration notice
         // is the whole diagnosis, and the usual prefix would contradict it.
         const migrated =
-          error instanceof CkanApiError && error.serverUrl && getPortalMigration(error.serverUrl);
+          (error instanceof CkanApiError || error instanceof CkanTransportError) &&
+          error.serverUrl && getPortalMigration(error.serverUrl);
         if (migrated) {
           return { content: [{ type: "text", text: formatCkanError(error, "ckan_status_show") }], isError: true };
         }
