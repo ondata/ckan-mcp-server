@@ -85,11 +85,17 @@ MCP layer had failed).
 ## worker_daily_stats.sh
 
 Aggregates `worker_events_flat.jsonl` by day into `data/worker_daily_calls.jsonl`
-(`date`, `calls`, `ok`, `errors`). Fully recomputed each run.
+(`date`, `calls`, `ok`, `errors`, `invalid_input`). Fully recomputed each run.
 
 An event counts as an error when `error` is set or `outcome` is one of `exception`,
 `exceededCpu`, `canceled`, `error` — so the count stays valid across the July 2026
 schema change.
+
+A failed event goes to `invalid_input` instead of `errors` when it was rejected before
+any portal was contacted: `error_kind` is `validation` or `not_allowed`, or, on lines
+older than `error_kind`, `server` is not an http(s) URL, is an `example.com/org/net`
+host, or is empty for a `ckan_*` tool other than `ckan_find_portals`. Tested in
+`tests/python/test_worker_daily_stats.py`.
 
 ```bash
 bash scripts/worker_daily_stats.sh

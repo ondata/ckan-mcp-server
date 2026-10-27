@@ -2,6 +2,10 @@
 
 ## 2026-10-28
 
+### Daily stats: invalid input counted apart
+
+`worker_daily_calls.jsonl` gains `invalid_input`: failed calls rejected before any portal was contacted, mostly scanners sending dozens of tools in one second with `server_url` `''`, `test`, `{not:a string}`. They are no longer in `errors`, which now measures failures on real portals. Rule: `error_kind` `validation`/`not_allowed` (logged since v0.4.133); older lines inferred from `server`, with `ckan_find_portals` excluded (it takes no server, its 96 failures were real). On the full history `calls` and `ok` are unchanged; since 2026-09-05 errors 754 → 333 errors + 421 invalid input; 2026-10-27: 74 → 11 + 63. Tests in `tests/python/test_worker_daily_stats.py` (fail on the old script); DuckDB is now installed before the tests in `update-telemetry.yml` so they run there.
+
 ### v0.4.133
 
 Ships #568. For callers: `ckan_find_portals` works again on the hosted Worker (it failed on every call since at least 2026-09-05); `ckan_status_show` on a site that is not a CKAN API now says so and points at `ckan_find_portals`, instead of telling the caller to call `ckan_status_show`; `open.toronto.ca` works as a server URL in every tool (routed to its CKAN host). Tests 616 passed. Smoke 16/17: same MQA outage as v0.4.132 (per-dataset `/api/mqa/cache/*/{id}` still not answering, `/global` 0.2 s), tagged with `SKIP_RELEASE_GATE=1` on the user's decision. Live on npm (provenance), the MCP Registry (`isLatest`), the Worker (`/health` 0.4.133) and the GitHub release (DXT + skill). Checked on the live Worker: `ckan_find_portals` 945 portals in 4.4 s, 749 ms CPU; `open.toronto.ca` search routed (17 results). MQA outage confirmed from the browser: data.europa.eu's own quality page calls the same `/api/mqa/cache/datasets/{id}` and gets no answer either.

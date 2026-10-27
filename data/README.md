@@ -78,11 +78,12 @@ Daily aggregate of tool invocations from the Cloudflare Workers deployment. Full
 | `date` | string (YYYY-MM-DD) | Reference date |
 | `calls` | integer | Total tool invocations |
 | `ok` | integer | Successful invocations |
-| `errors` | integer | Failed invocations |
+| `errors` | integer | Failed invocations on real portals |
+| `invalid_input` | integer | Failed invocations rejected before any portal was contacted (since 2026-10-28): `error_kind` `validation` or `not_allowed`; on older lines inferred from `server` (not an http(s) URL, `example.com/org/net`, or empty for a `ckan_*` tool other than `ckan_find_portals`). `calls` = `ok` + `errors` + `invalid_input` |
 
 **Example**:
 ```json
-{"date":"2026-03-05","calls":280,"ok":280,"errors":0}
+{"date":"2026-10-27","calls":209,"ok":135,"errors":11,"invalid_input":63}
 ```
 
 ---

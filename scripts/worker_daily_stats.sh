@@ -13,6 +13,8 @@ if [[ ! -s "$INPUT" ]]; then
   exit 0
 fi
 
+# Explicit columns: a key missing from every line (error_kind, before the archiver
+# first wrote it) reads as NULL instead of failing the bind.
 duckdb -c "
   COPY (
     SELECT
@@ -21,7 +23,11 @@ duckdb -c "
       -- 'ok' means 'did not come back as an error', not a runtime confirmation:
       -- the API stopped exposing outcome on 2026-07-12 (see scripts/README.md)
       count(*) FILTER (WHERE NOT is_error)                       AS ok,
-      count(*) FILTER (WHERE is_error)                           AS errors
+      count(*) FILTER (WHERE is_error AND NOT is_invalid)        AS errors,
+      -- Rejected before any portal was contacted: mostly scanners sending dozens of
+      -- tools in the same second with server_url '', 'test', '{not:a string}'.
+      -- Counted apart so 'errors' measures failures on real portals.
+      count(*) FILTER (WHERE is_error AND is_invalid)            AS invalid_input
     FROM (
       SELECT
         timestamp,
@@ -30,8 +36,23 @@ duckdb -c "
         -- catches application errors that the runtime reported as ok
         error IS NOT NULL
           OR coalesce(outcome IN ('exception', 'exceededCpu', 'canceled', 'error'), false)
-          AS is_error
-      FROM read_json('$INPUT', format='newline_delimited')
+          AS is_error,
+        CASE
+          -- logged since v0.4.133
+          WHEN error_kind IS NOT NULL THEN error_kind IN ('validation', 'not_allowed')
+          -- older lines: infer it from the server value
+          -- ckan_find_portals takes no server, so an empty one is not bad input there
+          WHEN srv = '' THEN tool LIKE 'ckan_%' AND tool <> 'ckan_find_portals'
+          ELSE NOT regexp_matches(srv, '^https?://')
+            OR regexp_matches(srv, '^https?://([^/]*\\.)?example\\.(com|org|net)([:/]|\$)')
+        END AS is_invalid
+      FROM (
+        SELECT *, trim(coalesce(server::VARCHAR, ''), '\"') AS srv
+        FROM read_json('$INPUT', format='newline_delimited', columns={
+          timestamp: 'VARCHAR', tool: 'VARCHAR', outcome: 'VARCHAR', error: 'VARCHAR',
+          server: 'JSON', error_kind: 'VARCHAR'
+        })
+      )
     )
     GROUP BY 1
     ORDER BY 1
