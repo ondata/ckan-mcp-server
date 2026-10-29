@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-10-29
+
+### MQA: `/resources/{id}` instead of the deprecated `/datasets/{id}`
+
+The MQA cache answers again (2026-10-29 08:51 UTC: every endpoint 200 in under 0.5 s, smoke 17/17, after hanging on per-dataset lookups since 2026-10-27). `ckan_get_mqa_quality` and `ckan_get_mqa_quality_details` now call `/api/mqa/cache/resources/{id}`, the path the cache spec (`openapi.yaml` 6.0.1-SNAPSHOT) recommends; `/datasets/{id}` is marked deprecated, an alias with the same responses. Checked live: same payload on both paths for `c_h501-crm2023` (only the order of distributions differs), same 404 body ("DQV of dataset not found") for an unknown id. Not checked live: the "No v2 metrics found" 404 that triggers the v1 fallback, since every dati.gov.it dataset sampled (60) now has v2 metrics; the spec says responses are unchanged. Tests 616 passed (4 MQA tests fail on the old path), smoke 17/17, HTTP e2e on both tools: 6.85/7.5 for the Roma dataset.
+
 ## 2026-10-28
 
 ### Daily stats: invalid input counted apart
