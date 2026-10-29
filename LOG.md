@@ -4,7 +4,7 @@
 
 ### v0.4.134
 
-Ships #572. For callers: `ckan_get_mqa_quality` and `ckan_get_mqa_quality_details` read the MQA cache from `/resources/{id}`, the path data.europa.eu recommends, instead of the deprecated `/datasets/{id}`; scores and replies are unchanged. Tests 616 passed, smoke 17/17 (green again: the MQA case had failed for v0.4.132 and v0.4.133 during the data.europa.eu outage).
+Ships #572. For callers: `ckan_get_mqa_quality` and `ckan_get_mqa_quality_details` read the MQA cache from `/resources/{id}`, the path data.europa.eu recommends, instead of the deprecated `/datasets/{id}`; scores and replies are unchanged. Tests 616 passed, smoke 17/17 (green again: the MQA case had failed for v0.4.132 and v0.4.133 during the data.europa.eu outage). Live on npm (provenance), the MCP Registry (`isLatest`, 09:12 UTC), the Worker (`/health` 0.4.134, both MQA tools 6.85/7.5 on the Roma dataset) and the GitHub release (DXT + skill). The registry JWT from `mcp-publisher login github` now lasts 5 minutes (decoded `exp` - `iat`): login and publish must run in one command.
 
 ### MQA: `/resources/{id}` instead of the deprecated `/datasets/{id}`
 
