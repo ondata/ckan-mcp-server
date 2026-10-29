@@ -130,7 +130,7 @@ describe('ckan_get_mqa_quality integration', () => {
 
       expect(fetch).toHaveBeenNthCalledWith(
         1,
-        `https://data.europa.eu/api/mqa/cache/datasets/${DATASET_ID}`,
+        `https://data.europa.eu/api/mqa/cache/resources/${DATASET_ID}`,
         expect.any(Object)
       );
       expect(fetch).toHaveBeenCalledTimes(1);
@@ -236,7 +236,7 @@ describe('ckan_get_mqa_quality integration', () => {
 
       expect(fetch).toHaveBeenNthCalledWith(
         1,
-        'https://data.europa.eu/api/mqa/cache/datasets/example-dataset-no-identifier',
+        'https://data.europa.eu/api/mqa/cache/resources/example-dataset-no-identifier',
         expect.any(Object)
       );
     });
@@ -251,7 +251,7 @@ describe('ckan_get_mqa_quality integration', () => {
 
       expect(fetch).toHaveBeenNthCalledWith(
         1,
-        'https://data.europa.eu/api/mqa/cache/datasets/cmna-a064',
+        'https://data.europa.eu/api/mqa/cache/resources/cmna-a064',
         expect.any(Object)
       );
     });
@@ -275,7 +275,7 @@ describe('ckan_get_mqa_quality integration', () => {
 
       expect(fetch).toHaveBeenNthCalledWith(
         2,
-        `https://data.europa.eu/api/mqa/cache/datasets/${base}~~1`,
+        `https://data.europa.eu/api/mqa/cache/resources/${base}~~1`,
         expect.any(Object)
       );
       expect(result.portalId).toBe(`${base}~~1`);

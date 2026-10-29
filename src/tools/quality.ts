@@ -8,7 +8,8 @@ import { makeCkanRequest, formatCkanError, safeFetch } from "../utils/http.js";
 import { truncateText, truncateJson, formatError, addDemoFooter } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-const MQA_API_BASE = "https://data.europa.eu/api/mqa/cache/datasets";
+// `/resources/{id}`: the cache spec (openapi.yaml 6.0.1) marks `/datasets/{id}` deprecated, an alias with the same responses
+const MQA_API_BASE = "https://data.europa.eu/api/mqa/cache/resources";
 const MQA_METRICS_BASE = "https://data.europa.eu/api/hub/repo/datasets";
 const ALLOWED_MQA_HOSTS = new Set(["dati.gov.it", "www.dati.gov.it"]);
 
