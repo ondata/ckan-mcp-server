@@ -171,6 +171,15 @@ function check(expect, payload) {
     if (!(typeof payload[field] === "number" && payload[field] <= max))
       fail.push(`${field} is ${JSON.stringify(payload[field])}, expected a number of at most ${max}`);
   }
+  for (const [field, min] of Object.entries(expect.array_min ?? {})) {
+    if (!(Array.isArray(payload[field]) && payload[field].length >= min))
+      fail.push(`${field} has ${Array.isArray(payload[field]) ? payload[field].length : "no"} items, expected at least ${min}`);
+  }
+  // `array_has: { fields: "keywords" }`: the array holds an item for that field name, with a label and a value
+  for (const [field, name] of Object.entries(expect.array_has ?? {})) {
+    if (!(Array.isArray(payload[field]) && payload[field].some((item) => item?.field === name && item.label && item.value !== undefined)))
+      fail.push(`${field} has no complete item (with label and value) for "${name}"`);
+  }
   if (expect.margin_min !== undefined) {
     const [a, b] = (payload.results ?? []).map((r) => r.score ?? 0);
     if (a === undefined || b === undefined || a - b < expect.margin_min)

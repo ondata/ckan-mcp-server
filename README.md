@@ -298,7 +298,7 @@ The MCP server will be available at `http://localhost:3000/mcp`. See [`docker/RE
 
 - **ckan_package_search**: Search datasets with Solr queries
 - **ckan_find_relevant_datasets**: Rank datasets by relevance score
-- **ckan_package_show**: Complete details of a dataset
+- **ckan_package_show**: Complete details of a dataset. On portals that use [ckanext-scheming](https://github.com/ckan/ckanext-scheming) the schema's other root fields are added as `fields`, each with its label and the value as stored
 - **ckan_tag_list**: List tags with counts
 
 ### Organizations

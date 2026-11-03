@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-11-04
+
+### `ckan_package_show`: root fields of a ckanext-scheming schema
+
+On a portal that uses ckanext-scheming, `ckan_package_show` now asks for `scheming_dataset_schema_show` (for the dataset's own type) and adds the schema's other root fields that have a value, each with its label and the value as stored, as `fields` in JSON and a section in Markdown. On open.canada.ca an "Air quality" dataset gains 22 fields (keywords, contacts, coverage, subject) that were dropped before. Any failure to get the schema means no schema: nothing is added, nothing is reported, and the miss is cached (an hour for 404 and 400, five minutes otherwise). Fields the chosen output already shows are left out; fields it cannot show (for example `author_email` in JSON) are included. Strings over 2000 characters are cut and marked. Issue #575; OpenSpec change `add-scheming-fields-package-show`.
+
 ## 2026-10-29
 
 ### v0.4.134

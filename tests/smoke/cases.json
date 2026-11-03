@@ -2,6 +2,23 @@
   "_comment": "Known-answer cases for the pre-release gate. Every case asserts which dataset must come back, not how many. Thresholds are deliberately loose so catalog drift does not cause false alarms; they are tight enough to catch the failures this file was written for, listed in `regression`.",
   "cases": [
     {
+      "name": "scheming portal: root fields reach package_show",
+      "regression": "issue #575: 37 root fields on open.canada.ca never reached the caller",
+      "tool": "ckan_package_show",
+      "server": "https://open.canada.ca/data",
+      "args": {
+        "id": "01313060-f926-4460-a537-4204e47c88a5"
+      },
+      "expect": {
+        "array_min": {
+          "fields": 10
+        },
+        "array_has": {
+          "fields": "keywords"
+        }
+      }
+    },
+    {
       "name": "plain multi-term query reaches the portal parser",
       "regression": "v0.4.121: text:(...) wrapping cut this to 5 results",
       "tool": "ckan_package_search",
