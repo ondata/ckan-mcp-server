@@ -941,7 +941,7 @@ For issues or questions, [open an issue on GitHub](https://github.com/ondata/cka
 
 ## Privacy Policy
 
-This server collects no personal data. It is read-only and stateless — queries are forwarded directly to the public CKAN API you specify, and no data is stored or logged.
+A local installation (npm, Claude Desktop extension, stdio or your own HTTP server) sends nothing to us: queries go straight to the CKAN portal you specify, and the only log is an audit line on your machine's standard error. The public demo instance on Cloudflare Workers logs the arguments of each tool call (tool, portal, search text and parameters, datasets returned, outcome), never IP addresses, headers or conversation content; an archive of those fields is published as open data in [`data/`](https://github.com/ondata/ckan-mcp-server/blob/main/data/README.md), so do not put personal information in queries sent to it.
 
 See the full [Privacy Policy](https://github.com/ondata/ckan-mcp-server/blob/main/PRIVACY.md).
 

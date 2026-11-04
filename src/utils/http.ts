@@ -777,7 +777,7 @@ export async function makeCkanRequest<T>(
   const ttl = getTtlForAction(action, cacheConfig.ttlDefault);
   const cache = cacheEnabled && ttl > 0 ? getCache() : null;
   const cacheKey = cache
-    ? await buildCacheKey(resolvedServerUrl, action, params)
+    ? await buildCacheKey(baseUrl, action, params)
     : "";
 
   if (cache) {
@@ -855,53 +855,68 @@ export async function makeCkanRequest<T>(
         const fetchUrl = searchParams.toString()
           ? `${url}?${searchParams.toString()}`
           : url;
+        // The timer runs until the body is read, not just the headers: a portal that
+        // sent headers and then stalled kept a Worker call open for 134 s
+        // (open.canada.ca, 2026-10-31).
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30000);
-        let response: Response;
+        const timeoutError = () => new CkanTransportError(`Request timeout connecting to ${serverUrl}`, serverUrl);
         try {
-          // safeFetch re-validates each redirect hop (same guard as the axios branch)
-          response = await safeFetch(fetchUrl, {
-            method: "GET",
-            signal: controller.signal,
-            headers: {
-              Accept: "application/json, text/plain, */*",
-              "Accept-Encoding": "identity",
-              "User-Agent": honest ? HONEST_USER_AGENT : BROWSER_USER_AGENT
+          let response: Response;
+          try {
+            // safeFetch re-validates each redirect hop (same guard as the axios branch)
+            response = await safeFetch(fetchUrl, {
+              method: "GET",
+              signal: controller.signal,
+              headers: {
+                Accept: "application/json, text/plain, */*",
+                "Accept-Encoding": "identity",
+                "User-Agent": honest ? HONEST_USER_AGENT : BROWSER_USER_AGENT
+              }
+            }, { maxHops: 5 });
+          } catch (error) {
+            // Workers has no axios, so this branch is the only place a fetch failure can be
+            // classified: a bare `TypeError` reaches `formatCkanError` and the caller gets
+            // no retry guidance. The SSRF guards throw `SsrfGuardError` with their own
+            // message, and those keep it.
+            if (controller.signal.aborted) throw timeoutError();
+            if (error instanceof TypeError) {
+              throw new CkanTransportError(`Network error: ${error.message}`, serverUrl);
             }
-          }, { maxHops: 5 });
-        } catch (error) {
-          // Workers has no axios, so this branch is the only place a fetch failure can be
-          // classified: a bare `TypeError` reaches `formatCkanError` and the caller gets
-          // no retry guidance. The SSRF guards throw `SsrfGuardError` with their own
-          // message, and those keep it.
-          if (controller.signal.aborted) {
-            throw new CkanTransportError(`Request timeout connecting to ${serverUrl}`, serverUrl);
+            throw error;
           }
-          if (error instanceof TypeError) {
-            throw new CkanTransportError(`Network error: ${error.message}`, serverUrl);
+
+          if (!response.ok) {
+            throw new CkanApiError(`CKAN API error (${response.status}): ${response.statusText}`, response.status, action, serverUrl);
           }
-          throw error;
+
+          const declaredLength = Number(response.headers.get("content-length"));
+          if (Number.isFinite(declaredLength) && declaredLength > MAX_RESPONSE_BYTES) {
+            throw new CkanApiError(`Response too large (${declaredLength} bytes)`, undefined, action, serverUrl);
+          }
+          let buffer: ArrayBuffer;
+          try {
+            buffer = await response.arrayBuffer();
+          } catch (error) {
+            // Past the headers no guard can fire, so any failure here is the connection:
+            // Workers reports a dropped one as a plain `Error("Network connection lost.")`.
+            if (controller.signal.aborted) throw timeoutError();
+            throw new CkanTransportError(
+              `Network error: ${error instanceof Error ? error.message : String(error)}`,
+              serverUrl
+            );
+          }
+          if (buffer.byteLength > MAX_RESPONSE_BYTES) {
+            throw new CkanApiError(`Response too large (${buffer.byteLength} bytes)`, undefined, action, serverUrl);
+          }
+          const headers: Record<string, string> = {};
+          response.headers.forEach((headerValue, headerKey) => {
+            headers[headerKey] = headerValue;
+          });
+          return decodePossiblyCompressed(buffer, headers);
         } finally {
           clearTimeout(timeoutId);
         }
-
-        if (!response.ok) {
-          throw new CkanApiError(`CKAN API error (${response.status}): ${response.statusText}`, response.status, action, serverUrl);
-        }
-
-        const declaredLength = Number(response.headers.get("content-length"));
-        if (Number.isFinite(declaredLength) && declaredLength > MAX_RESPONSE_BYTES) {
-          throw new CkanApiError(`Response too large (${declaredLength} bytes)`, undefined, action, serverUrl);
-        }
-        const buffer = await response.arrayBuffer();
-        if (buffer.byteLength > MAX_RESPONSE_BYTES) {
-          throw new CkanApiError(`Response too large (${buffer.byteLength} bytes)`, undefined, action, serverUrl);
-        }
-        const headers: Record<string, string> = {};
-        response.headers.forEach((headerValue, headerKey) => {
-          headers[headerKey] = headerValue;
-        });
-        return decodePossiblyCompressed(buffer, headers);
       }
     };
 

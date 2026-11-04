@@ -296,6 +296,17 @@ export default {
             if (a['language'] !== undefined)      logEntry['language'] = a['language'];
             if (a['has_datastore'] !== undefined) logEntry['has_datastore'] = a['has_datastore'];
             if (a['min_datasets'] !== undefined)  logEntry['min_datasets'] = a['min_datasets'];
+            // Paging and filters (since 2026-11-04): without them a repeated call cannot be
+            // told from a paged or filtered one. Objects are logged as capped JSON strings.
+            for (const key of ['page', 'page_size', 'offset', 'distinct'] as const) {
+              if (a[key] !== undefined) logEntry[key] = a[key];
+            }
+            for (const key of ['filters', 'fields'] as const) {
+              if (a[key] !== undefined) {
+                const v = a[key];
+                logEntry[key] = (typeof v === 'string' ? v : JSON.stringify(v)).slice(0, 200);
+              }
+            }
           }
         } catch { /* ignore parse errors (e.g. non-JSON requests) */ }
 
