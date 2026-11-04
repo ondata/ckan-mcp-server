@@ -2,6 +2,10 @@
 
 ## 2026-11-04
 
+### v0.4.135
+
+Ships #577 and #578. For callers: `ckan_find_relevant_datasets` suggests an OR rewrite on zero results, and the OR tip of both search tools keeps quoted phrases whole; `ckan_find_portals` caches the datashades.info registry for 6 h (5 s → 0.01 s after the first call); CKAN's own error reason now reaches the caller on both Node and Workers, with targeted hints for SQL errors and bot-protection 403s; on Workers the 30 s timeout covers the response body. Telemetry of the demo instance records paging and filter parameters; `PRIVACY.md` describes what it logs. Tests 639 passed, smoke 17/17.
+
 ### `ckan_find_portals` registry cache; CKAN's error reason reaches the caller
 
 From the worker telemetry (2026-10-04 to 2026-11-04) and live checks.
