@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { __resetCacheForTests } from "../../src/utils/cache.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
@@ -58,5 +59,51 @@ describe("ckan_find_portals", () => {
 
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain("503");
+  });
+
+  describe("registry cache", () => {
+    const originalEnv = process.env.CKAN_CACHE_ENABLED;
+    const registry = () => new Response(JSON.stringify({ portals: [
+      portal("https://dati.comune.milano.it", "Open Data Comune di Milano", "Italy"),
+      portal("https://open.canada.ca/data", "Open Canada", "Canada")
+    ] }), { status: 200, headers: { "content-type": "application/json" } });
+
+    beforeEach(() => {
+      __resetCacheForTests();
+      process.env.CKAN_CACHE_ENABLED = "true";
+    });
+
+    afterEach(() => {
+      if (originalEnv === undefined) delete process.env.CKAN_CACHE_ENABLED;
+      else process.env.CKAN_CACHE_ENABLED = originalEnv;
+      __resetCacheForTests();
+    });
+
+    // The registry is 22 MB: on the Worker every call paid 5 s median to download it
+    // (telemetry 2026-10-04 to 2026-11-04). Filters change, the list does not.
+    it("downloads the registry once for calls with different filters", async () => {
+      const fetchMock = vi.fn().mockImplementation(async () => registry());
+      vi.stubGlobal("fetch", fetchMock);
+
+      const italy = await callFindPortals({ country: "Italy" });
+      const canada = await callFindPortals({ country: "Canada" });
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(italy.content[0].text).toContain("dati.comune.milano.it");
+      expect(canada.content[0].text).toContain("open.canada.ca");
+      expect(canada.content[0].text).not.toContain("dati.comune.milano.it");
+      expect(canada.content[0].text).toContain("| ✅ |");
+    });
+
+    it("downloads every time when the cache is disabled", async () => {
+      process.env.CKAN_CACHE_ENABLED = "false";
+      const fetchMock = vi.fn().mockImplementation(async () => registry());
+      vi.stubGlobal("fetch", fetchMock);
+
+      await callFindPortals({ country: "Italy" });
+      await callFindPortals({ country: "Italy" });
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
   });
 });

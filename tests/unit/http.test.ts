@@ -5,6 +5,7 @@ import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
 import { makeCkanRequest, validateServerUrl, CkanApiError, CkanTransportError, SsrfGuardError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, getSafeDispatcher, __setDnsResolverForTests, isAnubisChallenge } from '../../src/utils/http';
 import { __resetCacheForTests } from '../../src/utils/cache';
+import { summarizeToolError } from '../../src/utils/error-telemetry';
 import { getRateLimiter, __resetRateLimiterForTests } from '../../src/utils/rate-limiter';
 import successResponse from '../fixtures/responses/status-success.json';
 
@@ -776,6 +777,23 @@ describe('makeCkanRequest', () => {
     expect((err as CkanApiError).action).toBe('package_show');
   });
 
+  it('Node: a CKAN validation error reaches the message, not "Unknown error"', async () => {
+    // axios hands back the error body as bytes (responseType arraybuffer), so
+    // `data.error` never existed and every 4xx read "Unknown error".
+    const body = { success: false, error: { __type: 'Validation Error', query: ['column "anno" does not exist'] } };
+    vi.mocked(axios.isAxiosError).mockReturnValue(true);
+    vi.mocked(axios.get).mockRejectedValue({
+      response: { status: 409, data: Buffer.from(JSON.stringify(body)), headers: {} }
+    });
+
+    const err = await makeCkanRequest(
+      'https://dati.comune.messina.it', 'datastore_search_sql', {}, { cache: false, rateLimit: false }
+    ).catch(e => e);
+    expect(err).toBeInstanceOf(CkanApiError);
+    expect(err.message).toBe('CKAN API error (409): query: column "anno" does not exist');
+    expect(err.ckanReason).toBe('query: column "anno" does not exist');
+  });
+
   it('throws plain Error (not CkanApiError) for timeout', async () => {
     const axiosError = { code: 'ECONNABORTED' };
 
@@ -1246,6 +1264,41 @@ describe('formatCkanError', () => {
     }
   });
 
+  it('Workers: a CKAN error body reaches the message instead of the status text', async () => {
+    const body = { success: false, error: { __type: 'Authorization Error', message: 'Not authorized to call function NULLIF' } };
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify(body), { status: 403, statusText: 'Forbidden' })));
+    vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
+    try {
+      const err = await makeCkanRequest(
+        'https://www.donneesquebec.ca/recherche', 'datastore_search_sql', {}, { cache: false, rateLimit: false }
+      ).catch(e => e);
+      expect(err).toBeInstanceOf(CkanApiError);
+      expect(err.message).toBe('CKAN API error (403): Not authorized to call function NULLIF');
+      expect(formatCkanError(err, 'ckan_datastore_search_sql')).toContain('not permitted on this portal');
+      // The telemetry classifies on the whole text: the hint must not read as `not_allowed`.
+      expect(summarizeToolError(formatCkanError(err, 'ckan_datastore_search_sql')).error_kind).toBe('upstream_http');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('Workers: a 403 HTML page is reported as bot protection, body not reflected', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('<!DOCTYPE html><title>Just a moment...</title>', { status: 403, statusText: 'Forbidden' })));
+    vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
+    try {
+      const err = await makeCkanRequest(
+        'https://data.forest.go.th', 'package_search', {}, { cache: false, rateLimit: false }
+      ).catch(e => e);
+      expect(err.message).toBe('CKAN API error (403): Forbidden');
+      const text = formatCkanError(err, 'ckan_package_search');
+      expect(text).toContain('bot protection');
+      expect(text).not.toContain('Just a moment');
+      expect(summarizeToolError(text).error_kind).toBe('upstream_http');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('Workers: an SSRF guard failure keeps its own message, not the unreachable hint', async () => {
     const fetchMock = vi.fn(async () => new Response(null, {
       status: 302,
@@ -1270,6 +1323,13 @@ describe('formatCkanError', () => {
     const result = formatCkanError(err, 'ckan_package_search');
     expect(result).toContain('stopped being a CKAN portal');
     expect(result).not.toContain('Portal unreachable');
+  });
+
+  it('409 on datastore_search_sql points at the SQL, not at conflicting parameters', () => {
+    const err = new CkanApiError('CKAN API error (409): query: column "anno" does not exist', 409, 'datastore_search_sql', undefined, 'query: column "anno" does not exist');
+    const text = formatCkanError(err, 'ckan_datastore_search_sql');
+    expect(text).toContain('SQL');
+    expect(text).not.toContain('parameters may conflict');
   });
 
   it('500 mentions portal internal error', () => {

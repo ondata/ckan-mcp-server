@@ -25,13 +25,58 @@ export class CkanApiError extends Error {
   readonly action: string;
   /** The portal the request went to, as the caller wrote it: lets the hint know its origin. */
   readonly serverUrl: string | undefined;
-  constructor(message: string, status: number | undefined, action: string, serverUrl?: string) {
+  /** The reason CKAN itself gave, when the portal answered with a CKAN error body. */
+  readonly ckanReason: string | undefined;
+  constructor(message: string, status: number | undefined, action: string, serverUrl?: string, ckanReason?: string) {
     super(message);
     this.name = 'CkanApiError';
     this.status = status;
     this.action = action;
     this.serverUrl = serverUrl;
+    this.ckanReason = ckanReason;
   }
+}
+
+const MAX_CKAN_REASON_LENGTH = 300;
+/** Error bodies larger than this are not read: a CKAN error is a few hundred bytes. */
+const MAX_ERROR_BODY_BYTES = 64 * 1024;
+
+/**
+ * The reason CKAN gives for a failed action: `error.message`, or for a validation error
+ * (which has none) its fields, `query: column "x" does not exist`. One line, capped.
+ *
+ * Only a CKAN error body counts — an object with `success: false` and an `error` — so a
+ * firewall page or any other upstream content is never echoed (GHSA-6f9w).
+ */
+export function extractCkanErrorMessage(body: unknown): string | null {
+  if (!body || typeof body !== 'object') return null;
+  const { success, error } = body as { success?: unknown; error?: unknown };
+  if (success !== false || error === undefined || error === null) return null;
+
+  let text: string;
+  if (typeof error === 'string') {
+    text = error;
+  } else if (typeof error === 'object') {
+    const fields = error as Record<string, unknown>;
+    if (typeof fields.message === 'string') {
+      text = fields.message;
+    } else {
+      text = Object.entries(fields)
+        .filter(([key]) => key !== '__type')
+        .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join('; ') : typeof value === 'string' ? value : JSON.stringify(value)}`)
+        .join('; ');
+    }
+  } else {
+    return null;
+  }
+  text = text.replace(/\s+/g, ' ').trim();
+  return text ? text.slice(0, MAX_CKAN_REASON_LENGTH) : null;
+}
+
+/** Build the error for a non-2xx answer, quoting CKAN's own reason when it gave one. */
+function httpError(status: number, statusText: string, body: unknown, action: string, serverUrl: string): CkanApiError {
+  const reason = extractCkanErrorMessage(body) ?? undefined;
+  return new CkanApiError(`CKAN API error (${status}): ${reason ?? (statusText || 'Unknown error')}`, status, action, serverUrl, reason);
 }
 
 /**
@@ -128,6 +173,17 @@ export function formatCkanError(error: unknown, _toolName: string): string {
     } else if (action.startsWith('datastore_search')) {
       hint = '→ Bad request — likely an invalid field name or filter syntax; check column names with a `SELECT *` query first.';
     }
+  } else if (status === 403) {
+    if (!error.ckanReason) {
+      // No CKAN body: a firewall or bot-protection page (data.forest.go.th answers
+      // "Just a moment...", gudang.lokadata.id "Permintaan Ditolak") refused the client.
+      hint = '→ The portal\'s firewall or bot protection refused the request (no CKAN answer). It is not a parameter problem and retrying will not help; the portal may be usable only from a browser.';
+    } else if (action === 'datastore_search_sql') {
+      // CKAN allows a fixed list of SQL functions and no system tables.
+      hint = '→ This SQL uses something not permitted on this portal (CKAN accepts a limited list of functions and no system tables such as information_schema). Rewrite the query without it, or use `ckan_datastore_search`.';
+    }
+  } else if (status === 409 && action === 'datastore_search_sql') {
+    hint = '→ The portal rejected the SQL (reason above). Check table and column names with `ckan_datastore_search` (limit 1), then fix the query.';
   } else if (status === 409 || status === 422) {
     hint = '→ Portal rejected the request — parameters may conflict; simplify filters and retry.';
   } else if (status === 503 || status === 502 || status === 504) {
@@ -887,7 +943,17 @@ export async function makeCkanRequest<T>(
           }
 
           if (!response.ok) {
-            throw new CkanApiError(`CKAN API error (${response.status}): ${response.statusText}`, response.status, action, serverUrl);
+            // The body carries CKAN's reason (`Not authorized to call function NULLIF`);
+            // the status text alone never said what to fix. Read it only when small.
+            let body: unknown = null;
+            const errorLength = Number(response.headers.get("content-length"));
+            if (!(Number.isFinite(errorLength) && errorLength > MAX_ERROR_BODY_BYTES)) {
+              try {
+                const raw = await response.arrayBuffer();
+                if (raw.byteLength <= MAX_ERROR_BODY_BYTES) body = JSON.parse(new TextDecoder().decode(raw));
+              } catch { /* not JSON, or the connection dropped: fall back to the status text */ }
+            }
+            throw httpError(response.status, response.statusText, body, action, serverUrl);
           }
 
           const declaredLength = Number(response.headers.get("content-length"));
@@ -973,10 +1039,14 @@ export async function makeCkanRequest<T>(
       // "Portal unreachable. Retry later" hint would tell the LLM to retry a
       // destination that will never pass, which the fetch branch already avoids.
       if (axiosError.response) {
-        const status = axiosError.response.status;
-        const data = axiosError.response.data as any;
-        const errorMsg = data?.error?.message || data?.error || 'Unknown error';
-        throw new CkanApiError(`CKAN API error (${status}): ${errorMsg}`, status, action, serverUrl);
+        // With `responseType: "arraybuffer"` the error body is bytes, possibly compressed:
+        // read as an object it never had an `error`, and every 4xx said "Unknown error".
+        const { status, statusText, data, headers } = axiosError.response;
+        let body: unknown = null;
+        try {
+          body = await decodePossiblyCompressed(data, headers as Record<string, unknown>);
+        } catch { /* undecodable body: fall back to the status text */ }
+        throw httpError(status, statusText, body, action, serverUrl);
       } else if (axiosError.code === 'ECONNABORTED') {
         throw new CkanTransportError(`Request timeout connecting to ${serverUrl}`, serverUrl);
       } else if (axiosError.code === 'ENOTFOUND') {

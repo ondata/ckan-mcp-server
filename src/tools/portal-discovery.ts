@@ -5,6 +5,7 @@
 import { z } from "zod";
 import { truncateText, cappedStructured, addDemoFooter } from "../utils/formatting.js";
 import { formatCkanError, safeFetch } from "../utils/http.js";
+import { getCache, getCacheConfig } from "../utils/cache.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const DATASHADES_URL = "https://datashades.info/api/portal/list";
@@ -20,8 +21,35 @@ interface DatashadesPortal {
   status: string;
 }
 
+// The registry is 22 MB and every call downloaded it: 5 s median on the Worker
+// (telemetry 2026-10-04 to 2026-11-04). Filters change per call, the list rarely does,
+// so the active portals are cached, reduced to the fields this tool reads: 945
+// portals weigh ~129 KB, under the default per-entry cap.
+const REGISTRY_CACHE_KEY = "datashades-portal-list-v1";
+const REGISTRY_TTL_SECONDS = 6 * 3600;
+
+function slimPortal(p: DatashadesPortal): DatashadesPortal {
+  return {
+    Href: p.Href,
+    SiteInfo: { site_title: p.SiteInfo?.site_title, locale_default: p.SiteInfo?.locale_default },
+    Coordinates: { country_name: p.Coordinates?.country_name },
+    Version: p.Version,
+    Plugins: (p.Plugins || []).includes("datastore") ? ["datastore"] : [],
+    DatasetsNumber: p.DatasetsNumber,
+    OrgNumber: p.OrgNumber,
+    status: p.status
+  };
+}
+
 // fetch, not axios: axios's fetch adapter breaks on Workers ("'cache' field ... not implemented")
 async function fetchPortals(): Promise<DatashadesPortal[]> {
+  const config = getCacheConfig();
+  const cache = config.enabled ? getCache() : null;
+  if (cache) {
+    const cached = await cache.get(REGISTRY_CACHE_KEY);
+    if (Array.isArray(cached)) return cached as DatashadesPortal[];
+  }
+
   const resp = await safeFetch(DATASHADES_URL, {
     headers: { "User-Agent": "CKAN-MCP-Server/1.0" },
     signal: AbortSignal.timeout(15000)
@@ -30,7 +58,12 @@ async function fetchPortals(): Promise<DatashadesPortal[]> {
     throw new Error(`datashades.info returned ${resp.status} ${resp.statusText}`);
   }
   const data = await resp.json() as { portals: DatashadesPortal[] };
-  return data.portals;
+  const portals = data.portals.filter(p => p.status === "active" && p.Href).map(slimPortal);
+
+  if (cache && JSON.stringify(portals).length <= config.maxEntryBytes) {
+    await cache.set(REGISTRY_CACHE_KEY, portals, REGISTRY_TTL_SECONDS);
+  }
+  return portals;
 }
 
 function deduplicateByHostname(portals: DatashadesPortal[]): DatashadesPortal[] {
