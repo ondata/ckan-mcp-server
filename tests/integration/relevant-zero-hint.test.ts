@@ -39,6 +39,11 @@ describe("ckan_find_relevant_datasets zero-result hint", () => {
     expect(text).toContain('`query: "popolazione OR residente OR cittadinanza OR cinese OR Cina"`');
   });
 
+  it("keeps a quoted phrase whole and escapes its quotes", async () => {
+    const text = await callRelevant('"made in Italy" fondo');
+    expect(text).toContain('`query: "\\"made in Italy\\" OR fondo"`');
+  });
+
   it("gives no tip for a single term", async () => {
     const text = await callRelevant("zzqxnonesiste");
     expect(text).not.toContain("Tip");

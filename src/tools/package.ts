@@ -1178,7 +1178,7 @@ ${hvdNote}`;
             // already a partial match: spelling out OR relaxes it the rest of the way
             // and, on portals that ignore boolean operators, switches parser too.
             markdown += `\n> **Tip**: With several terms the portal requires most of them to match. Spelling out OR broadens the search:\n`;
-            markdown += `> \`q: "${buildOrQuery(params.q)}"\`\n`;
+            markdown += `> \`q: ${JSON.stringify(buildOrQuery(params.q))}\`\n`;
           }
         }
 
@@ -1397,7 +1397,7 @@ Typical workflow: ckan_find_relevant_datasets → ckan_package_show (inspect top
             // fail `mm`. On dati.comune.milano.it `popolazione residente cittadinanza
             // cinese Cina` returned 0, its OR form 630.
             markdown += `\n> **Tip**: With several terms the portal requires most of them to match. Spelling out OR broadens the search:\n`;
-            markdown += `> \`query: "${buildOrQuery(params.query)}"\`\n`;
+            markdown += `> \`query: ${JSON.stringify(buildOrQuery(params.query))}\`\n`;
           }
         } else {
           markdown += `## Results\n\n`;

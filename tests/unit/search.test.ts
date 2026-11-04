@@ -254,6 +254,12 @@ describe('buildOrQuery', () => {
   it('handles extra whitespace', () => {
     expect(buildOrQuery('  crime   homicide  ')).toBe('crime OR homicide');
   });
+
+  it('keeps quoted phrases whole', () => {
+    // A real zero-result query from the worker telemetry (2026-10-27).
+    expect(buildOrQuery('"made in Italy" fondo')).toBe('"made in Italy" OR fondo');
+    expect(buildOrQuery(`"qualità dell'aria" Milano`)).toBe(`"qualità dell'aria" OR Milano`);
+  });
 });
 
 describe('hasExplicitBooleanOperator', () => {

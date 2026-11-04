@@ -181,7 +181,9 @@ export function isPlainMultiTermQuery(query: string): boolean {
 }
 
 export function buildOrQuery(query: string): string {
-  return query.trim().split(/\s+/).filter(Boolean).join(" OR ");
+  // A quoted phrase is one term: splitting on spaces turned `"made in Italy" fondo`
+  // into `"made OR in OR Italy" OR fondo`.
+  return (query.trim().match(/"[^"]*"|\S+/g) ?? []).join(" OR ");
 }
 
 export function stripAccents(text: string): string {
