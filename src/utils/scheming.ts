@@ -14,6 +14,7 @@
  */
 
 import { makeCkanRequest } from "./http.js";
+import { getPortalApiUrlForHostname } from "./portal-config.js";
 import { sanitizeInline, wrapUntrusted } from "./formatting.js";
 
 export const MAX_FIELD_TEXT = 2000;
@@ -87,7 +88,8 @@ function plain(value: unknown, cut: Cut, depth = 0): unknown {
         cut.done = true;
         key = `${cleanText(k, MAX_LABEL_TEXT)}~${n}`;
       }
-      out[key] = plain(v, cut, depth + 1);
+      // defined, not assigned: a portal key `__proto__` must stay a key, not change the prototype
+      Object.defineProperty(out, key, { value: plain(v, cut, depth + 1), enumerable: true, writable: true, configurable: true });
     }
     return out;
   }
@@ -171,10 +173,12 @@ export async function getDatasetSchema(serverUrl: string, type: string = "datase
   }
 }
 
-/** Scheme and host are case-insensitive, the path is not: `/Data` and `/data` are two portals. */
+/** Scheme and host are case-insensitive, the path is not: `/Data` and `/data` are two portals. Configured portal aliases resolve to one address. */
 function cacheOrigin(serverUrl: string): string {
   try {
-    const url = new URL(serverUrl);
+    // the same portal under another address must share the entry, as it shares the request cache
+    const resolved = getPortalApiUrlForHostname(new URL(serverUrl).hostname);
+    const url = new URL(resolved ?? serverUrl);
     return url.origin + url.pathname.replace(/\/+$/, "");
   } catch {
     return serverUrl.trim();
@@ -189,9 +193,11 @@ function remember(key: string, ttl: number): void {
 /**
  * `sanitizeInline` stops line and table forgery, not links: a portal value like
  * `[Verify account](https://attacker.example)` would render as a live link. Brackets and
- * angle brackets are escaped so links, images and HTML stay text.
+ * angle brackets are escaped so links, images and HTML stay text. A backslash from the
+ * portal is doubled before anything else, or it would swallow the escapes added after it.
  */
-const escaped = (value: unknown): string => sanitizeInline(value).replace(/[\[\]<>]/g, "\\$&");
+const escaped = (value: unknown): string =>
+  sanitizeInline(String(value).replace(/\\/g, "\\\\")).replace(/[[\]<>]/g, "\\$&");
 
 function markdownValue(value: unknown): { inline: string; block?: string } {
   if (typeof value === "string") {
