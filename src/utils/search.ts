@@ -176,14 +176,20 @@ export function isPlainMultiTermQuery(query: string): boolean {
   if (trimmed === "*:*" || trimmed === "") return false;
   if (FIELD_QUERY_PATTERN.test(trimmed)) return false;
   if (EXPLICIT_BOOL_PATTERN.test(trimmed)) return false;
-  const words = trimmed.split(/\s+/).filter(Boolean);
-  return words.length > 1;
+  return splitQueryTerms(trimmed).length > 1;
+}
+
+/**
+ * Split a query into terms, a quoted phrase counting as one together with any
+ * suffix attached to it (`"open data"~3`, `"open data"^2`). Splitting on spaces
+ * turned `"made in Italy" fondo` into `"made OR in OR Italy" OR fondo`.
+ */
+function splitQueryTerms(query: string): string[] {
+  return query.trim().match(/"[^"]*"\S*|\S+/g) ?? [];
 }
 
 export function buildOrQuery(query: string): string {
-  // A quoted phrase is one term: splitting on spaces turned `"made in Italy" fondo`
-  // into `"made OR in OR Italy" OR fondo`.
-  return (query.trim().match(/"[^"]*"|\S+/g) ?? []).join(" OR ");
+  return splitQueryTerms(query).join(" OR ");
 }
 
 export function stripAccents(text: string): string {

@@ -244,6 +244,13 @@ describe('isPlainMultiTermQuery', () => {
   it('returns false for fielded queries', () => {
     expect(isPlainMultiTermQuery('title:natalita notes:nascite')).toBe(false);
   });
+
+  it('counts a quoted phrase as one term', () => {
+    // An OR tip for a lone phrase would repeat the failed query unchanged.
+    expect(isPlainMultiTermQuery('"made in Italy"')).toBe(false);
+    expect(isPlainMultiTermQuery('"open data"~3')).toBe(false);
+    expect(isPlainMultiTermQuery('"made in Italy" fondo')).toBe(true);
+  });
 });
 
 describe('buildOrQuery', () => {
@@ -259,6 +266,11 @@ describe('buildOrQuery', () => {
     // A real zero-result query from the worker telemetry (2026-10-27).
     expect(buildOrQuery('"made in Italy" fondo')).toBe('"made in Italy" OR fondo');
     expect(buildOrQuery(`"qualità dell'aria" Milano`)).toBe(`"qualità dell'aria" OR Milano`);
+  });
+
+  it('keeps proximity and boost suffixes on their phrase', () => {
+    expect(buildOrQuery('"open data"~3 holiday')).toBe('"open data"~3 OR holiday');
+    expect(buildOrQuery('"open data"^2 holiday')).toBe('"open data"^2 OR holiday');
   });
 });
 
