@@ -1180,6 +1180,61 @@ describe('formatCkanError', () => {
     }
   });
 
+  it('Workers: the 30s abort also covers a body that stalls after the headers', async () => {
+    // open.canada.ca, 2026-10-31: headers arrived, the body did not, and the call ran
+    // for 134 s because the timer had already been cleared.
+    vi.useFakeTimers();
+    const fetchMock = vi.fn(async (_url: string, init: RequestInit) => new Response(
+      new ReadableStream({
+        start(controller) {
+          init.signal?.addEventListener('abort', () => {
+            controller.error(Object.assign(new Error('The operation was aborted'), { name: 'AbortError' }));
+          });
+        }
+      }),
+      { status: 200 }
+    ));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
+    try {
+      const pending = makeCkanRequest(
+        'https://www.dati.gov.it/opendata', 'package_search', {}, { cache: false, rateLimit: false }
+      ).catch(e => e);
+      await vi.advanceTimersByTimeAsync(30000);
+
+      const err = await pending;
+      expect(err).toBeInstanceOf(CkanTransportError);
+      expect(err.message).toBe('Request timeout connecting to https://www.dati.gov.it/opendata');
+    } finally {
+      vi.unstubAllGlobals();
+      vi.useRealTimers();
+    }
+  });
+
+  it('Workers: a connection dropped while reading the body gets the unreachable hint', async () => {
+    const fetchMock = vi.fn(async () => new Response(
+      new ReadableStream({
+        pull(controller) {
+          controller.error(new Error('Network connection lost.'));
+        }
+      }),
+      { status: 200 }
+    ));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
+    try {
+      const err = await makeCkanRequest(
+        'https://www.dati.gov.it/opendata', 'package_search', {}, { cache: false, rateLimit: false }
+      ).catch(e => e);
+
+      expect(err).toBeInstanceOf(CkanTransportError);
+      expect(err.message).toBe('Network error: Network connection lost.');
+      expect(formatCkanError(err, 'ckan_package_search')).toContain('Portal unreachable');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('Workers: an SSRF guard failure keeps its own message, not the unreachable hint', async () => {
     const fetchMock = vi.fn(async () => new Response(null, {
       status: 302,
