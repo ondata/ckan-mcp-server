@@ -55,6 +55,14 @@ Flattened log of tool invocations received by the [Cloudflare Workers](https://c
 | `result_names` | string[]\|null | Names (slugs) of the same datasets, same order as `result_ids` |
 | `error_message` | string\|null | First 200 characters of the error a failed tool call returned, on one line (since 2026-10-28) |
 | `error_kind` | string\|null | Coarse class of that error: `validation`, `not_allowed`, `timeout`, `upstream_http`, `unreachable`, `other` |
+| `limit` | integer\|null | `limit` argument of the call (DataStore and relevance tools) |
+| `rows` | integer\|null | `rows` argument of `ckan_package_search` (archived since 2026-11-04) |
+| `page` | integer\|null | `page` argument of `ckan_package_search` (since 2026-11-04) |
+| `page_size` | integer\|null | `page_size` argument of `ckan_package_search` (since 2026-11-04) |
+| `offset` | integer\|null | `offset` argument of the DataStore tools (since 2026-11-04) |
+| `filters` | string\|null | `filters` argument of `ckan_datastore_search`, as JSON, first 200 characters (since 2026-11-04) |
+| `fields` | string\|null | `fields` argument of `ckan_datastore_search`, first 200 characters (since 2026-11-04) |
+| `distinct` | boolean\|null | `distinct` argument of `ckan_datastore_search` (since 2026-11-04) |
 
 **Example**:
 ```json

@@ -6,6 +6,10 @@
 
 From the search telemetry (events since 2026-10-27, ~1,160 calls). On Workers the 30 s timer was cleared once the headers arrived, so `response.arrayBuffer()` had no limit: on 2026-10-31 two open.canada.ca calls ran 126 s and 134 s and ended with `Network connection lost.`, logged as `error_kind: other` with no hint. The timer now runs until the body is read, and a failed body read becomes a `CkanTransportError` (timeout or `Network error: ...`, with the "Portal unreachable" hint). `ckan_find_relevant_datasets` now gives the OR rewrite tip on zero results, as `ckan_package_search` does: 3 of its 5 zero-result searches were multi-term queries on dati.comune.milano.it; `popolazione residente cittadinanza cinese Cina` returned 0, its OR form 630. Tests 622 passed (5 new, all failing on the old code), HTTP e2e on Node and `wrangler dev`. Review follow-up: the OR tip split quoted phrases (`"made in Italy" fondo` → `"made OR in OR Italy" OR fondo`, in both tools); `buildOrQuery` now keeps them whole and the tip escapes inner quotes. The fixed tip returns 6115 results on dati.gov.it.
 
+### Telemetry: call parameters; cache key without trailing slash
+
+The Worker log line now carries `page`, `page_size`, `offset`, `distinct`, and `filters`/`fields` as JSON strings capped at 200 characters; the archiver keeps them plus `rows`, which was logged but dropped. Without them 195 repeated `ckan_datastore_search` calls with no cache hit (120 on one open.canada.ca resource in an hour) could not be told from paging. The cache key now uses the server URL without trailing slash: portals in `portals.json` already resolved to one `api_url`, the others were keyed as written (data.forest.go.th arrived in three forms). Checked with `wrangler dev`: the new fields appear on `ckan_datastore_search` and `ckan_package_search` lines.
+
 ## 2026-10-29
 
 ### v0.4.134

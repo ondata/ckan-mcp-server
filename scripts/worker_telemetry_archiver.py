@@ -52,6 +52,13 @@ FLAT_FIELDS = (
     "result_names",
     "error_message",
     "error_kind",
+    "rows",
+    "page",
+    "page_size",
+    "offset",
+    "filters",
+    "fields",
+    "distinct",
 )
 DAY_MS = 86400 * 1000
 
@@ -208,6 +215,10 @@ def flatten(event: dict) -> dict | None:
         "result_names": source.get("result_names", []) if has_results else None,
         "error_message": source.get("error_message") if isinstance(source, dict) else None,
         "error_kind": source.get("error_kind") if isinstance(source, dict) else None,
+        # Call parameters (since 2026-11-04): tell a repeated call from a paged or
+        # filtered one. `filters` and `fields` arrive as strings, capped at 200 chars.
+        **{k: source.get(k) if isinstance(source, dict) else None
+           for k in ("rows", "page", "page_size", "offset", "filters", "fields", "distinct")},
     }
 
 

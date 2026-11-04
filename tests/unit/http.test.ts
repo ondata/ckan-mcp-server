@@ -900,6 +900,17 @@ describe('makeCkanRequest cache integration', () => {
     expect(vi.mocked(axios.get)).toHaveBeenCalledTimes(1);
   });
 
+  it('shares the cache entry between a server URL with and without trailing slash', async () => {
+    // Portals in portals.json already resolve to one api_url; the others were keyed
+    // as written (worker telemetry: data.forest.go.th in three forms).
+    vi.mocked(axios.get).mockResolvedValue({ data: successResponse });
+
+    await makeCkanRequest('https://dati.comune.messina.it/', 'status_show');
+    await makeCkanRequest('https://dati.comune.messina.it', 'status_show');
+
+    expect(vi.mocked(axios.get)).toHaveBeenCalledTimes(1);
+  });
+
   it('treats different params as separate entries', async () => {
     vi.mocked(axios.get).mockResolvedValue({ data: successResponse });
 

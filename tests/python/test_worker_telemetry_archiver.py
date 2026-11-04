@@ -58,6 +58,24 @@ class FlattenSearchResultsTest(unittest.TestCase):
         self.assertEqual(flat["error_message"], "Could not fetch portal list from datashades.info")
         self.assertEqual(flat["error_kind"], "other")
 
+    def test_call_parameters_are_kept(self):
+        # Needed to tell a repeated call from a paged or filtered one (2026-11-04).
+        flat = flatten(event({
+            "tool": "ckan_datastore_search",
+            "resource_id": "d0f6040e",
+            "limit": 100,
+            "offset": 200,
+            "filters": '{"year":"2024"}',
+            "fields": "year,value",
+            "distinct": True,
+        }))
+        self.assertEqual(flat["offset"], 200)
+        self.assertEqual(flat["filters"], '{"year":"2024"}')
+        self.assertEqual(flat["fields"], "year,value")
+        self.assertTrue(flat["distinct"])
+        flat = flatten(event({"tool": "ckan_package_search", "q": "x", "rows": 5, "page": 2, "page_size": 5}))
+        self.assertEqual((flat["rows"], flat["page"], flat["page_size"]), (5, 2, 5))
+
     def test_every_flat_field_is_present(self):
         flat = flatten(event({"tool": "ckan_package_show", "id": "x"}))
         self.assertEqual(set(flat), set(FLAT_FIELDS))

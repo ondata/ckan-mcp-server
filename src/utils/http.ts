@@ -777,7 +777,7 @@ export async function makeCkanRequest<T>(
   const ttl = getTtlForAction(action, cacheConfig.ttlDefault);
   const cache = cacheEnabled && ttl > 0 ? getCache() : null;
   const cacheKey = cache
-    ? await buildCacheKey(resolvedServerUrl, action, params)
+    ? await buildCacheKey(baseUrl, action, params)
     : "";
 
   if (cache) {
