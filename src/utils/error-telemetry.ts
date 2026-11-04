@@ -15,13 +15,16 @@ export interface ErrorTelemetry {
   error_kind: ErrorKind;
 }
 
-// First match wins: an input rejected before any request is "validation" even when
-// its message mentions a URL, and a timeout is reported as such whatever wraps it.
+// First match wins. An HTTP status comes first: it is written by this server, while the
+// text after it can be the portal's own reason, with any words in it ("timeout",
+// "not allowed", "Invalid URL"). Then an input rejected before any request is
+// "validation" even when its message mentions a URL, and a timeout is reported as such
+// whatever wraps it.
 const KINDS: [ErrorKind, RegExp][] = [
+  ["upstream_http", /(?:API error|returned) \(?\d{3}\b/i],
   ["validation", /-32602|Input validation error|Invalid URL|Disallowed protocol/i],
   ["not_allowed", /not allowed|allowed list|SSRF/i],
   ["timeout", /timeout|timed out/i],
-  ["upstream_http", /(?:API error|returned) \(?\d{3}\b/i],
   ["unreachable", /Server not found|Network error|fetch failed|ENOTFOUND|ECONNREFUSED/i]
 ];
 

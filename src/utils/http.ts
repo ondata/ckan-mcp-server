@@ -43,7 +43,8 @@ const MAX_ERROR_BODY_BYTES = 64 * 1024;
 
 /**
  * The reason CKAN gives for a failed action: `error.message`, or for a validation error
- * (which has none) its fields, `query: column "x" does not exist`. One line, capped.
+ * (which has none) its fields, `query: column "x" does not exist`. One line, capped,
+ * with a notice of how many characters were omitted.
  *
  * Only a CKAN error body counts — an object with `success: false` and an `error` — so a
  * firewall page or any other upstream content is never echoed (GHSA-6f9w).
@@ -70,7 +71,43 @@ export function extractCkanErrorMessage(body: unknown): string | null {
     return null;
   }
   text = text.replace(/\s+/g, ' ').trim();
-  return text ? text.slice(0, MAX_CKAN_REASON_LENGTH) : null;
+  if (!text) return null;
+  if (text.length <= MAX_CKAN_REASON_LENGTH) return text;
+  // Say what was cut: the full reason is only in the portal's own API answer.
+  return `${text.slice(0, MAX_CKAN_REASON_LENGTH)}… [${text.length - MAX_CKAN_REASON_LENGTH} more characters from the portal omitted]`;
+}
+
+/**
+ * Read a body as text, stopping at `maxBytes`: a missing or false Content-Length must
+ * not let a portal stream an unbounded error body into memory. Null when the body is
+ * larger, or the read fails.
+ */
+async function readBoundedText(response: Response, maxBytes: number): Promise<string | null> {
+  const reader = response.body?.getReader();
+  if (!reader) return null;
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) {
+        await reader.cancel().catch(() => undefined);
+        return null;
+      }
+      chunks.push(value);
+    }
+  } catch {
+    return null;
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return new TextDecoder().decode(bytes);
 }
 
 /** Build the error for a non-2xx answer, quoting CKAN's own reason when it gave one. */
@@ -948,10 +985,10 @@ export async function makeCkanRequest<T>(
             let body: unknown = null;
             const errorLength = Number(response.headers.get("content-length"));
             if (!(Number.isFinite(errorLength) && errorLength > MAX_ERROR_BODY_BYTES)) {
+              const text = await readBoundedText(response, MAX_ERROR_BODY_BYTES);
               try {
-                const raw = await response.arrayBuffer();
-                if (raw.byteLength <= MAX_ERROR_BODY_BYTES) body = JSON.parse(new TextDecoder().decode(raw));
-              } catch { /* not JSON, or the connection dropped: fall back to the status text */ }
+                if (text !== null) body = JSON.parse(text);
+              } catch { /* not JSON: fall back to the status text */ }
             }
             throw httpError(response.status, response.statusText, body, action, serverUrl);
           }

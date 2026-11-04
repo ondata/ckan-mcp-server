@@ -10,6 +10,11 @@ describe("summarizeToolError", () => {
     ["Server appears to be offline or not a valid CKAN instance:\nCKAN API error (404): Not Found", "upstream_http"],
     ["Could not fetch portal list from datashades.info:\ndatashades.info returned 503 Service Unavailable", "upstream_http"],
     ["Server not found: https://no-such-portal.example", "unreachable"],
+    // The portal's own reason can contain any words: the HTTP status, written by this
+    // server, decides the class.
+    ["CKAN API error (403): Accès non autorisé: function not allowed\n→ hint", "upstream_http"],
+    ["CKAN API error (409): query: canceling statement due to statement timeout", "upstream_http"],
+    ["CKAN API error (400): Invalid URL in field url", "upstream_http"],
     ["Could not fetch portal list from datashades.info:\nThe 'cache' field on 'RequestInitializerDict' is not implemented.", "other"]
   ])("classifies %j as %s", (text, kind) => {
     expect(summarizeToolError(text).error_kind).toBe(kind);

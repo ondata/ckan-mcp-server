@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { extractCkanErrorMessage } from '../../src/utils/http';
+import { extractCkanErrorMessage } from '../../src/utils/http.js';
 
 // Real bodies, 2026-11-04: dati.comune.messina.it (409) and donneesquebec.ca (403).
 describe('extractCkanErrorMessage', () => {
@@ -13,9 +13,9 @@ describe('extractCkanErrorMessage', () => {
     expect(extractCkanErrorMessage(body)).toBe('query: (psycopg2.errors.UndefinedColumn) column "colonna_inesistente" does not exist LINE 1: ...');
   });
 
-  it('caps the message at 300 characters', () => {
+  it('caps the message at 300 characters and says how much was cut', () => {
     const body = { success: false, error: { message: 'x'.repeat(1000) } };
-    expect(extractCkanErrorMessage(body)).toHaveLength(300);
+    expect(extractCkanErrorMessage(body)).toBe(`${'x'.repeat(300)}… [700 more characters from the portal omitted]`);
   });
 
   it('returns null for anything that is not a CKAN error body', () => {

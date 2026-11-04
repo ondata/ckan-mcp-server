@@ -5,7 +5,7 @@ import axios from 'axios';
 import type { AxiosRequestConfig } from 'axios';
 import { makeCkanRequest, validateServerUrl, CkanApiError, CkanTransportError, SsrfGuardError, formatCkanError, isBlockedIp, createSsrfSafeLookup, assertHttpAllowlistConfigured, assertHostnameResolvesSafe, getSafeDispatcher, __setDnsResolverForTests, isAnubisChallenge } from '../../src/utils/http';
 import { __resetCacheForTests } from '../../src/utils/cache';
-import { summarizeToolError } from '../../src/utils/error-telemetry';
+import { summarizeToolError } from '../../src/utils/error-telemetry.js';
 import { getRateLimiter, __resetRateLimiterForTests } from '../../src/utils/rate-limiter';
 import successResponse from '../fixtures/responses/status-success.json';
 
@@ -1277,6 +1277,26 @@ describe('formatCkanError', () => {
       expect(formatCkanError(err, 'ckan_datastore_search_sql')).toContain('not permitted on this portal');
       // The telemetry classifies on the whole text: the hint must not read as `not_allowed`.
       expect(summarizeToolError(formatCkanError(err, 'ckan_datastore_search_sql')).error_kind).toBe('upstream_http');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('Workers: an error body without Content-Length is read only up to 64 KB', async () => {
+    // A portal can stream an endless error body: reading it whole could exhaust memory.
+    let pulls = 0;
+    const chunk = new Uint8Array(16 * 1024).fill(120);
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(
+      new ReadableStream({ pull(controller) { pulls++; controller.enqueue(chunk); } }),
+      { status: 500, statusText: 'Internal Server Error' }
+    )));
+    vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
+    try {
+      const err = await makeCkanRequest(
+        'https://www.dati.gov.it/opendata', 'package_search', {}, { cache: false, rateLimit: false }
+      ).catch(e => e);
+      expect(err.message).toBe('CKAN API error (500): Internal Server Error');
+      expect(pulls).toBeLessThan(10);
     } finally {
       vi.unstubAllGlobals();
     }
