@@ -1,5 +1,7 @@
 # Change: Add allowlist for CKAN hosts via environment
 
+> Superseded, not implemented as written. The same need was met by `CKAN_ALLOWED_DOMAINS` (v0.4.103, mandatory for the HTTP transport since v0.4.108). `ALLOWED_CKAN_HOSTS` never existed in the code, so this change was archived on 2026-11-06 without updating the specs.
+
 ## Why
 Public HTTP/Workers deployments can be abused to proxy requests to arbitrary hosts. A host allowlist provides a simple, configurable barrier without breaking local usage.
 

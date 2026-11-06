@@ -3,7 +3,6 @@
 ## Purpose
 How this server turns a caller's query into a CKAN `package_search` request: which Solr
 parser it reaches, how the query is escaped, and how results are ranked.
-
 ## Requirements
 ### Requirement: Solr parser selection
 
@@ -48,20 +47,40 @@ one field, so the wrapper helps a boolean query and harms every other shape.
 
 ### Requirement: Relevance ranking
 
-`ckan_find_relevant_datasets` ranks locally over the candidates `package_search` returns
-first, so its answer depends on both the recall of the query and the size of the candidate
-window. The tool SHALL score a field by the share of query terms it carries, SHALL match
-terms on Unicode word boundaries, and SHALL score at least 50 candidates whatever the
-requested limit.
+`ckan_find_relevant_datasets` ranks locally over candidates fetched from `package_search`.
+The tool SHALL fetch candidates first with every query term required (`mm=100%`) whenever
+the query is neither fielded nor wrapped, SHALL fill from a default pass when those are
+fewer than the requested limit, and SHALL award datasets from the strict pass a `coverage`
+bonus visible in the score breakdown. It SHALL score a field by the share of query terms it
+carries, SHALL treat a term and a word as matching when they are equal or share a stem
+(final vowel stripped from words of five letters or more), SHALL match on Unicode word
+boundaries, and SHALL score at least 50 candidates whatever the requested limit.
+
+#### Scenario: Every term present in the catalog
+- **WHEN** the portal returns datasets for the query with every term required
+- **THEN** those datasets carry the `coverage` bonus and lead the ranking, with the strict
+  count reported as `all_terms_results`
+
+#### Scenario: Strict pass comes up short
+- **WHEN** fewer datasets than the limit carry every term, or none do
+- **THEN** the default pass fills the remaining places, without the bonus
+
+#### Scenario: Fielded or boolean query
+- **WHEN** the query carries a colon, or was wrapped for a portal that ignores booleans
+- **THEN** no strict pass is made and `all_terms_results` is `null`
 
 #### Scenario: Field scoring
 - **WHEN** a field contains some of the query's terms
 - **THEN** it scores in proportion to the share it carries, never the full weight for a
   single term
 
+#### Scenario: Singular and plural
+- **WHEN** a query term and a word in a field differ only by a final vowel
+- **THEN** they match; `immobilità` and `mobilità` do not
+
 #### Scenario: Non-English text
-- **WHEN** a query term ends in an accented letter, or is a stopword of the catalog's
-  language
+- **WHEN** a query term ends in an accented letter, is a stopword of the catalog's
+  language, or is an elided article such as `dell'`
 - **THEN** term matching respects Unicode word boundaries, and the stopword does not
   contribute to any field's score
 
@@ -133,4 +152,18 @@ The tool SHALL inspect each resource's download URL when `datastore_active` is f
 - **WHEN** the HTTP call to the source portal times out or returns a network error
 - **THEN** `source_datastore_active: false` is reported with a note
 - **AND** the tool completes normally without throwing
+
+### Requirement: Executed query visible in JSON output
+
+When the server rewrites a caller's query before sending it to Solr, `ckan_package_search`
+SHALL report the executed query in its JSON output, so that a JSON caller can tell which
+query actually ran. The field SHALL be omitted when the query ran unchanged.
+
+#### Scenario: Query rewritten
+- **WHEN** a JSON caller sends a query the server wraps in `text:(...)`
+- **THEN** the response carries `effective_query` with the query as executed
+
+#### Scenario: Query unchanged
+- **WHEN** a JSON caller sends a query that reaches Solr as written
+- **THEN** the response carries no `effective_query`, and its shape is unchanged
 

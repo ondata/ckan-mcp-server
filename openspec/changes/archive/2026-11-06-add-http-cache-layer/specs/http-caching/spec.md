@@ -62,6 +62,12 @@ The server SHALL select a TTL based on the CKAN `action` being invoked, with a s
 - **WHEN** the response is cached
 - **THEN** the TTL is 60 seconds
 
+#### Scenario: status actions use a long TTL
+
+- **GIVEN** an action in { `status_show`, `site_read` }
+- **WHEN** the response is cached
+- **THEN** the TTL is 3600 seconds
+
 #### Scenario: unknown actions fall back to configured default
 
 - **GIVEN** an action not listed in the TTL policy table

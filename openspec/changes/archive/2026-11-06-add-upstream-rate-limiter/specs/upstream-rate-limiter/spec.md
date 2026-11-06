@@ -71,6 +71,6 @@ environment variables.
 
 #### Scenario: custom RPS configured
 
-- **GIVEN** `CKAN_RATE_LIMIT_RPS=2`
+- **GIVEN** `CKAN_RATE_LIMIT_RPS=2` and `CKAN_RATE_LIMIT_BURST=2`
 - **WHEN** 3 requests to the same hostname arrive simultaneously
 - **THEN** the third request is delayed by approximately 500 ms (1/2 rps)
