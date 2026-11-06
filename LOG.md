@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-11-06
+
+### `ckan_package_show`: ckanext-scheming root fields
+
+On a portal that uses ckanext-scheming, `ckan_package_show` now asks for `scheming_dataset_schema_show` (for the dataset's own type) and adds the schema's other root fields that have a value, each with its label and the value as stored, as `fields` in JSON and a section in Markdown. On open.canada.ca an "Air quality" dataset gains 22 fields (keywords, contacts, coverage, subject) that were dropped before. Any failure to get the schema means no schema: nothing is added, nothing is reported, and the miss is cached (an hour for 404 and 400, five minutes otherwise). Fields the chosen output already shows are left out; fields it cannot show (for example `author_email` in JSON) are included. Strings over 2000 characters are cut and marked. Issue #575; OpenSpec change `add-scheming-fields-package-show`.
+
 ## 2026-11-04
 
 ### v0.4.135
@@ -27,9 +33,6 @@ From the search telemetry (events since 2026-10-27, ~1,160 calls). On Workers th
 ### Telemetry: call parameters; cache key without trailing slash
 
 The Worker log line now carries `page`, `page_size`, `offset`, `distinct`, and `filters`/`fields` as JSON strings capped at 200 characters; the archiver keeps them plus `rows`, which was logged but dropped. Without them 195 repeated `ckan_datastore_search` calls with no cache hit (120 on one open.canada.ca resource in an hour) could not be told from paging. The cache key now uses the server URL without trailing slash: portals in `portals.json` already resolved to one `api_url`, the others were keyed as written (data.forest.go.th arrived in three forms). Checked with `wrangler dev`: the new fields appear on `ckan_datastore_search` and `ckan_package_search` lines.
-
-On a portal that uses ckanext-scheming, `ckan_package_show` now asks for `scheming_dataset_schema_show` (for the dataset's own type) and adds the schema's other root fields that have a value, each with its label and the value as stored, as `fields` in JSON and a section in Markdown. On open.canada.ca an "Air quality" dataset gains 22 fields (keywords, contacts, coverage, subject) that were dropped before. Any failure to get the schema means no schema: nothing is added, nothing is reported, and the miss is cached (an hour for 404 and 400, five minutes otherwise). Fields the chosen output already shows are left out; fields it cannot show (for example `author_email` in JSON) are included. Strings over 2000 characters are cut and marked. Issue #575; OpenSpec change `add-scheming-fields-package-show`.
-
 
 ## 2026-10-29
 
