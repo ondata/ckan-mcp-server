@@ -2,6 +2,10 @@
 
 ## 2026-11-06
 
+### `ckan_datastore_search_sql`: three errors from the telemetry
+
+From the Worker telemetry since 2026-10-27, each reproduced live. The SQL endpoint missing on a portal now gets the hint that says so: open.canada.ca and opendata.transport.vic.gov.au answer 400 `Action name not known`, the tool said "Invalid SQL syntax", and callers rewrote valid queries (14 calls, 14 failures). `datastore_search` on a portal without DataStore (dati.gov.it) gets its own hint for the same reason. A final `;` is removed, because CKAN wraps the query in a subquery where it is a syntax error. A 409 with the reason under `sql:` is retried with POST: donnees.montreal.ca loses the parameter on GET (`sql: Valeur manquante`, 3 calls, 3 failures) and runs the same query by POST (96,360 rows). Checked on Node and with `wrangler dev`.
+
 ### v0.4.136
 
 Ships #576, by @bjornhagstrom. For callers: on a portal that uses ckanext-scheming, `ckan_package_show` also returns the schema's other root fields, with their labels. Portals without scheming get the same fields as before, at the cost of one extra request whose failure is remembered.
