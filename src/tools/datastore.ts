@@ -4,7 +4,7 @@
 
 import { z } from "zod";
 import { ResponseFormat, ResponseFormatSchema, CkanField } from "../types.js";
-import { makeCkanRequest, formatCkanError } from "../utils/http.js";
+import { makeCkanRequest, formatCkanError, CkanApiError } from "../utils/http.js";
 import { truncateText, truncateJson, addDemoFooter, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -150,6 +150,22 @@ export function compactDatastoreResult(result: any): object {
   };
 }
 
+/**
+ * Some portals lose the `sql` parameter on GET: donnees.montreal.ca answers 409
+ * `sql: Valeur manquante` to any query and runs the same one sent by POST. SQL errors come
+ * under `query:`, so a reason under `sql:` is about the parameter, not the query.
+ */
+async function runDatastoreSql(serverUrl: string, sql: string): Promise<any> {
+  try {
+    return await makeCkanRequest<any>(serverUrl, "datastore_search_sql", { sql });
+  } catch (error) {
+    if (error instanceof CkanApiError && error.status === 409 && error.ckanReason?.startsWith("sql:")) {
+      return await makeCkanRequest<any>(serverUrl, "datastore_search_sql", { sql }, { post: true });
+    }
+    throw error;
+  }
+}
+
 export function registerDatastoreTools(server: McpServer) {
   /**
    * DataStore search
@@ -287,18 +303,16 @@ Security note: SQL queries are forwarded directly to the CKAN DataStore API. The
     },
     async (params) => {
       try {
-        const result = await makeCkanRequest<any>(
-          params.server_url,
-          'datastore_search_sql',
-          { sql: params.sql }
-        );
+        // CKAN wraps the query in a subquery, where a final `;` is a syntax error.
+        const sql = params.sql.replace(/[;\s]+$/, "");
+        const result = await runDatastoreSql(params.server_url, sql);
 
         if (params.response_format === ResponseFormat.JSON) {
           const compact = compactDatastoreResult(result);
           return jsonToolResult(compact);
         }
 
-        const markdown = formatDatastoreSqlMarkdown(result, params.server_url, params.sql);
+        const markdown = formatDatastoreSqlMarkdown(result, params.server_url, sql);
         return {
           content: [{ type: "text", text: truncateText(addDemoFooter(markdown)) }]
         };

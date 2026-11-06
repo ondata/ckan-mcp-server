@@ -18,6 +18,8 @@ import {
 export interface MakeCkanRequestOptions {
   cache?: boolean;
   rateLimit?: boolean;
+  /** Send the params as a JSON body. For portals that lose a parameter on GET. */
+  post?: boolean;
 }
 
 export class CkanApiError extends Error {
@@ -112,7 +114,10 @@ async function readBoundedText(response: Response, maxBytes: number): Promise<st
 
 /** Build the error for a non-2xx answer, quoting CKAN's own reason when it gave one. */
 function httpError(status: number, statusText: string, body: unknown, action: string, serverUrl: string): CkanApiError {
-  const reason = extractCkanErrorMessage(body) ?? undefined;
+  // CKAN answers an unknown action with a bare JSON string, translated up to the colon. Only
+  // the fact is kept and the name is ours: an arbitrary body is never reflected (GHSA-6f9w).
+  const reason = extractCkanErrorMessage(body)
+    ?? (typeof body === 'string' && body.endsWith(`Action name not known: ${action}`) ? `Action name not known: ${action}` : undefined);
   return new CkanApiError(`CKAN API error (${status}): ${reason ?? (statusText || 'Unknown error')}`, status, action, serverUrl, reason);
 }
 
@@ -187,14 +192,16 @@ export function formatCkanError(error: unknown, _toolName: string): string {
     return `${message}\n→ ${migration.notice} See ${migration.docs_url}`;
   }
 
+  // SQL access is optional in CKAN and many portals disable it, answering 404 or 400 on
+  // the endpoint itself. The resource_id is usually fine, so pointing at
+  // `ckan_package_show` sends the caller round a loop that ends on the same answer.
+  const noSqlEndpoint = '→ This portal does not expose the SQL endpoint (optional in CKAN, often disabled). Use `ckan_datastore_search` with `filters`/`sort` instead; the resource_id is probably fine.';
+  const actionUnknown = error.ckanReason === `Action name not known: ${action}`;
+
   let hint = '';
   if (status === 404) {
     if (action === 'datastore_search_sql') {
-      // SQL access is optional in CKAN and many portals disable it, answering 404 on
-      // the endpoint itself. The resource_id is usually fine — a bad table name comes
-      // back as a 400 instead — so pointing at `ckan_package_show` sends the caller
-      // round a loop that ends on the same 404.
-      hint = '→ This portal does not expose the SQL endpoint (optional in CKAN, often disabled). Use `ckan_datastore_search` with `filters`/`sort` instead; the resource_id is probably fine.';
+      hint = noSqlEndpoint;
     } else if (action.startsWith('datastore_search')) {
       hint = '→ Get a valid resource_id first: call `ckan_package_show` on a dataset, then pick a resource where `datastore_active` is true.';
     } else if (action === 'package_show') {
@@ -204,6 +211,10 @@ export function formatCkanError(error: unknown, _toolName: string): string {
     } else if (action === 'group_show') {
       hint = '→ Use `ckan_group_list` or `ckan_group_search` to discover valid group names.';
     }
+  } else if (status === 400 && actionUnknown && action === 'datastore_search_sql') {
+    hint = noSqlEndpoint;
+  } else if (status === 400 && actionUnknown && action === 'datastore_search') {
+    hint = '→ This portal has no DataStore, so its tables cannot be queried here. Download the resource through its URL instead (`ckan_package_show` lists them).';
   } else if (status === 400) {
     if (action === 'datastore_search_sql') {
       hint = '→ Invalid SQL syntax or unknown column — check column names with `ckan_datastore_search` before writing SQL.';
@@ -898,8 +909,7 @@ export async function makeCkanRequest<T>(
     const fetchDecoded = async (honest: boolean): Promise<unknown> => {
       if (isNode) {
         const safeAgents = await getSafeAgents();
-        const response = await axios.get(url, {
-          params,
+        const config = {
           timeout: 30000,
           responseType: "arraybuffer",
           maxRedirects: 5,
@@ -931,7 +941,10 @@ export async function makeCkanRequest<T>(
                 }),
             'User-Agent': honest ? HONEST_USER_AGENT : BROWSER_USER_AGENT
           }
-        });
+        } as const;
+        const response = opts.post
+          ? await axios.post(url, params, config)
+          : await axios.get(url, { params, ...config });
 
         return decodePossiblyCompressed(
           response.data,
@@ -945,7 +958,7 @@ export async function makeCkanRequest<T>(
           }
           searchParams.set(key, String(value));
         }
-        const fetchUrl = searchParams.toString()
+        const fetchUrl = !opts.post && searchParams.toString()
           ? `${url}?${searchParams.toString()}`
           : url;
         // The timer runs until the body is read, not just the headers: a portal that
@@ -959,11 +972,13 @@ export async function makeCkanRequest<T>(
           try {
             // safeFetch re-validates each redirect hop (same guard as the axios branch)
             response = await safeFetch(fetchUrl, {
-              method: "GET",
+              method: opts.post ? "POST" : "GET",
+              ...(opts.post ? { body: JSON.stringify(params) } : {}),
               signal: controller.signal,
               headers: {
                 Accept: "application/json, text/plain, */*",
                 "Accept-Encoding": "identity",
+                ...(opts.post ? { "Content-Type": "application/json" } : {}),
                 "User-Agent": honest ? HONEST_USER_AGENT : BROWSER_USER_AGENT
               }
             }, { maxHops: 5 });
