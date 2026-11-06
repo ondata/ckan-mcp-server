@@ -2,6 +2,10 @@
 
 ## 2026-11-06
 
+### OpenSpec: `add-datastore-source-citation` published
+
+Proposal only, 0/12 tasks, no code yet: both DataStore tools would cite the queried resource and dataset in Markdown and in `structuredContent.sources`.
+
 ### v0.4.137
 
 Ships #581. For callers: `ckan_datastore_search_sql` now works on donnees.montreal.ca, accepts a final `;`, and says so when a portal has no SQL endpoint instead of reporting invalid SQL. `ckan_datastore_search` says so when a portal has no DataStore.
