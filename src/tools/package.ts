@@ -7,6 +7,7 @@ import { ResponseFormat, ResponseFormatSchema, CkanTag, CkanResource, CkanPackag
 import { makeCkanRequest, formatCkanError } from "../utils/http.js";
 import { recordSearchResults } from "../utils/search-telemetry.js";
 import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter, wrapUntrusted, safeUrlText, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
+import { getDatasetSchema, renderSchemaFields, formatFieldsMarkdown, type RenderedField } from "../utils/scheming.js";
 import { getDatasetViewUrl, extractSourcePortal } from "../utils/url-generator.js";
 import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery, mayNeedTextWrapping, hasExplicitBooleanOperator } from "../utils/search.js";
 import { getPortalHvdConfig, getPortalApiPath, requiresMultilingualNormalization } from "../utils/portal-config.js";
@@ -502,7 +503,7 @@ export const enrichPackageShowResult = (result: CkanPackage): CkanPackage => ({
     : result.resources
 });
 
-export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string): string => {
+export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string, schemaFields?: RenderedField[]): string => {
   let markdown = `# Dataset: ${sanitizeInline(result.title || result.name)}\n\n`;
   markdown += `**Server**: ${serverUrl}\n`;
   markdown += `**Link**: ${getDatasetViewUrl(serverUrl, result)}\n`;
@@ -613,6 +614,11 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
       markdown += `- **Full JSON metadata**: ${serverUrl.replace(/\/$/, '')}${getPortalApiPath(serverUrl)}/resource_show?id=${encodeURIComponent(resource.id)}\n`;
       markdown += '\n';
     }
+  }
+
+  if (schemaFields && schemaFields.length > 0) {
+    markdown += `## Fields (from the portal's metadata schema)\n\n`;
+    markdown += formatFieldsMarkdown(schemaFields) + '\n';
   }
 
   if (result.extras && result.extras.length > 0) {
@@ -749,6 +755,35 @@ export function compactSearchResult(result: any, serverUrl?: string, effectiveQu
  * Compact JSON representation of package_show results.
  * Keeps metadata + slim resources, drops extras/relationships/tracking.
  */
+/** Dataset fields every output carries, Markdown and JSON alike. */
+const SHOWN_EVERYWHERE = [
+  "title", "notes", "organization", "tags", "resources", "state", "license_id", "license_title",
+  "metadata_created", "metadata_modified", "issued", "modified", "author", "maintainer"
+];
+
+/**
+ * Root fields of the dataset that the Markdown or JSON output of this tool already carries,
+ * so the schema section does not repeat them. Mirrors `formatPackageShowMarkdown` and
+ * `compactPackageShow`; a field they only show under some condition counts only then.
+ */
+export const shownFieldNames = (result: CkanPackage, format: ResponseFormat): Set<string> => {
+  const shown = new Set(SHOWN_EVERYWHERE);
+  const hasPeriods = readTemporalCoverage(result).length > 0;
+  if (format === ResponseFormat.JSON) {
+    for (const key of ["frequency", "language", "publisher_name", "holder_name", "hvd_category", "applicable_legislation"]) shown.add(key);
+    if (hasPeriods) shown.add("temporal_coverage");
+    return shown;
+  }
+  for (const key of ["author_email", "maintainer_email", "groups"]) shown.add(key);
+  if (readDcatExtra(result, "holder_name")) shown.add("holder_name");
+  if (readDcatExtra(result, "publisher_name")) shown.add("publisher_name");
+  for (const key of ["frequency", "language", "access_rights"]) if (typeof result[key] === "string" && result[key]) shown.add(key);
+  if (hasPeriods) shown.add("temporal_coverage");
+  // the "Extra Fields" section lists these by key
+  for (const extra of result.extras ?? []) if (extra && typeof extra.key === "string") shown.add(extra.key);
+  return shown;
+};
+
 export function compactPackageShow(result: CkanPackage, serverUrl?: string): object {
   return {
     id: result.id,
@@ -1460,6 +1495,10 @@ Args:
   - include_tracking (boolean): Include view/download statistics (default: false)
   - response_format ('markdown' | 'json'): Output format
 
+On portals that use ckanext-scheming the schema's other root fields are added as "fields"
+([{field, label, value}]), each with the label the schema gives it and the value as stored.
+Portals without scheming are unaffected.
+
 Returns (JSON format):
   id, name, title, notes, organization, tags, state, license_title,
   metadata_created, metadata_modified, issued, modified,
@@ -1507,12 +1546,16 @@ Typical workflow: ckan_package_show → pick a resource with datastore_active=tr
           }
         );
 
+        const schema = await getDatasetSchema(params.server_url, result.type || 'dataset');
+
         if (params.response_format === ResponseFormat.JSON) {
           const compact = compactPackageShow(enrichPackageShowResult(result), params.server_url);
-          return jsonToolResult(compact);
+          const jsonFields = schema ? renderSchemaFields(result, schema, shownFieldNames(result, ResponseFormat.JSON)) : [];
+          return jsonToolResult(jsonFields.length > 0 ? { ...compact, fields: jsonFields } : compact);
         }
 
-        const markdown = formatPackageShowMarkdown(result, params.server_url);
+        const markdownFields = schema ? renderSchemaFields(result, schema, shownFieldNames(result, ResponseFormat.MARKDOWN)) : [];
+        const markdown = formatPackageShowMarkdown(result, params.server_url, markdownFields);
         return {
           content: [{ type: "text", text: truncateText(addDemoFooter(markdown)) }]
         };

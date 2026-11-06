@@ -218,6 +218,7 @@ The server (`src/index.ts`):
 5. **Utility Functions** (`utils/`)
    - `http.ts`: `makeCkanRequest<T>()` - HTTP client for CKAN API v3
    - `formatting.ts`: `truncateText()`, `formatDate()`, `formatBytes()`
+   - `scheming.ts`: `ckan_package_show` reads the portal's `scheming_dataset_schema_show` for the dataset's own type and adds the schema's other root fields as `fields` (label, value as stored). Any failure means "no schema" and is remembered (an hour for 404/400, five minutes otherwise). Every string goes through `cleanText` and, in Markdown, `sanitizeInline`/`wrapUntrusted`
 
 6. **Type Definitions** (`types.ts`)
    - `ResponseFormat` enum (MARKDOWN, JSON)
