@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import axios from "axios";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
@@ -102,6 +102,50 @@ describe("ckan_datastore_search_sql errors seen in telemetry", () => {
       expect(isError).toBe(true);
       expect(text).toContain("Valeur manquante");
       expect(axios.post).toHaveBeenCalledTimes(1);
+    });
+
+    describe("on Workers, where the fetch branch has no axios", () => {
+      const lost = () => new Response(JSON.stringify(SQL_PARAM_LOST), { status: 409 });
+
+      function stubFetch(...responses: Response[]) {
+        const fetchMock = vi.fn();
+        for (const response of responses) fetchMock.mockResolvedValueOnce(response);
+        vi.stubGlobal("fetch", fetchMock);
+        // makeCkanRequest takes the fetch branch when process.versions.node is absent.
+        vi.stubGlobal("process", { ...process, env: process.env, versions: {} });
+        return fetchMock;
+      }
+
+      afterEach(() => {
+        vi.unstubAllGlobals();
+      });
+
+      it("sends the SQL in a JSON POST body", async () => {
+        const fetchMock = stubFetch(lost(), new Response(JSON.stringify(OK), { status: 200 }));
+        const { text, isError } = await runSql('SELECT 1 FROM "post-4"');
+        expect(isError).toBe(false);
+        expect(text).toContain('"n": 1');
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+
+        const [getUrl, get] = fetchMock.mock.calls[0];
+        expect(get.method).toBe("GET");
+        expect(get.body).toBeUndefined();
+        expect(new URL(getUrl).searchParams.get("sql")).toBe('SELECT 1 FROM "post-4"');
+
+        const [postUrl, post] = fetchMock.mock.calls[1];
+        expect(post.method).toBe("POST");
+        expect(new Headers(post.headers).get("Content-Type")).toBe("application/json");
+        expect(JSON.parse(post.body)).toEqual({ sql: 'SELECT 1 FROM "post-4"' });
+        expect(new URL(postUrl).search).toBe("");
+      });
+
+      it("stops after a failed POST", async () => {
+        const fetchMock = stubFetch(lost(), lost());
+        const { text, isError } = await runSql('SELECT 1 FROM "post-5"');
+        expect(isError).toBe(true);
+        expect(text).toContain("Valeur manquante");
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+      });
     });
 
     it("does not retry on an SQL error", async () => {
