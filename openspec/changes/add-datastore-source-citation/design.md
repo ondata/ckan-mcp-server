@@ -26,11 +26,11 @@ Built with `getDatasetViewUrl`, so per-portal templates in `portals.json` apply.
 
 ### Latency
 
-`resource_show` runs in `Promise.all` with the data query. Errors are caught per resource and never propagate. No extra call on the error path of the data query.
+`resource_show` runs in `Promise.all` with the data query. Errors are caught per resource and never propagate. On a portal whose custom template uses `{name}`, `package_show` has to follow `resource_show`, so a cold lookup there costs two upstream requests and the response waits for the slower of the data query and that sequence. No extra call on the error path of the data query.
 
 ### SQL resources
 
-Resource ids are taken from double-quoted identifiers matching the UUID pattern, deduplicated, capped at 5. Non-UUID aliases are not cited: CKAN resource ids are UUIDs in practice, and parsing SQL properly is out of scope.
+Resource ids are taken from double-quoted identifiers matching the UUID pattern and deduplicated. Metadata lookups are capped at 5 per call, to bound upstream requests; ids beyond the cap still get a source with `resource_id` and `api_url`, which need no call, so no queried UUID goes uncited. Non-UUID aliases are not cited: CKAN resource ids are UUIDs in practice, and parsing SQL properly is out of scope.
 
 ### Channels (user decision 2026-10-26)
 
@@ -38,7 +38,11 @@ Resource ids are taken from double-quoted identifiers matching the UUID pattern,
 
 ### Truncation
 
-Markdown: the Sources section sits before Fields and Records, so `truncateText` (which cuts the tail) keeps it. JSON: `sources` is not in `SHRINKABLE_KEYS`; the last-resort degraded object `{_truncated, _error}` SHALL keep `sources` too, so a huge result still says where it came from.
+Portal-provided strings are untrusted and unbounded. `resource_name` goes through `cleanText` (and `sanitizeInline` in Markdown), which also caps its length; `dataset_url` and `download_url` are kept only if they are http(s) and within a fixed length, otherwise omitted.
+
+Markdown: the Sources section sits before Fields and Records, so `truncateText` (which cuts the tail) keeps it. JSON: `sources` is not in `SHRINKABLE_KEYS`, so records go first.
+
+If the response still does not fit, sources degrade in steps, in both channels: first every source is reduced to `resource_id` and `api_url`, then only the sources that fit are kept and `sources_omitted` gives the count of the others. The limit always wins over the citation, and the omission is always stated.
 
 ## Non-goals
 

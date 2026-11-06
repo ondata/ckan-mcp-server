@@ -12,12 +12,12 @@ The OKFN MCP Labs platform (https://mcp.okfn.org/docs/plugins/tool-results/) mak
 - Markdown output gains a **Sources** section near the top, before the records, so truncation of the table cannot cut it.
 - Both formats return `structuredContent.sources`: in JSON mode `sources` is a field of the compact object (and so reaches `structuredContent` through `jsonToolResult`); in Markdown mode `structuredContent` is `{ sources }` alongside the text.
 - `ckan_datastore_search` JSON mode switches from `truncateJson` to `jsonToolResult`, so it returns `structuredContent` like the SQL tool already does.
-- For SQL, resources are the UUID-shaped double-quoted table names in the query (deduplicated, at most 5).
+- For SQL, resources are the UUID-shaped double-quoted table names in the query (deduplicated). Metadata lookups stop at 5 per call; the other ids are cited with `resource_id` and `api_url` only.
 - A failed `resource_show` never fails the tool: the source falls back to the reproducible API URL.
 
 ## Impact
 
 - Affected specs: new capability `datastore-source-citation`
 - Affected code: `src/tools/datastore.ts` (formatters, `compactDatastoreResult`, both handlers), possibly a small helper in `src/utils/url-generator.ts`; `docs/JSON-OUTPUT.md`
-- One extra upstream call per uncached resource (`resource_show`, metadata TTL 300 s), in parallel with the data query
+- One extra upstream call per uncached resource (`resource_show`, metadata TTL 300 s), in parallel with the data query. On a portal whose custom dataset template uses `{name}`, a second call (`package_show`, same TTL) follows it, which can lengthen the wait for the response
 - Backwards compatible: additive Markdown section and additive JSON field. Error responses are unchanged.

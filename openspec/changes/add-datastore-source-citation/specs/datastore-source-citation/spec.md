@@ -14,6 +14,11 @@
 - **WHEN** `ckan_datastore_search_sql` is called with a query whose FROM/JOIN clauses name two distinct double-quoted UUID resource ids
 - **THEN** the response includes one source per resource id, deduplicated
 
+#### Scenario: SQL query names more resources than the lookup cap
+
+- **WHEN** `ckan_datastore_search_sql` is called with a query naming six distinct double-quoted UUID resource ids
+- **THEN** the tool calls `resource_show` for at most five of them, and the response includes six sources, the sixth with `resource_id` and `api_url` only
+
 #### Scenario: Metadata lookup fails
 
 - **WHEN** the data query succeeds but `resource_show` fails or times out for the resource
@@ -42,3 +47,13 @@ Sources SHALL be present in `structuredContent.sources` in both response formats
 
 - **WHEN** the result exceeds the character limit in either format
 - **THEN** the sources are still present in the returned text and in `structuredContent`
+
+#### Scenario: Sources alone exceed the limit
+
+- **WHEN** the sources themselves do not fit within the character limit
+- **THEN** the response stays within the limit, each kept source is reduced to `resource_id` and `api_url`, and `sources_omitted` states how many sources were dropped
+
+#### Scenario: Oversized or unsafe portal metadata
+
+- **WHEN** `resource_show` returns a very long `name`, or a `url` that is not http(s) or exceeds the length limit
+- **THEN** `resource_name` is cleaned and capped, and `download_url` is omitted
