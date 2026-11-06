@@ -2,6 +2,10 @@
 
 ## 2026-11-06
 
+### v0.4.136
+
+Ships #576, by @bjornhagstrom. For callers: on a portal that uses ckanext-scheming, `ckan_package_show` also returns the schema's other root fields, with their labels. Portals without scheming get the same fields as before, at the cost of one extra request whose failure is remembered.
+
 ### `ckan_package_show`: ckanext-scheming root fields
 
 On a portal that uses ckanext-scheming, `ckan_package_show` now asks for `scheming_dataset_schema_show` (for the dataset's own type) and adds the schema's other root fields that have a value, each with its label and the value as stored, as `fields` in JSON and a section in Markdown. On open.canada.ca an "Air quality" dataset gains 22 fields (keywords, contacts, coverage, subject) that were dropped before. Any failure to get the schema means no schema: nothing is added, nothing is reported, and the miss is cached (an hour for 404 and 400, five minutes otherwise). Fields the chosen output already shows are left out; fields it cannot show (for example `author_email` in JSON) are included. Strings over 2000 characters are cut and marked. Issue #575; OpenSpec change `add-scheming-fields-package-show`.
