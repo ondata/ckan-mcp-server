@@ -1,5 +1,7 @@
 # Change: Add ckan_analyze_dataset_structure tool
 
+> Abandoned, not implemented. `ckan_analyze_datasets` already returns the DataStore schema for search results, though not null rates. Archived on 2026-11-06 without updating the specs.
+
 ## Why
 Users need quick schema and quality signals without manual inspection.
 

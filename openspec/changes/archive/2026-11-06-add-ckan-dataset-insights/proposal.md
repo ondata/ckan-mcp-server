@@ -1,5 +1,7 @@
 # Change: Add ckan_dataset_insights tool
 
+> Abandoned, not implemented. It was a wrapper over `ckan_analyze_dataset_structure` and `ckan_analyze_dataset_updates`, which were never built. Archived on 2026-11-06 without updating the specs.
+
 ## Why
 Users want a single call that returns ranked datasets plus freshness and structure insights.
 

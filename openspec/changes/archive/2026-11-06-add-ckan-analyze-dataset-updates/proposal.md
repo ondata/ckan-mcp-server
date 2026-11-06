@@ -1,5 +1,7 @@
 # Change: Add ckan_analyze_dataset_updates tool
 
+> Abandoned, not implemented. The tool was never built. Archived on 2026-11-06 without updating the specs.
+
 ## Why
 Users need quick insight on dataset freshness and update cadence.
 

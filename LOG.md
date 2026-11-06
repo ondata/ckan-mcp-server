@@ -6,6 +6,8 @@
 
 Archived eight implemented changes and added their specs: `add-effective-query-json`, `mark-migrated-portals`, `add-full-coverage-ranking`, `add-temporal-coverage-package-show`, `add-scheming-fields-package-show`, `add-portal-discovery-tool`, `add-http-cache-layer`, `add-upstream-rate-limiter`. Archived `add-ckan-host-allowlist-env` without specs: superseded by `CKAN_ALLOWED_DOMAINS`. Two specs corrected to match the code: the 3600 s TTL for status actions, and the burst value in the rate limiter's RPS scenario.
 
+Archived as abandoned, without specs and never built: `add-ckan-analyze-dataset-structure`, `add-ckan-analyze-dataset-updates`, `add-ckan-dataset-insights`. `add-ckan-audit-tool` stays active.
+
 Still open in the archived task lists: `CKAN_RATE_LIMIT_*` and the cache variables are not documented in `README.md`, and the cache variables are not in `wrangler.toml`.
 
 ### OpenSpec: `add-datastore-source-citation` published
