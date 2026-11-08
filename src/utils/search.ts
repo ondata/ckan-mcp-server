@@ -72,16 +72,19 @@ export function escapeSolrQuery(query: string): string {
 
 const isTermChar = (char: string): boolean => /[\p{L}\p{N}]/u.test(char);
 
-/** True when the wildcard run around `offset` is attached to a term, not punctuation. */
-function isTermWildcard(query: string, offset: number): boolean {
-  const isWildcard = (char: string | undefined) => char === "*" || char === "?";
-  let start = offset;
-  while (isWildcard(query[start - 1])) start--;
-  let end = offset;
-  while (isWildcard(query[end + 1])) end++;
-
-  if (!isTermChar(query[start - 1] ?? "")) return false;
-  return query.slice(start, end + 1).includes("*") || isTermChar(query[end + 1] ?? "");
+/**
+ * Read the wildcard run that begins at `start`, once: the caller reuses the answer for the
+ * rest of the run, so a run of any length costs one scan. `kept` means it is attached to
+ * a term, not punctuation.
+ */
+function readWildcardRun(query: string, start: number): { end: number; kept: boolean } {
+  let end = start;
+  let hasStar = false;
+  for (; query[end] === "*" || query[end] === "?"; end++) {
+    if (query[end] === "*") hasStar = true;
+  }
+  const kept = isTermChar(query[start - 1] ?? "") && (hasStar || isTermChar(query[end] ?? ""));
+  return { end, kept };
 }
 
 /** True when the parenthesis at `offset` was escaped by the caller, so it is a literal. */
@@ -127,6 +130,7 @@ function hasBalancedParens(query: string): boolean {
  */
 export function escapeForTextWrapping(query: string): string {
   const keepGroups = hasBalancedParens(query);
+  let run = { end: 0, kept: false };
 
   return query.replace(
     SOLR_SPECIAL_CHARS,
@@ -136,7 +140,10 @@ export function escapeForTextWrapping(query: string): string {
       }
 
       const previous = offset === 0 ? "" : whole[offset - 1]!;
-      if ((char === "*" || char === "?") && isTermWildcard(whole, offset)) return char;
+      if (char === "*" || char === "?") {
+        if (offset >= run.end) run = readWildcardRun(whole, offset);
+        if (run.kept) return char;
+      }
 
       const isUnary = char === "+" || char === "-" || char === "!";
       // A group opener is a term boundary as much as a space is, but only when the

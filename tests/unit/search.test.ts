@@ -340,6 +340,13 @@ describe('escapeForTextWrapping', () => {
     expect(escapeForTextWrapping('scuol*? AND lavoro')).toBe('scuol*? AND lavoro');
   });
 
+  it('reads a very long wildcard run once, not once per wildcard', () => {
+    const stars = '*'.repeat(200_000);
+    const started = performance.now();
+    expect(escapeForTextWrapping(`a${stars} AND b`)).toBe(`a${stars} AND b`);
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
+
   it('escapes adjacent question marks that end a term', () => {
     expect(escapeForTextWrapping('aria AND inquinamento??')).toBe('aria AND inquinamento\\?\\?');
   });
