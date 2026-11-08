@@ -104,6 +104,17 @@ describe("ckan_datastore_search_sql errors seen in telemetry", () => {
       expect(axios.post).toHaveBeenCalledTimes(1);
     });
 
+    it("sends a query too long for the URL by POST (414 on GET)", async () => {
+      // Real case, 2026-11-07: a ~14,000-character query on donneesquebec.ca.
+      vi.mocked(axios.isAxiosError).mockReturnValue(true);
+      vi.mocked(axios.get).mockRejectedValue(httpFailure(414, {}));
+      vi.mocked(axios.post).mockResolvedValue({ data: OK });
+      const { text, isError } = await runSql('SELECT 1 FROM "post-414"');
+      expect(isError).toBe(false);
+      expect(text).toContain('"n": 1');
+      expect(axios.post).toHaveBeenCalledTimes(1);
+    });
+
     describe("on Workers, where the fetch branch has no axios", () => {
       const lost = () => new Response(JSON.stringify(SQL_PARAM_LOST), { status: 409 });
 
@@ -118,6 +129,13 @@ describe("ckan_datastore_search_sql errors seen in telemetry", () => {
 
       afterEach(() => {
         vi.unstubAllGlobals();
+      });
+
+      it("sends a query too long for the URL by POST (414 on GET)", async () => {
+        const fetchMock = stubFetch(new Response("", { status: 414 }), new Response(JSON.stringify(OK), { status: 200 }));
+        const { isError } = await runSql('SELECT 1 FROM "post-414-w"');
+        expect(isError).toBe(false);
+        expect(fetchMock.mock.calls[1][1].method).toBe("POST");
       });
 
       it("sends the SQL in a JSON POST body", async () => {

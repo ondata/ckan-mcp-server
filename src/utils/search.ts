@@ -70,6 +70,8 @@ export function escapeSolrQuery(query: string): string {
   return query.replace(SOLR_SPECIAL_CHARS, "\\$&");
 }
 
+const isTermChar = (char: string): boolean => /[\p{L}\p{N}]/u.test(char);
+
 /** True when the parenthesis at `offset` was escaped by the caller, so it is a literal. */
 function isEscaped(query: string, offset: number): boolean {
   let backslashes = 0;
@@ -106,6 +108,10 @@ function hasBalancedParens(query: string): boolean {
  * dismax returns 0, escaped parentheses return 51, and preserved ones 59. Unbalanced
  * parentheses are escaped as before — stray input must not become a syntax error, and
  * a parenthesis the caller escaped is a literal, not a group.
+ *
+ * A wildcard attached to a term stays: `text:(abbandon\\* AND scolast\\*)` returns 0 on
+ * dati.gov.it, the unescaped form 9. A `?` must be inside the term, since at its end it is
+ * the punctuation of a question.
  */
 export function escapeForTextWrapping(query: string): string {
   const keepGroups = hasBalancedParens(query);
@@ -117,8 +123,11 @@ export function escapeForTextWrapping(query: string): string {
         return char;
       }
 
-      const isUnary = char === "+" || char === "-" || char === "!";
       const previous = offset === 0 ? "" : whole[offset - 1]!;
+      if (char === "*" && isTermChar(previous)) return char;
+      if (char === "?" && isTermChar(previous) && isTermChar(whole[offset + 1] ?? "")) return char;
+
+      const isUnary = char === "+" || char === "-" || char === "!";
       // A group opener is a term boundary as much as a space is, but only when the
       // parenthesis itself survives: after an escaped one the operator would bind to
       // the backslash.

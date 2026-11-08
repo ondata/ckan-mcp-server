@@ -113,7 +113,12 @@ async function readBoundedText(response: Response, maxBytes: number): Promise<st
 }
 
 /** Build the error for a non-2xx answer, quoting CKAN's own reason when it gave one. */
-function httpError(status: number, statusText: string, body: unknown, action: string, serverUrl: string): CkanApiError {
+function httpError(status: number, statusText: string, body: unknown, action: string, serverUrl: string): CkanApiError | CkanTransportError {
+  // Cloudflare answers these itself when it cannot reach the origin, so `fetch` does not
+  // throw and the status text is empty or "<none>" (#560). The portal was never reached.
+  if ((status >= 520 && status <= 527) || status === 530) {
+    return new CkanTransportError(`Network error: Cloudflare could not reach the portal (HTTP ${status})`, serverUrl);
+  }
   // CKAN answers an unknown action with a bare JSON string, translated up to the colon. Only
   // the fact is kept and the name is ours: an arbitrary body is never reflected (GHSA-6f9w).
   const reason = extractCkanErrorMessage(body)

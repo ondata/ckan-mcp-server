@@ -154,12 +154,15 @@ export function compactDatastoreResult(result: any): object {
  * Some portals lose the `sql` parameter on GET: donnees.montreal.ca answers 409
  * `sql: Valeur manquante` to any query and runs the same one sent by POST. SQL errors come
  * under `query:`, so a reason under `sql:` is about the parameter, not the query.
+ * A query too long for a URL gets 414 on GET and runs the same way.
  */
 async function runDatastoreSql(serverUrl: string, sql: string): Promise<any> {
   try {
     return await makeCkanRequest<any>(serverUrl, "datastore_search_sql", { sql });
   } catch (error) {
-    if (error instanceof CkanApiError && error.status === 409 && error.ckanReason?.startsWith("sql:")) {
+    const lostOnGet = error instanceof CkanApiError &&
+      (error.status === 414 || (error.status === 409 && error.ckanReason?.startsWith("sql:")));
+    if (lostOnGet) {
       return await makeCkanRequest<any>(serverUrl, "datastore_search_sql", { sql }, { post: true });
     }
     throw error;
