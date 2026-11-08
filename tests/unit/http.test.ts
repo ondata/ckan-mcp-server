@@ -1166,6 +1166,52 @@ describe('formatCkanError', () => {
     expect(err).not.toBeInstanceOf(CkanApiError);
   });
 
+  it.each([
+    [522, '<none>'],
+    [530, ''],
+    [520, '<none>']
+  ])('Workers: a Cloudflare %i is a transport failure, with the unreachable hint', async (status, statusText) => {
+    // Cloudflare answers with a real response when it cannot reach the origin, so `fetch`
+    // does not throw. The status text is empty or the literal "<none>" (#560).
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status, statusText })));
+    vi.stubGlobal('process', { ...process, env: process.env, versions: {} });
+    try {
+      const err = await makeCkanRequest(
+        'https://www.dati.gov.it/opendata', 'package_search', {}, { cache: false, rateLimit: false }
+      ).catch(e => e);
+
+      expect(err).toBeInstanceOf(CkanTransportError);
+      expect(err.message).toContain(`HTTP ${status}`);
+      expect(err.message).not.toContain('<none>');
+      expect(formatCkanError(err, 'ckan_package_search')).toContain('Portal unreachable');
+      expect(summarizeToolError(formatCkanError(err, 'ckan_package_search')).error_kind).toBe('unreachable');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('Node: a Cloudflare 522 from a portal behind it is a transport failure too', async () => {
+    vi.mocked(axios.isAxiosError).mockReturnValueOnce(true);
+    vi.mocked(axios.get).mockRejectedValueOnce({
+      response: { status: 522, statusText: '', data: Buffer.from(''), headers: {} }
+    });
+    const err = await makeCkanRequest(
+      'https://www.dati.gov.it/opendata', 'package_search', {}, { cache: false, rateLimit: false }
+    ).catch(e => e);
+    expect(err).toBeInstanceOf(CkanTransportError);
+  });
+
+  it('keeps other 5xx as CKAN API errors', async () => {
+    vi.mocked(axios.isAxiosError).mockReturnValueOnce(true);
+    vi.mocked(axios.get).mockRejectedValueOnce({
+      response: { status: 529, statusText: '', data: Buffer.from(''), headers: {} }
+    });
+    const err = await makeCkanRequest(
+      'https://www.dati.gov.it/opendata', 'package_search', {}, { cache: false, rateLimit: false }
+    ).catch(e => e);
+    expect(err).toBeInstanceOf(CkanApiError);
+  });
+
   it('Workers: a fetch network failure becomes a CkanTransportError with the unreachable hint', async () => {
     // Workers has no axios, so the fetch branch is the only place this can be classified.
     const fetchMock = vi.fn(async () => { throw new TypeError('fetch failed'); });

@@ -327,6 +327,39 @@ describe('escapeForTextWrapping', () => {
     expect(escapeForTextWrapping('COVID-19')).toBe('COVID\\-19');
   });
 
+  it('keeps a wildcard the caller attached to a term', () => {
+    // text:(abbandon\\* AND scolast\\*) returns 0 on dati.gov.it, the unescaped form 9.
+    expect(escapeForTextWrapping('abbandon* AND scolast*')).toBe('abbandon* AND scolast*');
+    expect(escapeForTextWrapping('wom?n AND lavoro')).toBe('wom?n AND lavoro');
+    expect(escapeForTextWrapping('citt\u00e0* OR comun*')).toBe('citt\u00e0* OR comun*');
+  });
+
+  it('reads adjacent wildcards as one, attached to the term', () => {
+    expect(escapeForTextWrapping('wo??n AND lavoro')).toBe('wo??n AND lavoro');
+    expect(escapeForTextWrapping('scuol?* AND lavoro')).toBe('scuol?* AND lavoro');
+    expect(escapeForTextWrapping('scuol*? AND lavoro')).toBe('scuol*? AND lavoro');
+  });
+
+  it('reads a very long wildcard run once, not once per wildcard', () => {
+    const stars = '*'.repeat(200_000);
+    const started = performance.now();
+    expect(escapeForTextWrapping(`a${stars} AND b`)).toBe(`a${stars} AND b`);
+    expect(performance.now() - started).toBeLessThan(1000);
+  });
+
+  it('escapes adjacent question marks that end a term', () => {
+    expect(escapeForTextWrapping('aria AND inquinamento??')).toBe('aria AND inquinamento\\?\\?');
+  });
+
+  it('still escapes a wildcard that is not attached to a term', () => {
+    expect(escapeForTextWrapping('aria AND *')).toBe('aria AND \\*');
+    expect(escapeForTextWrapping('*aria AND acqua')).toBe('\\*aria AND acqua');
+  });
+
+  it('escapes a question mark that ends a term, which is punctuation', () => {
+    expect(escapeForTextWrapping('aria AND inquinamento?')).toBe('aria AND inquinamento\\?');
+  });
+
   it('escapes a dangling operator, which is not one', () => {
     expect(escapeForTextWrapping('ambiente - rifiuti')).toBe('ambiente \\- rifiuti');
   });

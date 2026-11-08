@@ -70,6 +70,23 @@ export function escapeSolrQuery(query: string): string {
   return query.replace(SOLR_SPECIAL_CHARS, "\\$&");
 }
 
+const isTermChar = (char: string): boolean => /[\p{L}\p{N}]/u.test(char);
+
+/**
+ * Read the wildcard run that begins at `start`, once: the caller reuses the answer for the
+ * rest of the run, so a run of any length costs one scan. `kept` means it is attached to
+ * a term, not punctuation.
+ */
+function readWildcardRun(query: string, start: number): { end: number; kept: boolean } {
+  let end = start;
+  let hasStar = false;
+  for (; query[end] === "*" || query[end] === "?"; end++) {
+    if (query[end] === "*") hasStar = true;
+  }
+  const kept = isTermChar(query[start - 1] ?? "") && (hasStar || isTermChar(query[end] ?? ""));
+  return { end, kept };
+}
+
 /** True when the parenthesis at `offset` was escaped by the caller, so it is a literal. */
 function isEscaped(query: string, offset: number): boolean {
   let backslashes = 0;
@@ -106,9 +123,14 @@ function hasBalancedParens(query: string): boolean {
  * dismax returns 0, escaped parentheses return 51, and preserved ones 59. Unbalanced
  * parentheses are escaped as before — stray input must not become a syntax error, and
  * a parenthesis the caller escaped is a literal, not a group.
+ *
+ * A wildcard attached to a term stays: `text:(abbandon\\* AND scolast\\*)` returns 0 on
+ * dati.gov.it, the unescaped form 9. Adjacent wildcards count as one. Without a `*`, the
+ * run must be inside the term, since at its end `?` is the punctuation of a question.
  */
 export function escapeForTextWrapping(query: string): string {
   const keepGroups = hasBalancedParens(query);
+  let run = { end: 0, kept: false };
 
   return query.replace(
     SOLR_SPECIAL_CHARS,
@@ -117,8 +139,13 @@ export function escapeForTextWrapping(query: string): string {
         return char;
       }
 
-      const isUnary = char === "+" || char === "-" || char === "!";
       const previous = offset === 0 ? "" : whole[offset - 1]!;
+      if (char === "*" || char === "?") {
+        if (offset >= run.end) run = readWildcardRun(whole, offset);
+        if (run.kept) return char;
+      }
+
+      const isUnary = char === "+" || char === "-" || char === "!";
       // A group opener is a term boundary as much as a space is, but only when the
       // parenthesis itself survives: after an escaped one the operator would bind to
       // the backslash.

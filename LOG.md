@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-11-08
+
+### Search wildcards, 414 on long SQL, Cloudflare 52x
+
+From the Worker telemetry (2026-10-27 to 2026-11-08), each reproduced live. `escapeForTextWrapping` no longer escapes a `*` after a term or a `?` inside one: `abbandon* AND scolast*` on dati.gov.it goes 0 -> 9 on both search tools; a `?` ending a term stays escaped, as punctuation. Review follow-up: adjacent wildcards count as one run (`text:(sc??la AND abb??don*)` 10, escaped 0). Each run is read once, so a query of 200,000 `*` stays linear. `ckan_datastore_search_sql` retries by POST on 414: a 13,978-character query on donneesquebec.ca. Cloudflare's 520-527 and 530 become a transport failure with the "Portal unreachable" hint, instead of `CKAN API error (522): <none>` or an empty reason (#560). Tests 705 passed, smoke 18/18, HTTP e2e on Node and `wrangler dev`. `wrangler dev` does not answer 530 for an unresolvable host, so that case is covered by unit tests only until it is deployed.
+
 ## 2026-11-06
 
 ### OpenSpec: active changes reconciled with the code
