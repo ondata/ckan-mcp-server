@@ -72,6 +72,18 @@ export function escapeSolrQuery(query: string): string {
 
 const isTermChar = (char: string): boolean => /[\p{L}\p{N}]/u.test(char);
 
+/** True when the wildcard run around `offset` is attached to a term, not punctuation. */
+function isTermWildcard(query: string, offset: number): boolean {
+  const isWildcard = (char: string | undefined) => char === "*" || char === "?";
+  let start = offset;
+  while (isWildcard(query[start - 1])) start--;
+  let end = offset;
+  while (isWildcard(query[end + 1])) end++;
+
+  if (!isTermChar(query[start - 1] ?? "")) return false;
+  return query.slice(start, end + 1).includes("*") || isTermChar(query[end + 1] ?? "");
+}
+
 /** True when the parenthesis at `offset` was escaped by the caller, so it is a literal. */
 function isEscaped(query: string, offset: number): boolean {
   let backslashes = 0;
@@ -110,8 +122,8 @@ function hasBalancedParens(query: string): boolean {
  * a parenthesis the caller escaped is a literal, not a group.
  *
  * A wildcard attached to a term stays: `text:(abbandon\\* AND scolast\\*)` returns 0 on
- * dati.gov.it, the unescaped form 9. A `?` must be inside the term, since at its end it is
- * the punctuation of a question.
+ * dati.gov.it, the unescaped form 9. Adjacent wildcards count as one. Without a `*`, the
+ * run must be inside the term, since at its end `?` is the punctuation of a question.
  */
 export function escapeForTextWrapping(query: string): string {
   const keepGroups = hasBalancedParens(query);
@@ -124,8 +136,7 @@ export function escapeForTextWrapping(query: string): string {
       }
 
       const previous = offset === 0 ? "" : whole[offset - 1]!;
-      if (char === "*" && isTermChar(previous)) return char;
-      if (char === "?" && isTermChar(previous) && isTermChar(whole[offset + 1] ?? "")) return char;
+      if ((char === "*" || char === "?") && isTermWildcard(whole, offset)) return char;
 
       const isUnary = char === "+" || char === "-" || char === "!";
       // A group opener is a term boundary as much as a space is, but only when the

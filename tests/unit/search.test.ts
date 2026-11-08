@@ -334,6 +334,16 @@ describe('escapeForTextWrapping', () => {
     expect(escapeForTextWrapping('citt\u00e0* OR comun*')).toBe('citt\u00e0* OR comun*');
   });
 
+  it('reads adjacent wildcards as one, attached to the term', () => {
+    expect(escapeForTextWrapping('wo??n AND lavoro')).toBe('wo??n AND lavoro');
+    expect(escapeForTextWrapping('scuol?* AND lavoro')).toBe('scuol?* AND lavoro');
+    expect(escapeForTextWrapping('scuol*? AND lavoro')).toBe('scuol*? AND lavoro');
+  });
+
+  it('escapes adjacent question marks that end a term', () => {
+    expect(escapeForTextWrapping('aria AND inquinamento??')).toBe('aria AND inquinamento\\?\\?');
+  });
+
   it('still escapes a wildcard that is not attached to a term', () => {
     expect(escapeForTextWrapping('aria AND *')).toBe('aria AND \\*');
     expect(escapeForTextWrapping('*aria AND acqua')).toBe('\\*aria AND acqua');
