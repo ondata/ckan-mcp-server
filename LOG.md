@@ -2,6 +2,10 @@
 
 ## 2026-11-09
 
+### CKAN_PRIVATE_HOSTS (#587)
+
+Opt-in list of host names the CKAN tools may reach on loopback, RFC 1918 and IPv6 unique-local addresses, for a CKAN on localhost or an intranet. Off by default; `sparql_query` stays closed. Checked before merge: tests 726 passed, HTTP e2e against a local fake CKAN. Not released yet.
+
 ### Contributing: reply to review comments thread by thread
 
 `CONTRIBUTING.md` and `AGENTS.md` now ask contributors to answer each inline review comment in its own thread, with the fixing commit or the reason for not changing the code.
