@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-11-09
+
+### Contributing: reply to review comments thread by thread
+
+`CONTRIBUTING.md` and `AGENTS.md` now ask contributors to answer each inline review comment in its own thread, with the fixing commit or the reason for not changing the code.
+
 ## 2026-11-08
 
 ### v0.4.138

@@ -58,6 +58,10 @@ Before opening a PR:
 
 `npm run build` uses esbuild and takes milliseconds. **Do not run `build:tsc`** — it is a fallback for editor type-checking only, and it routinely exhausts the heap on some setups (WSL in particular). It is not a gate: nothing in CI runs it, and no PR is expected to pass it.
 
+### Responding to review comments
+
+Reviewers, including automated ones such as Greptile, comment on specific lines. Reply inside each thread, one by one, not with a single summary comment on the PR. Each reply should give the commit that fixes the finding, or the reason you chose not to change the code. A summary comment is fine on top of those. Leave resolving the thread to the maintainer.
+
 ## AI-Assisted Contributions
 
 They are welcome, under conditions. The rule here is not "human or machine" but "reviewable or not": a maintainer must be able to check the whole change in a few minutes.

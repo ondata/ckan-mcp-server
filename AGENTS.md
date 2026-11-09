@@ -118,6 +118,8 @@ Node `>=18`. Worker build in `wrangler.toml`. Vitest coverage thresholds enforce
 
 Minimal focused diffs. No unrelated refactors. Update tests for behavior changes. Avoid editing `dist/`.
 
+When a review flags something, reply inside each inline thread with the fixing commit or the reason for not changing the code, never with one summary comment (see `CONTRIBUTING.md`).
+
 ## Pre-commit Checklist
 
 Before committing and pushing any locally testable change:
