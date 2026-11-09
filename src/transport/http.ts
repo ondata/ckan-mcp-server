@@ -5,12 +5,13 @@
 import express from "express";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { createServer, registerAll } from "../server.js";
-import { assertHttpAllowlistConfigured } from "../utils/http.js";
+import { assertHttpAllowlistConfigured, warnIfPrivateHostsOverHttp } from "../utils/http.js";
 
 export async function runHTTP() {
   // Network-exposed transport: require a domain allowlist (fail-fast) unless
   // explicitly opted out via CKAN_HTTP_ALLOW_ALL=true.
   assertHttpAllowlistConfigured();
+  warnIfPrivateHostsOverHttp();
 
   const port = parseInt(process.env.PORT || '3000');
 

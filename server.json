@@ -21,6 +21,12 @@
           "description": "Comma-separated CKAN hostnames to allow. Empty = any portal.",
           "isRequired": false,
           "placeholder": "www.dati.gov.it,open.canada.ca"
+        },
+        {
+          "name": "CKAN_PRIVATE_HOSTS",
+          "description": "Comma-separated host names that may be private (loopback, RFC 1918, IPv6 unique-local), e.g. a CKAN on localhost or an intranet. Empty = none.",
+          "isRequired": false,
+          "placeholder": "localhost,ckan.intra.example"
         }
       ]
     }
