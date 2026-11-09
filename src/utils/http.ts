@@ -696,15 +696,18 @@ type DnsLookupModule = {
  * validated address — closing the DNS-name SSRF bypass and DNS-rebinding (the IP the
  * socket connects to is exactly the one we validated, no second resolution).
  * Exported with an injectable dns module so it can be unit-tested without real DNS.
+ * Strict by default: `allowPrivateHosts` lets a `CKAN_PRIVATE_HOSTS` host resolve to a
+ * private address, and only the CKAN (axios) agents ask for it. The fetch dispatcher
+ * used by `sparql_query` does not, so it stays closed to private hosts at connect time.
  */
-export function createSsrfSafeLookup(dnsModule: DnsLookupModule) {
+export function createSsrfSafeLookup(dnsModule: DnsLookupModule, settings: { allowPrivateHosts?: boolean } = {}) {
   return function ssrfSafeLookup(hostname: string, options: any, callback: any): void {
     if (typeof options === 'function') {
       callback = options;
       options = {};
     }
     const family = options && typeof options === 'object' ? options.family : undefined;
-    const allowPrivate = isPrivateHostAllowed(hostname);
+    const allowPrivate = settings.allowPrivateHosts === true && isPrivateHostAllowed(hostname);
     dnsModule.lookup(hostname, { all: true, family: family || 0 }, (err, addresses) => {
       if (err) {
         callback(err);
@@ -741,7 +744,7 @@ function getSafeAgents(): Promise<{ httpAgent: unknown; httpsAgent: unknown } | 
         const dnsMod = (await import("node:" + "dns")) as unknown as DnsLookupModule;
         const httpMod = (await import("node:" + "http")) as any;
         const httpsMod = (await import("node:" + "https")) as any;
-        const lookup = createSsrfSafeLookup(dnsMod);
+        const lookup = createSsrfSafeLookup(dnsMod, { allowPrivateHosts: true });
         return {
           httpAgent: new httpMod.Agent({ lookup }),
           httpsAgent: new httpsMod.Agent({ lookup }),
