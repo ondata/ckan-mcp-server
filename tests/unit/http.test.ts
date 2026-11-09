@@ -381,9 +381,9 @@ describe('makeCkanRequest', () => {
     type RedirectHook = (options: { href: string }) => void;
 
     // The axios config makeCkanRequest actually builds (agents, maxRedirects, hook).
-    async function getRequestConfig(): Promise<AxiosRequestConfig> {
+    async function getRequestConfig(origin = 'https://www.dati.gov.it/opendata'): Promise<AxiosRequestConfig> {
       vi.mocked(axios.get).mockResolvedValue({ data: successResponse });
-      await makeCkanRequest('https://www.dati.gov.it/opendata', 'status_show', {}, { cache: false });
+      await makeCkanRequest(origin, 'status_show', {}, { cache: false });
       const config = vi.mocked(axios.get).mock.calls[0][1];
       expect(config).toBeDefined();
       return config as AxiosRequestConfig;
@@ -457,6 +457,56 @@ describe('makeCkanRequest', () => {
       } finally {
         vi.unstubAllGlobals();
       }
+    });
+
+    describe('with CKAN_PRIVATE_HOSTS', () => {
+      const origPrivate = process.env.CKAN_PRIVATE_HOSTS;
+      beforeEach(() => { delete process.env.CKAN_ALLOWED_DOMAINS; });
+      afterEach(() => {
+        if (origPrivate === undefined) delete process.env.CKAN_PRIVATE_HOSTS; else process.env.CKAN_PRIVATE_HOSTS = origPrivate;
+      });
+
+      it('refuses a redirect from a public portal to a listed private host', async () => {
+        process.env.CKAN_PRIVATE_HOSTS = 'localhost,ckan.intra.example';
+        const hook = await getBeforeRedirect();
+        expect(() => hook({ href: 'http://localhost:5003/' })).toThrow(/not allowed/);
+        expect(() => hook({ href: 'https://ckan.intra.example/' })).toThrow(/not allowed/);
+      });
+
+      it('follows a redirect between listed hosts but not to an unlisted private one', async () => {
+        process.env.CKAN_PRIVATE_HOSTS = 'localhost,ckan.intra.example';
+        const config = await getRequestConfig('http://localhost:5003');
+        const hook = config.beforeRedirect as unknown as RedirectHook;
+        expect(() => hook({ href: 'https://ckan.intra.example/' })).not.toThrow();
+        expect(() => hook({ href: 'http://192.168.1.99/' })).toThrow(/private|internal/i);
+      });
+
+      it('tracks the chain: public, then listed, is refused even if the first hop was listed', async () => {
+        process.env.CKAN_PRIVATE_HOSTS = 'localhost';
+        const config = await getRequestConfig('http://localhost:5003');
+        const hook = config.beforeRedirect as unknown as RedirectHook;
+        expect(() => hook({ href: 'https://www.dati.gov.it/x' })).not.toThrow();
+        expect(() => hook({ href: 'http://localhost:5003/secret' })).toThrow(/not allowed/);
+      });
+
+      it('real axios: a listed host that redirects to an unlisted private name is refused, nothing is fetched', async () => {
+        process.env.CKAN_PRIVATE_HOSTS = '127.0.0.1';
+        const config = await getRequestConfig('http://127.0.0.1');
+        const realAxios = (await vi.importActual<typeof import('axios')>('axios')).default;
+        await withRedirector(port => `http://localhost:${port}/secret`, async (redirectorPort, hits) => {
+          await expect(realAxios.get(`http://127.0.0.1:${redirectorPort}/`, config)).rejects.toThrow(/not allowed|private|internal/i);
+          expect(hits()).toBe(0);
+        });
+      });
+
+      it('real axios: a listed host that redirects to the metadata address is refused', async () => {
+        process.env.CKAN_PRIVATE_HOSTS = '127.0.0.1,169.254.169.254';
+        const config = await getRequestConfig('http://127.0.0.1');
+        const realAxios = (await vi.importActual<typeof import('axios')>('axios')).default;
+        await withRedirector(() => 'http://169.254.169.254/latest/meta-data/', async (redirectorPort) => {
+          await expect(realAxios.get(`http://127.0.0.1:${redirectorPort}/`, config)).rejects.toThrow(/private|internal/i);
+        });
+      });
     });
 
     it('rejects redirects to private IP literals', async () => {

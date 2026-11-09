@@ -439,6 +439,40 @@ async function decodePossiblyCompressed(
 }
 
 /**
+ * Private-network addresses an administrator may open for one named host
+ * (`CKAN_PRIVATE_HOSTS`): loopback, RFC 1918 and IPv6 unique-local. Link-local and
+ * cloud metadata (169.254.0.0/16), 0.0.0.0/8, shared, multicast and reserved ranges stay
+ * blocked even for a listed host.
+ */
+function isPrivateNetworkIp(v: string): boolean {
+  if (v.includes(':')) {
+    const w = parseIpv6(v);
+    if (!w) return false;
+    return (w.slice(0, 7).every((x) => x === 0) && w[7] === 1) || // ::1 loopback
+      (w[0] & 0xfe00) === 0xfc00;                                  // fc00::/7 unique local
+  }
+  const m = v.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (!m) return false;
+  const o1 = Number(m[1]);
+  const o2 = Number(m[2]);
+  return o1 === 10 || o1 === 127 ||
+    (o1 === 172 && o2 >= 16 && o2 <= 31) ||
+    (o1 === 192 && o2 === 168);
+}
+
+/**
+ * Hostnames the administrator has allowed to be private (`CKAN_PRIVATE_HOSTS`,
+ * comma-separated, exact match, e.g. "localhost,ckan.intra.example"). Off by default.
+ */
+export function isPrivateHostAllowed(hostname: string): boolean {
+  if (typeof process === 'undefined') return false;
+  const raw = process.env.CKAN_PRIVATE_HOSTS ?? '';
+  if (!raw) return false;
+  const h = hostname.toLowerCase().replace(/^\[|\]$/g, '');
+  return raw.split(',').some((e) => e.trim().toLowerCase().replace(/^\[|\]$/g, '') === h && h !== '');
+}
+
+/**
  * Returns true if an IP address (IPv4 or IPv6 string) is in a private/internal/special range.
  * Shared by the synchronous literal guard (`validateServerUrl`) and the DNS-resolution
  * guard (`createSsrfSafeLookup` / `assertHostnameResolvesSafe`), so a hostname that
@@ -499,8 +533,9 @@ function parseIpv6(input: string): number[] | null {
  * address (NAT64, 6to4, IPv4-compatible), so `64:ff9b::a9fe:a9fe` is the cloud metadata
  * endpoint written in IPv6 and must be blocked exactly like 169.254.169.254.
  */
-export function isBlockedIp(ip: string): boolean {
+export function isBlockedIp(ip: string, allowPrivate = false): boolean {
   const v = ip.toLowerCase().trim();
+  if (allowPrivate && isPrivateNetworkIp(v)) return false;
 
   // IPv6 (any address containing a colon)
   if (v.includes(':')) {
@@ -559,25 +594,26 @@ export function validateServerUrl(serverUrl: string): void {
   }
 
   const hostname = parsed.hostname.toLowerCase();
+  const privateOk = isPrivateHostAllowed(hostname);
 
   const BLOCKED_HOSTNAMES = new Set([
     'localhost',
     'ip6-localhost',
     'ip6-loopback',
   ]);
-  if (BLOCKED_HOSTNAMES.has(hostname)) {
+  if (BLOCKED_HOSTNAMES.has(hostname) && !privateOk) {
     throw new SsrfGuardError(`Access to "${hostname}" is not allowed.`);
   }
 
   // Block IPv4 private/special literals. WHATWG URL already normalizes integer/hex/
   // octal/short IPv4 forms (e.g. 0x7f000001 → 127.0.0.1) to dotted-decimal here, so a
   // single dotted-quad check covers all those encodings (GHSA-8hxx).
-  if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname) && isBlockedIp(hostname)) {
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname) && isBlockedIp(hostname, privateOk)) {
     throw new SsrfGuardError(`Access to private/internal IP addresses is not allowed.`);
   }
 
   // Block IPv6 private/loopback literals (URL hostname keeps the brackets)
-  if (hostname.startsWith('[') && isBlockedIp(hostname.slice(1, -1))) {
+  if (hostname.startsWith('[') && isBlockedIp(hostname.slice(1, -1), privateOk)) {
     throw new SsrfGuardError(`Access to private/internal IPv6 addresses is not allowed.`);
   }
 
@@ -587,6 +623,35 @@ export function validateServerUrl(serverUrl: string): void {
   if (allowedDomains.length > 0 && !allowedDomains.includes(hostname)) {
     throw new SsrfGuardError(`Domain "${hostname}" is not in the allowed list (CKAN_ALLOWED_DOMAINS).`);
   }
+}
+
+/**
+ * A redirect may enter a `CKAN_PRIVATE_HOSTS` host only from another listed host, so a
+ * public portal cannot answer with a 302 to e.g. `http://localhost:5003/` and have the
+ * server follow it. Other hops are checked by `validateServerUrl` as before.
+ */
+export function assertRedirectKeepsPrivateExemption(fromHostname: string, toUrl: string): void {
+  const to = new URL(toUrl).hostname.toLowerCase();
+  if (isPrivateHostAllowed(to) && !isPrivateHostAllowed(fromHostname.toLowerCase())) {
+    throw new SsrfGuardError(
+      `A redirect from "${fromHostname}" to "${to}" is not allowed: ` +
+      `a private host (CKAN_PRIVATE_HOSTS) can only be reached from a listed host.`
+    );
+  }
+}
+
+/**
+ * With the HTTP transport a `CKAN_PRIVATE_HOSTS` host is reachable by every client of
+ * the server. Say so at start, like the warning for `CKAN_HTTP_ALLOW_ALL`.
+ */
+export function warnIfPrivateHostsOverHttp(): void {
+  const raw = typeof process !== 'undefined' ? (process.env.CKAN_PRIVATE_HOSTS ?? '') : '';
+  const hosts = raw.split(',').map(s => s.trim()).filter(Boolean);
+  if (hosts.length === 0) return;
+  console.error(
+    `[SECURITY WARNING] CKAN_PRIVATE_HOSTS is set with the HTTP transport: ${hosts.join(', ')} ` +
+    'can be reached by every client of this server. List only hosts you want all clients to reach.'
+  );
 }
 
 /**
@@ -639,6 +704,7 @@ export function createSsrfSafeLookup(dnsModule: DnsLookupModule) {
       options = {};
     }
     const family = options && typeof options === 'object' ? options.family : undefined;
+    const allowPrivate = isPrivateHostAllowed(hostname);
     dnsModule.lookup(hostname, { all: true, family: family || 0 }, (err, addresses) => {
       if (err) {
         callback(err);
@@ -646,7 +712,7 @@ export function createSsrfSafeLookup(dnsModule: DnsLookupModule) {
       }
       const list = Array.isArray(addresses) ? addresses : [addresses as ResolvedAddress];
       for (const a of list) {
-        if (isBlockedIp(a.address)) {
+        if (isBlockedIp(a.address, allowPrivate)) {
           callback(new SsrfGuardError(
             `Access to private/internal IP addresses is not allowed ` +
             `("${hostname}" resolves to ${a.address}).`
@@ -761,6 +827,8 @@ export async function assertHostnameResolvesSafe(hostname: string): Promise<void
     throw new SsrfGuardError(`Cannot resolve "${hostname}" for SSRF validation (failing closed).`);
   }
 
+  // Not relaxed for CKAN_PRIVATE_HOSTS: this guard serves sparql_query and the other
+  // tools that fetch a URL, which stay closed to private hosts.
   for (const a of addresses) {
     if (isBlockedIp(a.address)) {
       throw new SsrfGuardError(
@@ -914,6 +982,8 @@ export async function makeCkanRequest<T>(
     const fetchDecoded = async (honest: boolean): Promise<unknown> => {
       if (isNode) {
         const safeAgents = await getSafeAgents();
+        // The host the request is currently on, to tell where each redirect comes from.
+        let hopHostname = new URL(url).hostname;
         const config = {
           timeout: 30000,
           responseType: "arraybuffer",
@@ -922,6 +992,8 @@ export async function makeCkanRequest<T>(
           // literals, so a public host 302-ing to e.g. 169.254.169.254 would otherwise
           // be followed. Also enforces CKAN_ALLOWED_DOMAINS on redirect targets.
           beforeRedirect: (redirectOptions: { href: string }) => {
+            assertRedirectKeepsPrivateExemption(hopHostname, redirectOptions.href);
+            hopHostname = new URL(redirectOptions.href).hostname;
             validateServerUrl(redirectOptions.href);
           },
           // Never route through HTTP_PROXY/HTTPS_PROXY: a proxy would connect to the
