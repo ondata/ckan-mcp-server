@@ -2,9 +2,13 @@
 
 ## 2026-11-09
 
+### v0.4.139
+
+Ships #587. For callers: the server can now read a CKAN on localhost or an intranet, by naming the host in `CKAN_PRIVATE_HOSTS` (before: "Access to localhost is not allowed"). Nothing changes for anyone who does not set it. Released the same day as the merge, as an explicit exception to the release cadence rule.
+
 ### CKAN_PRIVATE_HOSTS (#587)
 
-Opt-in list of host names the CKAN tools may reach on loopback, RFC 1918 and IPv6 unique-local addresses, for a CKAN on localhost or an intranet. Off by default; `sparql_query` stays closed. Checked before merge: tests 726 passed, HTTP e2e against a local fake CKAN. Not released yet.
+Opt-in list of host names the CKAN tools may reach on loopback, RFC 1918 and IPv6 unique-local addresses, for a CKAN on localhost or an intranet. Off by default; `sparql_query` stays closed. Checked before merge: tests 726 passed, HTTP e2e against a local fake CKAN.
 
 ### Contributing: reply to review comments thread by thread
 
