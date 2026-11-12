@@ -145,6 +145,32 @@ describe('sparql_query', () => {
       expect(err.message).toBe('SPARQL endpoint error (400): Bad Request: Encountered "(" at line 1, column 65.');
     });
 
+    it('skips a multiline query echo to reach the exception', async () => {
+      // injectLimit appends "\nLIMIT n", so most echoes span several lines.
+      const body = 'SPARQL-QUERY: queryStr=PREFIX schema: <http://schema.org/>\nSELECT ?a WHERE {\n  VALUES ?a {(<x>)}\n}\nLIMIT 25\n'
+        + 'java.util.concurrent.ExecutionException: org.openrdf.query.MalformedQueryException: Encountered " "(" "( "" at line 3, column 14.\n'
+        + 'Was expecting one of:';
+      (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(new Response(body, { status: 400, statusText: 'Bad Request' }));
+
+      const err = await querySparqlEndpoint('https://query.wikidata.org/sparql', 'SELECT * WHERE { }').catch(e => e);
+      expect(err.message).toBe('SPARQL endpoint error (400): Bad Request: Encountered " "(" "( "" at line 3, column 14.');
+    });
+
+    it('stops waiting for an error body that stalls past the timeout', async () => {
+      vi.useFakeTimers();
+      try {
+        const stalled = new ReadableStream<Uint8Array>({ start() { /* headers sent, body never comes */ } });
+        (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(new Response(stalled, { status: 400, statusText: 'Bad Request' }));
+
+        const pending = querySparqlEndpoint('https://query.wikidata.org/sparql', 'SELECT * WHERE { }').catch(e => e);
+        await vi.advanceTimersByTimeAsync(15000);
+        const err = await pending;
+        expect(err.message).toBe('SPARQL endpoint error (400): Bad Request');
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
     it('takes the first line of a Virtuoso error body', async () => {
       const body = "Virtuoso 37000 Error SP030: SPARQL compiler, line 2: syntax error at '(' before '<x>'\n\nSPARQL query:\nSELECT ...";
       (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(new Response(body, { status: 400, statusText: 'Bad Request' }));
@@ -174,6 +200,7 @@ describe('sparql_query', () => {
 
       const err = await querySparqlEndpoint('https://query.wikidata.org/sparql', 'SELECT * WHERE { }').catch(e => e);
       expect(err.message).toContain('did not answer within 15 seconds');
+      expect(err.cause).toBeInstanceOf(DOMException);
       expect(summarizeToolError(`SPARQL query failed:\n${err.message}`).error_kind).toBe('timeout');
     });
 

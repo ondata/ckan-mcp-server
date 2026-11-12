@@ -73,8 +73,8 @@ export async function querySparqlEndpoint(endpointUrl: string, query: string): P
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-  let response: Response;
   try {
+    let response: Response;
     if (method === "GET") {
       const getUrl = new URL(endpointUrl);
       getUrl.searchParams.set("query", query);
@@ -101,31 +101,39 @@ export async function querySparqlEndpoint(endpointUrl: string, query: string): P
         }, { httpsOnly: true });
       }
     }
+
+    // The deadline covers the body too: an endpoint can send its headers and then stall.
+    if (!response.ok) {
+      const reason = await readErrorReason(response, controller.signal);
+      throw new Error(
+        `SPARQL endpoint error (${response.status}): ${response.statusText}${reason ? `: ${reason}` : ""}`
+      );
+    }
+
+    return (await response.json()) as SparqlResults;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       throw new Error(
-        `The endpoint did not answer within ${TIMEOUT_MS / 1000} seconds (timeout). Simplify the query (fewer VALUES, a LIMIT, no OPTIONAL over large sets) or retry later.`
+        `The endpoint did not answer within ${TIMEOUT_MS / 1000} seconds (timeout). Simplify the query (fewer VALUES, a LIMIT, no OPTIONAL over large sets) or retry later.`,
+        { cause: error }
       );
     }
     throw error;
   } finally {
     clearTimeout(timeoutId);
   }
-
-  if (!response.ok) {
-    const reason = await readErrorReason(response);
-    throw new Error(
-      `SPARQL endpoint error (${response.status}): ${response.statusText}${reason ? `: ${reason}` : ""}`
-    );
-  }
-
-  return response.json() as Promise<SparqlResults>;
 }
 
-/** The first `maxBytes` of a body; the rest is never downloaded. */
-async function readHead(response: Response, maxBytes: number): Promise<string> {
+/**
+ * The first `maxBytes` of a body; the rest is never downloaded. Stops with what it has
+ * when `signal` aborts.
+ */
+async function readHead(response: Response, maxBytes: number, signal: AbortSignal): Promise<string> {
   const reader = response.body?.getReader();
   if (!reader) return "";
+  const stop = () => { reader.cancel().catch(() => undefined); };
+  if (signal.aborted) stop();
+  signal.addEventListener("abort", stop, { once: true });
   const decoder = new TextDecoder();
   let text = "";
   let total = 0;
@@ -138,6 +146,7 @@ async function readHead(response: Response, maxBytes: number): Promise<string> {
       text += decoder.decode(chunk, { stream: true });
     }
   } finally {
+    signal.removeEventListener("abort", stop);
     await reader.cancel().catch(() => undefined);
   }
   return text;
@@ -145,19 +154,20 @@ async function readHead(response: Response, maxBytes: number): Promise<string> {
 
 /**
  * The endpoint's own explanation of a failed query, as one short line. Wikidata answers
- * a parse error with an echo of the query and a Java stack trace; Virtuoso puts the
- * message first. Without it the caller sees only "Bad Request" and retries blind.
+ * a parse error with an echo of the (possibly multiline) query and a Java stack trace;
+ * Virtuoso puts the message first. Without it the caller sees only "Bad Request" and retries blind.
  * HTML pages (gateways, proxies) carry nothing useful and are left out.
  */
-async function readErrorReason(response: Response): Promise<string> {
+async function readErrorReason(response: Response, signal: AbortSignal): Promise<string> {
   try {
     if (/html/i.test(response.headers?.get?.("content-type") ?? "")) return "";
-    const text = await readHead(response, ERROR_HEAD_BYTES);
+    const text = await readHead(response, ERROR_HEAD_BYTES, signal);
     if (!text || /^\s*</.test(text)) return "";
-    const line = text
-      .split(/\r?\n/)
-      .map(l => l.trim())
-      .find(l => l && !l.startsWith("SPARQL-QUERY:"));
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    // Wikidata echoes the query first, one line per query line, then the exception.
+    const line = lines[0]?.startsWith("SPARQL-QUERY:")
+      ? lines.find(l => /^[\w$.]+(?:Exception|Error): /.test(l))
+      : lines[0];
     if (!line) return "";
     const reason = line
       .replace(/^(?:[\w$.]+(?:Exception|Error): )+/, "")
