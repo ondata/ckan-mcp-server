@@ -17,28 +17,149 @@ import {
 import {
   SsrfGuardError,
   readBoundedText,
-  MAX_RESPONSE_BYTES,
   decodePossiblyCompressed,
-  getSafeAgents,
-  validateServerUrl,
-  assertRedirectKeepsPrivateExemption,
-  safeFetch
+  createSafeAgents,
+  isPrivateHostAllowed as isPrivateHostAllowedIn,
+  validateServerUrl as validateServerUrlWith,
+  assertRedirectKeepsPrivateExemption as assertRedirectKeepsPrivateExemptionWith,
+  createSsrfSafeLookup as createSsrfSafeLookupWith,
+  safeFetch as safeFetchWith,
+  type DnsLookupModule,
+  type UrlGuardSettings
 } from "./safe-http.js";
 
 export {
   SsrfGuardError,
-  isPrivateHostAllowed,
   isBlockedIp,
-  validateServerUrl,
-  assertRedirectKeepsPrivateExemption,
-  warnIfPrivateHostsOverHttp,
-  assertHttpAllowlistConfigured,
-  createSsrfSafeLookup,
   getSafeDispatcher,
   __setDnsResolverForTests,
-  assertHostnameResolvesSafe,
-  safeFetch
+  assertHostnameResolvesSafe
 } from "./safe-http.js";
+
+// The CKAN_* settings of the HTTP safety layer. They are read here and passed to
+// safe-http.ts on every call, which reads no configuration itself. Each is read when
+// it was before: the size caps once at load, the others on every call, at every
+// redirect hop of safeFetch and at every DNS lookup of the safe agents.
+
+// Response/decompression size caps (DoS prevention — GHSA-q5gv). Generous enough for
+// any legitimate CKAN JSON, small enough to stop a decompression bomb from OOM-ing us.
+const MAX_RESPONSE_BYTES =
+  (typeof process !== "undefined" && Number(process.env?.CKAN_MAX_RESPONSE_BYTES)) || 32 * 1024 * 1024;
+const MAX_DECOMPRESSED_BYTES =
+  (typeof process !== "undefined" && Number(process.env?.CKAN_MAX_DECOMPRESSED_BYTES)) || 64 * 1024 * 1024;
+
+/** `CKAN_PRIVATE_HOSTS`, read on every call; empty when unset or off Node. */
+function ckanPrivateHosts(): string {
+  return typeof process !== 'undefined' ? (process.env.CKAN_PRIVATE_HOSTS ?? '') : '';
+}
+
+/** `CKAN_ALLOWED_DOMAINS` and `CKAN_PRIVATE_HOSTS`, read on every call. */
+function ckanUrlGuardSettings(): UrlGuardSettings {
+  return {
+    allowedDomains: typeof process !== 'undefined' ? (process.env.CKAN_ALLOWED_DOMAINS ?? '') : '',
+    privateHosts: ckanPrivateHosts(),
+    allowedDomainsName: 'CKAN_ALLOWED_DOMAINS',
+    privateHostsName: 'CKAN_PRIVATE_HOSTS'
+  };
+}
+
+/**
+ * Hostnames the administrator has allowed to be private (`CKAN_PRIVATE_HOSTS`,
+ * comma-separated, exact match, e.g. "localhost,ckan.intra.example"). Off by default.
+ */
+export function isPrivateHostAllowed(hostname: string): boolean {
+  return isPrivateHostAllowedIn(hostname, ckanPrivateHosts());
+}
+
+/**
+ * Validate that a server URL is safe to request (SSRF prevention), with the
+ * `CKAN_ALLOWED_DOMAINS` and `CKAN_PRIVATE_HOSTS` settings. See safe-http.ts.
+ */
+export function validateServerUrl(serverUrl: string): void {
+  validateServerUrlWith(serverUrl, ckanUrlGuardSettings());
+}
+
+/**
+ * A redirect may enter a `CKAN_PRIVATE_HOSTS` host only from another listed host, so a
+ * public portal cannot answer with a 302 to e.g. `http://localhost:5003/` and have the
+ * server follow it. Other hops are checked by `validateServerUrl` as before.
+ */
+export function assertRedirectKeepsPrivateExemption(fromHostname: string, toUrl: string): void {
+  assertRedirectKeepsPrivateExemptionWith(fromHostname, toUrl, ckanUrlGuardSettings());
+}
+
+/**
+ * The SSRF-safe DNS lookup (see safe-http.ts). With `allowPrivateHosts`, a
+ * `CKAN_PRIVATE_HOSTS` host may resolve to a private address; only the CKAN (axios)
+ * agents ask for it. The fetch dispatcher used by `sparql_query` does not, so it stays
+ * closed to private hosts at connect time.
+ */
+export function createSsrfSafeLookup(dnsModule: DnsLookupModule, settings: { allowPrivateHosts?: boolean } = {}) {
+  return createSsrfSafeLookupWith(dnsModule, settings, ckanPrivateHosts);
+}
+
+/**
+ * Fetch that re-validates every redirect hop (see safe-http.ts), with the CKAN settings.
+ * Used by `sparql_query` and the other tools that fetch a URL.
+ */
+export function safeFetch(
+  url: string,
+  init: RequestInit = {},
+  opts: { maxHops?: number; httpsOnly?: boolean } = {}
+): Promise<Response> {
+  return safeFetchWith(url, init, { ...opts, urlGuard: ckanUrlGuardSettings });
+}
+
+let _safeAgents: Promise<{ httpAgent: unknown; httpsAgent: unknown } | null> | null = null;
+
+/** Lazily build SSRF-safe http/https Agents (Node only). Returns null off Node/on failure. */
+function getSafeAgents(): Promise<{ httpAgent: unknown; httpsAgent: unknown } | null> {
+  if (!_safeAgents) {
+    _safeAgents = createSafeAgents(ckanPrivateHosts);
+  }
+  return _safeAgents;
+}
+
+/**
+ * With the HTTP transport a `CKAN_PRIVATE_HOSTS` host is reachable by every client of
+ * the server. Say so at start, like the warning for `CKAN_HTTP_ALLOW_ALL`.
+ */
+export function warnIfPrivateHostsOverHttp(): void {
+  const raw = typeof process !== 'undefined' ? (process.env.CKAN_PRIVATE_HOSTS ?? '') : '';
+  const hosts = raw.split(',').map(s => s.trim()).filter(Boolean);
+  if (hosts.length === 0) return;
+  console.error(
+    `[SECURITY WARNING] CKAN_PRIVATE_HOSTS is set with the HTTP transport: ${hosts.join(', ')} ` +
+    'can be reached by every client of this server. List only hosts you want all clients to reach.'
+  );
+}
+
+/**
+ * Refuse to run the network-exposed HTTP transport without a domain allowlist.
+ * `CKAN_ALLOWED_DOMAINS` (default-deny) is mandatory for HTTP; set
+ * `CKAN_HTTP_ALLOW_ALL=true` to explicitly opt out (logs a warning).
+ * stdio is unaffected — it stays open so any portal can be queried locally.
+ */
+export function assertHttpAllowlistConfigured(): void {
+  const raw = typeof process !== 'undefined' ? (process.env.CKAN_ALLOWED_DOMAINS ?? '') : '';
+  const domains = raw.split(',').map(s => s.trim()).filter(Boolean);
+  if (domains.length > 0) return;
+
+  if (typeof process !== 'undefined' && process.env.CKAN_HTTP_ALLOW_ALL === 'true') {
+    console.error(
+      '[SECURITY WARNING] HTTP transport is running WITHOUT a domain allowlist ' +
+      '(CKAN_HTTP_ALLOW_ALL=true). Any client can drive requests to arbitrary hosts. ' +
+      'Set CKAN_ALLOWED_DOMAINS to restrict which CKAN hosts can be queried.'
+    );
+    return;
+  }
+
+  throw new Error(
+    'Refusing to start HTTP transport without a domain allowlist.\n' +
+    'Set CKAN_ALLOWED_DOMAINS="portal1.org,portal2.gov" to restrict which hosts can be queried,\n' +
+    'or set CKAN_HTTP_ALLOW_ALL=true to explicitly run without restriction (NOT recommended when network-exposed).'
+  );
+}
 
 export interface MakeCkanRequestOptions {
   cache?: boolean;
@@ -372,7 +493,8 @@ export async function makeCkanRequest<T>(
 
         return decodePossiblyCompressed(
           response.data,
-          response.headers
+          response.headers,
+          MAX_DECOMPRESSED_BYTES
         );
       } else {
         const searchParams = new URLSearchParams();
@@ -455,7 +577,7 @@ export async function makeCkanRequest<T>(
           response.headers.forEach((headerValue, headerKey) => {
             headers[headerKey] = headerValue;
           });
-          return decodePossiblyCompressed(buffer, headers);
+          return decodePossiblyCompressed(buffer, headers, MAX_DECOMPRESSED_BYTES);
         } finally {
           clearTimeout(timeoutId);
         }
@@ -520,7 +642,7 @@ export async function makeCkanRequest<T>(
         const { status, statusText, data, headers } = axiosError.response;
         let body: unknown = null;
         try {
-          body = await decodePossiblyCompressed(data, headers as Record<string, unknown>);
+          body = await decodePossiblyCompressed(data, headers as Record<string, unknown>, MAX_DECOMPRESSED_BYTES);
         } catch { /* undecodable body: fall back to the status text */ }
         throw httpError(status, statusText, body, action, serverUrl);
       } else if (axiosError.code === 'ECONNABORTED') {
