@@ -279,10 +279,9 @@ export interface UrlGuardSettings {
  * comma-separated, exact match, e.g. "localhost,intra.example"). Off when empty.
  */
 export function isPrivateHostAllowed(hostname: string, privateHosts: string): boolean {
-  const raw = privateHosts;
-  if (!raw) return false;
+  if (!privateHosts) return false;
   const h = hostname.toLowerCase().replace(/^\[|\]$/g, '');
-  return raw.split(',').some((e) => e.trim().toLowerCase().replace(/^\[|\]$/g, '') === h && h !== '');
+  return privateHosts.split(',').some((e) => e.trim().toLowerCase().replace(/^\[|\]$/g, '') === h && h !== '');
 }
 
 /**

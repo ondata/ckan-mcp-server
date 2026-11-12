@@ -499,6 +499,30 @@ describe('makeCkanRequest', () => {
         });
       });
 
+      it('real axios: the agents let a listed host name resolve to loopback, reading the list at lookup time', async () => {
+        process.env.CKAN_PRIVATE_HOSTS = 'localhost';
+        const config = await getRequestConfig('http://localhost:5003');
+        const realAxios = (await vi.importActual<typeof import('axios')>('axios')).default;
+        const http = await import('node:http');
+        let hits = 0;
+        const server = http.createServer((_req, res) => { hits++; res.end('{"success":true,"result":"INTERNAL"}'); });
+        await new Promise<void>(resolve => server.listen(0, '127.0.0.1', () => resolve()));
+        const url = `http://localhost:${(server.address() as AddressInfo).port}/`;
+        try {
+          // `localhost` goes through the agents' DNS lookup (an IP literal would skip it);
+          // family 4 keeps it on the IPv4 listener.
+          const res = await realAxios.get(url, { ...config, family: 4 });
+          expect(res.status).toBe(200);
+          expect(hits).toBe(1);
+          // Same agents, list changed: the lookup reads it again and now refuses.
+          process.env.CKAN_PRIVATE_HOSTS = 'ckan.intra.example';
+          await expect(realAxios.get(url, { ...config, family: 4 })).rejects.toThrow(/private|internal/i);
+          expect(hits).toBe(1);
+        } finally {
+          await new Promise<void>(resolve => server.close(() => resolve()));
+        }
+      });
+
       it('real axios: a listed host that redirects to the metadata address is refused', async () => {
         process.env.CKAN_PRIVATE_HOSTS = '127.0.0.1,169.254.169.254';
         const config = await getRequestConfig('http://127.0.0.1');
