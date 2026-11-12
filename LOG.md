@@ -2,6 +2,10 @@
 
 ## 2026-11-12
 
+### safe-http.ts reads no configuration (#594)
+
+Second and last step of path B (#590), by @bjornhagstrom; further steps declined in #590. `src/utils/safe-http.ts` no longer reads `process.env` or names CKAN: `http.ts` reads the `CKAN_*` settings (size caps at load, the rest per call, per redirect hop, per DNS lookup, as before) and passes them in; same 20 exports from `utils/http.js`, same messages, no test changed. `warnIfPrivateHostsOverHttp` and `assertHttpAllowlistConfigured` move verbatim to `http.ts`. No behaviour change, not yet released. Checked after merge with #593: build and Worker build ok, tests 738 passed, 6 skipped.
+
 ### SPARQL validation, endpoint errors, CAST hint
 
 From the Worker telemetry (2026-11-09 to 2026-11-12), each reproduced live. `sparql_query` no longer reads a `#` inside an IRI or string as a comment: `PREFIX rdfs: <...rdf-schema#> SELECT ...` on one line was refused as "Only SELECT queries" (10 Wikidata calls). A failed query now carries the endpoint's own reason, read from the first 4 KB of the body (Wikidata `Encountered "(" at line 1, column 68.`, Virtuoso `syntax error at '(' ...`) instead of a bare `Bad Request`; HTML pages are left out. A timeout says so instead of "The operation was aborted", and the telemetry files both under `timeout` and `upstream_http` rather than `other`. The DataStore SQL 403 hint names `"col"::float` for `CAST` (Québec: `::` 36 rows, `CAST` 403). Tests 736 passed; HTTP e2e on Node and `wrangler dev`.
