@@ -2,6 +2,10 @@
 
 ## 2026-11-12
 
+### v0.4.141
+
+Ships #593 and #594. For callers: `sparql_query` accepts a one-line SELECT whose IRIs contain `#` (e.g. `PREFIX rdfs: <...rdf-schema#> SELECT ...`, refused before as "Only SELECT queries"); a failed query reports the endpoint's own reason instead of a bare `Bad Request`, and a timeout says so; the DataStore SQL 403 hint suggests `"col"::float` instead of `CAST`. #594 is internal, no change for callers. Released the same day as #593, as an explicit exception to the release cadence rule, at the maintainer's request. Gate: tests 738 passed, smoke 18/18.
+
 ### safe-http.ts reads no configuration (#594)
 
 Second and last step of path B (#590), by @bjornhagstrom; further steps declined in #590. `src/utils/safe-http.ts` no longer reads `process.env` or names CKAN: `http.ts` reads the `CKAN_*` settings (size caps at load, the rest per call, per redirect hop, per DNS lookup, as before) and passes them in; same 20 exports from `utils/http.js`, same messages, no test changed. `warnIfPrivateHostsOverHttp` and `assertHttpAllowlistConfigured` move verbatim to `http.ts`. No behaviour change, not yet released. Checked after merge with #593: build and Worker build ok, tests 738 passed, 6 skipped.
