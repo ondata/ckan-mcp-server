@@ -210,7 +210,7 @@ export function formatCkanError(error: unknown, _toolName: string): string {
       hint = '→ The portal\'s firewall or bot protection refused the request (no CKAN answer). It is not a parameter problem and retrying will not help; the portal may be usable only from a browser.';
     } else if (action === 'datastore_search_sql') {
       // CKAN allows a fixed list of SQL functions and no system tables.
-      hint = '→ This SQL uses something not permitted on this portal (CKAN accepts a limited list of functions and no system tables such as information_schema). Rewrite the query without it, or use `ckan_datastore_search`.';
+      hint = '→ This SQL uses something not permitted on this portal (CKAN accepts a limited list of functions and no system tables such as information_schema). Rewrite the query without it, or use `ckan_datastore_search`. For a type conversion write `"col"::float` instead of `CAST(...)`: the `::` operator is not a function call.';
     }
   } else if (status === 409 && action === 'datastore_search_sql') {
     hint = '→ The portal rejected the SQL (reason above). Check table and column names with `ckan_datastore_search` (limit 1), then fix the query.';
