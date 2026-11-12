@@ -2,6 +2,10 @@
 
 ## 2026-11-12
 
+### v0.4.142
+
+Ships #596. For callers: no change to tools, inputs, outputs or limits. A real Axios regression test now checks that `CKAN_PRIVATE_HOSTS` reaches the agents' DNS lookup and that changing the list takes effect on the next lookup. A redundant local variable was removed. Maintenance-only release, published the same day as the change as an explicit exception requested by the maintainer. Gate: tests 739 passed, 6 skipped; smoke 18/18; built Node HTTP server returned a live dataset search on dati.gov.it.
+
 ### v0.4.141
 
 Ships #593 and #594. For callers: `sparql_query` accepts a one-line SELECT whose IRIs contain `#` (e.g. `PREFIX rdfs: <...rdf-schema#> SELECT ...`, refused before as "Only SELECT queries"); a failed query reports the endpoint's own reason instead of a bare `Bad Request`, and a timeout says so; the DataStore SQL 403 hint suggests `"col"::float` instead of `CAST`. #594 is internal, no change for callers. Released the same day as #593, as an explicit exception to the release cadence rule, at the maintainer's request. Gate: tests 738 passed, smoke 18/18.
