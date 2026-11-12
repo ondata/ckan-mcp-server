@@ -1,8 +1,10 @@
 /**
  * Backend-free HTTP safety: SSRF guards (URL literals, DNS resolution, redirect hops),
- * response and decompression size caps, and a redirect-checking fetch. Nothing here
- * knows about the CKAN API; `http.ts` builds CKAN requests on top of it and re-exports
- * the public names, so existing imports from `./http.js` are unchanged.
+ * bounded body reads and decompression, and a redirect-checking fetch. This module
+ * reads no configuration: the caller passes the allowlist, the private hosts, the size
+ * caps and the setting names to show in messages on every call. `http.ts` reads them
+ * from the environment and exports wrappers under the original names, so existing
+ * imports from `./http.js` are unchanged.
  */
 
 /**
@@ -52,13 +54,6 @@ export class SsrfGuardError extends Error {
     this.name = 'SsrfGuardError';
   }
 }
-
-// Response/decompression size caps (DoS prevention — GHSA-q5gv). Generous enough for
-// any legitimate CKAN JSON, small enough to stop a decompression bomb from OOM-ing us.
-export const MAX_RESPONSE_BYTES =
-  (typeof process !== "undefined" && Number(process.env?.CKAN_MAX_RESPONSE_BYTES)) || 32 * 1024 * 1024;
-const MAX_DECOMPRESSED_BYTES =
-  (typeof process !== "undefined" && Number(process.env?.CKAN_MAX_DECOMPRESSED_BYTES)) || 64 * 1024 * 1024;
 
 type ZlibOptions = { maxOutputLength?: number };
 type ZlibModule = {
@@ -134,7 +129,8 @@ function asArrayBuffer(data: unknown): ArrayBuffer | undefined {
 
 async function decodeArrayBufferText(
   buffer: ArrayBuffer,
-  encoding?: string
+  encoding: string | undefined,
+  maxDecompressedBytes: number
 ): Promise<string> {
   if (encoding && typeof DecompressionStream !== "undefined") {
     try {
@@ -148,7 +144,7 @@ async function decodeArrayBufferText(
       const decompressed = await new Response(
         new Blob([buffer]).stream().pipeThrough(stream)
       ).arrayBuffer();
-      if (decompressed.byteLength > MAX_DECOMPRESSED_BYTES) {
+      if (decompressed.byteLength > maxDecompressedBytes) {
         throw new Error("Decompressed response exceeds size limit");
       }
       return new TextDecoder("utf-8").decode(decompressed).trim();
@@ -159,9 +155,14 @@ async function decodeArrayBufferText(
   return new TextDecoder("utf-8").decode(buffer).trim();
 }
 
+/**
+ * Decode a response body (JSON when it parses, text otherwise), decompressing it with
+ * the output capped at `maxDecompressedBytes` (decompression-bomb guard, GHSA-q5gv).
+ */
 export async function decodePossiblyCompressed(
   data: unknown,
-  headers?: Record<string, unknown>
+  headers: Record<string, unknown> | undefined,
+  maxDecompressedBytes: number
 ): Promise<unknown> {
   if (data === null || data === undefined) {
     return data;
@@ -170,7 +171,7 @@ export async function decodePossiblyCompressed(
   const arrayBuffer = asArrayBuffer(data);
   if (arrayBuffer && typeof Buffer === "undefined") {
     const encoding = getHeaderValue(headers, "content-encoding");
-    const text = await decodeArrayBufferText(arrayBuffer, encoding);
+    const text = await decodeArrayBufferText(arrayBuffer, encoding, maxDecompressedBytes);
     if (!text) {
       return text;
     }
@@ -201,7 +202,7 @@ export async function decodePossiblyCompressed(
   let decodedBuffer = buffer;
   const zlib = await loadZlib();
 
-  const zlibOpts: ZlibOptions = { maxOutputLength: MAX_DECOMPRESSED_BYTES };
+  const zlibOpts: ZlibOptions = { maxOutputLength: maxDecompressedBytes };
   try {
     if (zlib) {
       if (encoding?.includes("gzip")) {
@@ -220,7 +221,7 @@ export async function decodePossiblyCompressed(
     }
   } catch {
     // Decompression failed or exceeded maxOutputLength: fall back to the raw buffer
-    // (kept bounded below by MAX_RESPONSE_BYTES on the request paths).
+    // (kept bounded by the caller's response size cap on the request paths).
     decodedBuffer = buffer;
   }
 
@@ -237,7 +238,7 @@ export async function decodePossiblyCompressed(
 
 /**
  * Private-network addresses an administrator may open for one named host
- * (`CKAN_PRIVATE_HOSTS`): loopback, RFC 1918 and IPv6 unique-local. Link-local and
+ * (the private-host list): loopback, RFC 1918 and IPv6 unique-local. Link-local and
  * cloud metadata (169.254.0.0/16), 0.0.0.0/8, shared, multicast and reserved ranges stay
  * blocked even for a listed host.
  */
@@ -258,12 +259,27 @@ function isPrivateNetworkIp(v: string): boolean {
 }
 
 /**
- * Hostnames the administrator has allowed to be private (`CKAN_PRIVATE_HOSTS`,
- * comma-separated, exact match, e.g. "localhost,ckan.intra.example"). Off by default.
+ * The settings the URL guards need, passed in on every call. Lists are comma-separated,
+ * as the administrator wrote them (empty: not set); the names are the settings to show
+ * in messages.
  */
-export function isPrivateHostAllowed(hostname: string): boolean {
-  if (typeof process === 'undefined') return false;
-  const raw = process.env.CKAN_PRIVATE_HOSTS ?? '';
+export interface UrlGuardSettings {
+  /** Domain allowlist, exact match, e.g. "domain1.com,domain2.org". Empty: no allowlist. */
+  allowedDomains: string;
+  /** Hostnames allowed to be private, exact match, e.g. "localhost,intra.example". */
+  privateHosts: string;
+  /** Name of the allowlist setting, as shown in messages. */
+  allowedDomainsName: string;
+  /** Name of the private-host setting, as shown in messages. */
+  privateHostsName: string;
+}
+
+/**
+ * Whether `hostname` is on the administrator's private-host list (`privateHosts`,
+ * comma-separated, exact match, e.g. "localhost,intra.example"). Off when empty.
+ */
+export function isPrivateHostAllowed(hostname: string, privateHosts: string): boolean {
+  const raw = privateHosts;
   if (!raw) return false;
   const h = hostname.toLowerCase().replace(/^\[|\]$/g, '');
   return raw.split(',').some((e) => e.trim().toLowerCase().replace(/^\[|\]$/g, '') === h && h !== '');
@@ -378,7 +394,7 @@ export function isBlockedIp(ip: string, allowPrivate = false): boolean {
  * Hostnames that resolve to internal IPs are blocked later, at connection time,
  * by the DNS-resolution guards (see `createSsrfSafeLookup` / `assertHostnameResolvesSafe`).
  */
-export function validateServerUrl(serverUrl: string): void {
+export function validateServerUrl(serverUrl: string, settings: UrlGuardSettings): void {
   let parsed: URL;
   try {
     parsed = new URL(serverUrl);
@@ -391,7 +407,7 @@ export function validateServerUrl(serverUrl: string): void {
   }
 
   const hostname = parsed.hostname.toLowerCase();
-  const privateOk = isPrivateHostAllowed(hostname);
+  const privateOk = isPrivateHostAllowed(hostname, settings.privateHosts);
 
   const BLOCKED_HOSTNAMES = new Set([
     'localhost',
@@ -414,72 +430,36 @@ export function validateServerUrl(serverUrl: string): void {
     throw new SsrfGuardError(`Access to private/internal IPv6 addresses is not allowed.`);
   }
 
-  // Optional domain allowlist: CKAN_ALLOWED_DOMAINS=domain1.com,domain2.org
-  const rawAllowed = typeof process !== 'undefined' ? (process.env.CKAN_ALLOWED_DOMAINS ?? '') : '';
+  // Optional domain allowlist, e.g. "domain1.com,domain2.org"
+  const rawAllowed = settings.allowedDomains;
   const allowedDomains = rawAllowed.split(',').map(s => s.trim()).filter(Boolean);
   if (allowedDomains.length > 0 && !allowedDomains.includes(hostname)) {
-    throw new SsrfGuardError(`Domain "${hostname}" is not in the allowed list (CKAN_ALLOWED_DOMAINS).`);
+    throw new SsrfGuardError(`Domain "${hostname}" is not in the allowed list (${settings.allowedDomainsName}).`);
   }
 }
 
 /**
- * A redirect may enter a `CKAN_PRIVATE_HOSTS` host only from another listed host, so a
- * public portal cannot answer with a 302 to e.g. `http://localhost:5003/` and have the
- * server follow it. Other hops are checked by `validateServerUrl` as before.
+ * A redirect may enter a host on the private-host list only from another listed host, so
+ * a public server cannot answer with a 302 to e.g. `http://localhost:5003/` and have it
+ * followed. Other hops are checked by `validateServerUrl` as before.
  */
-export function assertRedirectKeepsPrivateExemption(fromHostname: string, toUrl: string): void {
+export function assertRedirectKeepsPrivateExemption(
+  fromHostname: string,
+  toUrl: string,
+  settings: UrlGuardSettings
+): void {
   const to = new URL(toUrl).hostname.toLowerCase();
-  if (isPrivateHostAllowed(to) && !isPrivateHostAllowed(fromHostname.toLowerCase())) {
+  if (isPrivateHostAllowed(to, settings.privateHosts) &&
+      !isPrivateHostAllowed(fromHostname.toLowerCase(), settings.privateHosts)) {
     throw new SsrfGuardError(
       `A redirect from "${fromHostname}" to "${to}" is not allowed: ` +
-      `a private host (CKAN_PRIVATE_HOSTS) can only be reached from a listed host.`
+      `a private host (${settings.privateHostsName}) can only be reached from a listed host.`
     );
   }
-}
-
-/**
- * With the HTTP transport a `CKAN_PRIVATE_HOSTS` host is reachable by every client of
- * the server. Say so at start, like the warning for `CKAN_HTTP_ALLOW_ALL`.
- */
-export function warnIfPrivateHostsOverHttp(): void {
-  const raw = typeof process !== 'undefined' ? (process.env.CKAN_PRIVATE_HOSTS ?? '') : '';
-  const hosts = raw.split(',').map(s => s.trim()).filter(Boolean);
-  if (hosts.length === 0) return;
-  console.error(
-    `[SECURITY WARNING] CKAN_PRIVATE_HOSTS is set with the HTTP transport: ${hosts.join(', ')} ` +
-    'can be reached by every client of this server. List only hosts you want all clients to reach.'
-  );
-}
-
-/**
- * Refuse to run the network-exposed HTTP transport without a domain allowlist.
- * `CKAN_ALLOWED_DOMAINS` (default-deny) is mandatory for HTTP; set
- * `CKAN_HTTP_ALLOW_ALL=true` to explicitly opt out (logs a warning).
- * stdio is unaffected — it stays open so any portal can be queried locally.
- */
-export function assertHttpAllowlistConfigured(): void {
-  const raw = typeof process !== 'undefined' ? (process.env.CKAN_ALLOWED_DOMAINS ?? '') : '';
-  const domains = raw.split(',').map(s => s.trim()).filter(Boolean);
-  if (domains.length > 0) return;
-
-  if (typeof process !== 'undefined' && process.env.CKAN_HTTP_ALLOW_ALL === 'true') {
-    console.error(
-      '[SECURITY WARNING] HTTP transport is running WITHOUT a domain allowlist ' +
-      '(CKAN_HTTP_ALLOW_ALL=true). Any client can drive requests to arbitrary hosts. ' +
-      'Set CKAN_ALLOWED_DOMAINS to restrict which CKAN hosts can be queried.'
-    );
-    return;
-  }
-
-  throw new Error(
-    'Refusing to start HTTP transport without a domain allowlist.\n' +
-    'Set CKAN_ALLOWED_DOMAINS="portal1.org,portal2.gov" to restrict which hosts can be queried,\n' +
-    'or set CKAN_HTTP_ALLOW_ALL=true to explicitly run without restriction (NOT recommended when network-exposed).'
-  );
 }
 
 type ResolvedAddress = { address: string; family?: number };
-type DnsLookupModule = {
+export type DnsLookupModule = {
   lookup: (
     hostname: string,
     options: { all: true; family?: number },
@@ -493,18 +473,25 @@ type DnsLookupModule = {
  * validated address — closing the DNS-name SSRF bypass and DNS-rebinding (the IP the
  * socket connects to is exactly the one we validated, no second resolution).
  * Exported with an injectable dns module so it can be unit-tested without real DNS.
- * Strict by default: `allowPrivateHosts` lets a `CKAN_PRIVATE_HOSTS` host resolve to a
- * private address, and only the CKAN (axios) agents ask for it. The fetch dispatcher
- * used by `sparql_query` does not, so it stays closed to private hosts at connect time.
+ * Strict by default: `allowPrivateHosts` lets a host on the private-host list resolve to
+ * a private address. The list comes from `privateHosts`, called at each lookup because
+ * agents outlive any one request; `settings` is kept and read at each lookup too. Only
+ * the agents from `createSafeAgents` ask for it; the fetch dispatcher below does not, so
+ * it stays closed to private hosts at connect time.
  */
-export function createSsrfSafeLookup(dnsModule: DnsLookupModule, settings: { allowPrivateHosts?: boolean } = {}) {
+export function createSsrfSafeLookup(
+  dnsModule: DnsLookupModule,
+  settings: { allowPrivateHosts?: boolean } = {},
+  privateHosts: () => string = () => ''
+) {
   return function ssrfSafeLookup(hostname: string, options: any, callback: any): void {
     if (typeof options === 'function') {
       callback = options;
       options = {};
     }
     const family = options && typeof options === 'object' ? options.family : undefined;
-    const allowPrivate = settings.allowPrivateHosts === true && isPrivateHostAllowed(hostname);
+    const allowPrivate = settings.allowPrivateHosts === true &&
+      isPrivateHostAllowed(hostname, privateHosts());
     dnsModule.lookup(hostname, { all: true, family: family || 0 }, (err, addresses) => {
       if (err) {
         callback(err);
@@ -529,29 +516,28 @@ export function createSsrfSafeLookup(dnsModule: DnsLookupModule, settings: { all
   };
 }
 
-let _safeAgents: Promise<{ httpAgent: unknown; httpsAgent: unknown } | null> | null = null;
-
-/** Lazily build SSRF-safe http/https Agents (Node only). Returns null off Node/on failure. */
-export function getSafeAgents(): Promise<{ httpAgent: unknown; httpsAgent: unknown } | null> {
-  if (!_safeAgents) {
-    _safeAgents = (async () => {
-      try {
-        // String-concatenated specifiers keep esbuild from bundling node builtins
-        // into the Cloudflare Workers build (mirrors loadZlib above).
-        const dnsMod = (await import("node:" + "dns")) as unknown as DnsLookupModule;
-        const httpMod = (await import("node:" + "http")) as any;
-        const httpsMod = (await import("node:" + "https")) as any;
-        const lookup = createSsrfSafeLookup(dnsMod, { allowPrivateHosts: true });
-        return {
-          httpAgent: new httpMod.Agent({ lookup }),
-          httpsAgent: new httpsMod.Agent({ lookup }),
-        };
-      } catch {
-        return null;
-      }
-    })();
+/**
+ * Build SSRF-safe http/https Agents (Node only) whose lookup lets the hosts returned by
+ * `privateHosts` resolve to private addresses. Resolves to null off Node/on failure.
+ * Not cached here: the caller keeps one set for the process.
+ */
+export async function createSafeAgents(
+  privateHosts: () => string
+): Promise<{ httpAgent: unknown; httpsAgent: unknown } | null> {
+  try {
+    // String-concatenated specifiers keep esbuild from bundling node builtins
+    // into the Cloudflare Workers build (mirrors loadZlib above).
+    const dnsMod = (await import("node:" + "dns")) as unknown as DnsLookupModule;
+    const httpMod = (await import("node:" + "http")) as any;
+    const httpsMod = (await import("node:" + "https")) as any;
+    const lookup = createSsrfSafeLookup(dnsMod, { allowPrivateHosts: true }, privateHosts);
+    return {
+      httpAgent: new httpMod.Agent({ lookup }),
+      httpsAgent: new httpsMod.Agent({ lookup }),
+    };
+  } catch {
+    return null;
   }
-  return _safeAgents;
 }
 
 type SsrfSafeLookup = ReturnType<typeof createSsrfSafeLookup>;
@@ -598,7 +584,7 @@ export function __setDnsResolverForTests(fn: DnsResolver | null): void {
 
 /**
  * Resolve a hostname and throw if it maps to a private/internal IP.
- * Used by the fetch-based paths (e.g. sparql_query) that cannot attach a custom
+ * Used by the fetch-based paths that cannot attach a custom
  * lookup agent. No-op when DNS is unavailable (Cloudflare Workers — CF sandbox
  * already blocks internal addresses) or when resolution fails (request fails naturally).
  */
@@ -627,8 +613,8 @@ export async function assertHostnameResolvesSafe(hostname: string): Promise<void
     throw new SsrfGuardError(`Cannot resolve "${hostname}" for SSRF validation (failing closed).`);
   }
 
-  // Not relaxed for CKAN_PRIVATE_HOSTS: this guard serves sparql_query and the other
-  // tools that fetch a URL, which stay closed to private hosts.
+  // Not relaxed for the private-host list: this guard serves the fetch-based paths,
+  // which stay closed to private hosts.
   for (const a of addresses) {
     if (isBlockedIp(a.address)) {
       throw new SsrfGuardError(
@@ -641,7 +627,8 @@ export async function assertHostnameResolvesSafe(hostname: string): Promise<void
 
 /**
  * Fetch that does NOT blindly follow redirects: each hop's target is re-validated
- * with `validateServerUrl` + `assertHostnameResolvesSafe` before it is followed,
+ * with `validateServerUrl` (against `opts.urlGuard()`, called at each hop) +
+ * `assertHostnameResolvesSafe` before it is followed,
  * closing redirect-based SSRF (e.g. a public endpoint 302-ing to 169.254.169.254).
  * The caller is expected to have validated the initial URL already.
  *
@@ -654,7 +641,7 @@ export async function assertHostnameResolvesSafe(hostname: string): Promise<void
 export async function safeFetch(
   url: string,
   init: RequestInit = {},
-  opts: { maxHops?: number; httpsOnly?: boolean } = {}
+  opts: { maxHops?: number; httpsOnly?: boolean; urlGuard: () => UrlGuardSettings }
 ): Promise<Response> {
   const maxHops = opts.maxHops ?? 3;
   const dispatcher = await getSafeDispatcher();
@@ -680,7 +667,7 @@ export async function safeFetch(
     if (opts.httpsOnly && new URL(next).protocol !== "https:") {
       throw new Error("Redirect to a non-HTTPS URL is not allowed");
     }
-    validateServerUrl(next);
+    validateServerUrl(next, opts.urlGuard());
     await assertHostnameResolvesSafe(new URL(next).hostname);
     current = next;
   }

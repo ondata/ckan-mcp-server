@@ -43,7 +43,7 @@ src/
 │
 ├── utils/
 │   ├── http.ts       # makeCkanRequest() — the core HTTP client
-│   ├── safe-http.ts  # SSRF guards, size caps, safeFetch() — no CKAN knowledge
+│   ├── safe-http.ts  # SSRF guards, size caps, safeFetch() — no CKAN knowledge, reads no config (http.ts passes CKAN_*)
 │   ├── formatting.ts # truncateText(), formatDate(), formatBytes()
 │   ├── portal-config.ts  # Portal-specific config lookup (portals.json)
 │   ├── search.ts     # Query escaping and parsing
