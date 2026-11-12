@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-11-12
+
+### v0.4.140
+
+Ships #591. For callers: nothing changes - same tools, inputs, outputs and limits. Internal only: the SSRF guards and size caps now live in `src/utils/safe-http.ts`, separate from the CKAN client. Released at the maintainer's request. Gate: tests 726 passed, smoke 18/18; HTTP e2e on Node and `wrangler dev` (live calls ok, private IPs and off-allowlist hosts refused).
+
 ## 2026-11-11
 
 ### Split HTTP safety out of utils/http.ts (#591)
