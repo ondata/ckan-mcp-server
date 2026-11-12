@@ -242,4 +242,5 @@
 {"date":"2026-11-08","calls":421,"ok":376,"errors":26,"invalid_input":19}
 {"date":"2026-11-09","calls":79,"ok":61,"errors":3,"invalid_input":15}
 {"date":"2026-11-10","calls":441,"ok":411,"errors":11,"invalid_input":19}
-{"date":"2026-11-11","calls":819,"ok":691,"errors":74,"invalid_input":54}
+{"date":"2026-11-11","calls":880,"ok":744,"errors":78,"invalid_input":58}
+{"date":"2026-11-12","calls":70,"ok":66,"errors":2,"invalid_input":2}
