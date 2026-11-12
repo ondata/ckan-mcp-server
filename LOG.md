@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-11-11
+
+### Split HTTP safety out of utils/http.ts (#591)
+
+First step of path B (#590), by @bjornhagstrom. SSRF guards, response and decompression size caps and `safeFetch` move verbatim to the new `src/utils/safe-http.ts`; `http.ts` keeps the CKAN-specific part (`makeCkanRequest`, errors, audit log, cache) and re-exports the moved names, so no import changes. No behaviour change, not yet released. Checked after merge: `--color-moved` shows only import/re-export lines, a header comment and four added `export`; build ok, tests 726 passed, 6 skipped.
+
 ## 2026-11-09
 
 ### v0.4.139
