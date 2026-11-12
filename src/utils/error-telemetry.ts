@@ -21,7 +21,7 @@ export interface ErrorTelemetry {
 // "validation" even when its message mentions a URL, and a timeout is reported as such
 // whatever wraps it.
 const KINDS: [ErrorKind, RegExp][] = [
-  ["upstream_http", /(?:API error|returned) \(?\d{3}\b/i],
+  ["upstream_http", /(?:API error|endpoint error|returned) \(?\d{3}\b/i],
   ["validation", /-32602|Input validation error|Invalid URL|Disallowed protocol/i],
   ["not_allowed", /not allowed|allowed list|SSRF/i],
   ["timeout", /timeout|timed out/i],

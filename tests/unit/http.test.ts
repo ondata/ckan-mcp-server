@@ -1371,6 +1371,8 @@ describe('formatCkanError', () => {
       expect(err).toBeInstanceOf(CkanApiError);
       expect(err.message).toBe('CKAN API error (403): Not authorized to call function NULLIF');
       expect(formatCkanError(err, 'ckan_datastore_search_sql')).toContain('not permitted on this portal');
+      // CAST is the function agents hit most (telemetry 2026-11-10); `::` is not a call.
+      expect(formatCkanError(err, 'ckan_datastore_search_sql')).toContain('"col"::float');
       // The telemetry classifies on the whole text: the hint must not read as `not_allowed`.
       expect(summarizeToolError(formatCkanError(err, 'ckan_datastore_search_sql')).error_kind).toBe('upstream_http');
     } finally {

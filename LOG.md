@@ -2,6 +2,10 @@
 
 ## 2026-11-12
 
+### SPARQL validation, endpoint errors, CAST hint
+
+From the Worker telemetry (2026-11-09 to 2026-11-12), each reproduced live. `sparql_query` no longer reads a `#` inside an IRI or string as a comment: `PREFIX rdfs: <...rdf-schema#> SELECT ...` on one line was refused as "Only SELECT queries" (10 Wikidata calls). A failed query now carries the endpoint's own reason, read from the first 4 KB of the body (Wikidata `Encountered "(" at line 1, column 68.`, Virtuoso `syntax error at '(' ...`) instead of a bare `Bad Request`; HTML pages are left out. A timeout says so instead of "The operation was aborted", and the telemetry files both under `timeout` and `upstream_http` rather than `other`. The DataStore SQL 403 hint names `"col"::float` for `CAST` (Québec: `::` 36 rows, `CAST` 403). Tests 736 passed; HTTP e2e on Node and `wrangler dev`.
+
 ### v0.4.140
 
 Ships #591. For callers: nothing changes - same tools, inputs, outputs and limits. Internal only: the SSRF guards and size caps now live in `src/utils/safe-http.ts`, separate from the CKAN client. Released at the maintainer's request. Gate: tests 726 passed, smoke 18/18; HTTP e2e on Node and `wrangler dev` (live calls ok, private IPs and off-allowlist hosts refused).

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
 import { formatSparqlMarkdown, formatSparqlJson, querySparqlEndpoint, validateSelectQuery, injectLimit } from '../../src/tools/sparql';
 import { __setDnsResolverForTests } from '../../src/utils/http';
+import { summarizeToolError } from '../../src/utils/error-telemetry';
 
 describe('sparql_query', () => {
   beforeEach(() => {
@@ -124,6 +125,62 @@ describe('sparql_query', () => {
       ).rejects.toThrow('SPARQL endpoint error (400)');
     });
 
+    it('includes the endpoint\'s own reason for a 400', async () => {
+      const body = 'SPARQL-QUERY: queryStr=SELECT ?a WHERE {VALUES ?a {(<x>)}}\n'
+        + 'java.util.concurrent.ExecutionException: org.openrdf.query.MalformedQueryException: Encountered " "(" "( "" at line 1, column 65.\n'
+        + 'Was expecting one of:\n    "}" ...';
+      (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(new Response(body, { status: 400, statusText: 'Bad Request' }));
+
+      const err = await querySparqlEndpoint('https://query.wikidata.org/sparql', 'SELECT ?a WHERE {VALUES ?a {(<x>)}}').catch(e => e);
+      expect(err.message).toBe('SPARQL endpoint error (400): Bad Request: Encountered " "(" "( "" at line 1, column 65.');
+    });
+
+    it('reads the reason from the head of a large error body', async () => {
+      // Wikidata's parse errors run to ~9 KB of stack trace after the message.
+      const body = 'SPARQL-QUERY: queryStr=SELECT\njava.util.concurrent.ExecutionException: MalformedQueryException: Encountered "(" at line 1, column 65.\n'
+        + '    at x.y.z\n'.repeat(2000);
+      (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(new Response(body, { status: 400, statusText: 'Bad Request' }));
+
+      const err = await querySparqlEndpoint('https://query.wikidata.org/sparql', 'SELECT * WHERE { }').catch(e => e);
+      expect(err.message).toBe('SPARQL endpoint error (400): Bad Request: Encountered "(" at line 1, column 65.');
+    });
+
+    it('takes the first line of a Virtuoso error body', async () => {
+      const body = "Virtuoso 37000 Error SP030: SPARQL compiler, line 2: syntax error at '(' before '<x>'\n\nSPARQL query:\nSELECT ...";
+      (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(new Response(body, { status: 400, statusText: 'Bad Request' }));
+
+      const err = await querySparqlEndpoint('https://lod.dati.gov.it/sparql', 'SELECT ?a WHERE {}').catch(e => e);
+      expect(err.message).toBe("SPARQL endpoint error (400): Bad Request: Virtuoso 37000 Error SP030: SPARQL compiler, line 2: syntax error at '(' before '<x>'");
+    });
+
+    it('leaves out an HTML error page', async () => {
+      (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+        new Response('<html><body>502 Bad Gateway</body></html>', { status: 502, statusText: 'Bad Gateway', headers: { 'content-type': 'text/html' } })
+      );
+
+      const err = await querySparqlEndpoint('https://query.wikidata.org/sparql', 'SELECT * WHERE { }').catch(e => e);
+      expect(err.message).toBe('SPARQL endpoint error (502): Bad Gateway');
+    });
+
+    it('caps a long reason', async () => {
+      (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(new Response('x'.repeat(5000), { status: 400, statusText: 'Bad Request' }));
+
+      const err = await querySparqlEndpoint('https://query.wikidata.org/sparql', 'SELECT * WHERE { }').catch(e => e);
+      expect(err.message.length).toBeLessThan(400);
+    });
+
+    it('reports a timeout as such', async () => {
+      (fetch as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(new DOMException('The operation was aborted.', 'AbortError'));
+
+      const err = await querySparqlEndpoint('https://query.wikidata.org/sparql', 'SELECT * WHERE { }').catch(e => e);
+      expect(err.message).toContain('did not answer within 15 seconds');
+      expect(summarizeToolError(`SPARQL query failed:\n${err.message}`).error_kind).toBe('timeout');
+    });
+
+    it('classifies an endpoint HTTP error as upstream_http', () => {
+      expect(summarizeToolError('SPARQL query failed:\nSPARQL endpoint error (400): Bad Request').error_kind).toBe('upstream_http');
+    });
+
     it('throws on network error', async () => {
       (fetch as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Network failure'));
 
@@ -201,6 +258,22 @@ describe('sparql_query', () => {
 
     it('ignores SELECT in a comment', () => {
       expect(() => validateSelectQuery('# SELECT ?s WHERE { }\nCONSTRUCT { } WHERE { }')).toThrow('Only SELECT queries are supported');
+    });
+
+    // Telemetry 2026-11-11: ten Wikidata SELECTs rejected because the `#` closing the
+    // rdfs: namespace IRI was read as a comment, taking the SELECT on the same line with it.
+    it('accepts SELECT after a namespace IRI ending in # on the same line', () => {
+      expect(() => validateSelectQuery(
+        'PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX skos: <http://www.w3.org/2004/02/skos/core#> SELECT ?s WHERE { ?s ?p ?o }'
+      )).not.toThrow();
+    });
+
+    it('does not read a # inside a string literal as a comment', () => {
+      expect(() => validateSelectQuery('PREFIX x: <http://x/> SELECT ?s WHERE { ?s ?p "a#b" }')).not.toThrow();
+    });
+
+    it('still ignores SELECT in a comment that follows an IRI', () => {
+      expect(() => validateSelectQuery('PREFIX x: <http://x/#> # SELECT\nCONSTRUCT { } WHERE { }')).toThrow('Only SELECT queries are supported');
     });
   });
 
