@@ -245,4 +245,4 @@
 {"date":"2026-11-11","calls":880,"ok":744,"errors":78,"invalid_input":58}
 {"date":"2026-11-12","calls":987,"ok":915,"errors":10,"invalid_input":62}
 {"date":"2026-11-13","calls":219,"ok":201,"errors":16,"invalid_input":2}
-{"date":"2026-11-14","calls":237,"ok":236,"errors":1,"invalid_input":0}
+{"date":"2026-11-14","calls":621,"ok":606,"errors":12,"invalid_input":3}
