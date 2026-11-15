@@ -93,10 +93,11 @@ function filterPortals(
 ): DatashadesPortal[] {
   const filtered = portals
     .filter(p => p.status === "active" && p.Href)
-    .filter(p => !params.country || p.Coordinates.country_name.toLowerCase().includes(params.country.toLowerCase()))
-    .filter(p => !params.query || p.SiteInfo.site_title.toLowerCase().includes(params.query.toLowerCase()))
+    // The registry has active portals with null fields (locale_default on 3 of 945, 2026-11-15)
+    .filter(p => !params.country || (p.Coordinates?.country_name ?? "").toLowerCase().includes(params.country.toLowerCase()))
+    .filter(p => !params.query || (p.SiteInfo?.site_title ?? "").toLowerCase().includes(params.query.toLowerCase()))
     .filter(p => params.min_datasets === undefined || p.DatasetsNumber >= params.min_datasets)
-    .filter(p => !params.language || p.SiteInfo.locale_default.toLowerCase().startsWith(params.language.toLowerCase()))
+    .filter(p => !params.language || (p.SiteInfo?.locale_default ?? "").toLowerCase().startsWith(params.language.toLowerCase()))
     .filter(p => !params.has_datastore || (p.Plugins || []).includes("datastore"));
 
   return deduplicateByHostname(filtered)
@@ -108,7 +109,7 @@ function formatMarkdown(portals: DatashadesPortal[], total: number, limit: numbe
   if (portals.length === 0) return "No CKAN portals found matching the given filters.";
 
   const rows = portals.map(p =>
-    `| [${p.SiteInfo.site_title || p.Href}](${p.Href}) | ${p.Coordinates.country_name} | ${p.Version} | ${p.DatasetsNumber.toLocaleString()} | ${p.SiteInfo.locale_default} | ${(p.Plugins || []).includes("datastore") ? "✅" : "❌"} |`
+    `| [${p.SiteInfo.site_title || p.Href}](${p.Href}) | ${p.Coordinates.country_name} | ${p.Version} | ${p.DatasetsNumber.toLocaleString()} | ${p.SiteInfo.locale_default ?? ""} | ${(p.Plugins || []).includes("datastore") ? "✅" : "❌"} |`
   ).join("\n");
 
   return `# CKAN Portals

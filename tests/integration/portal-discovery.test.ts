@@ -52,6 +52,24 @@ describe("ckan_find_portals", () => {
     expect(result.content[0].text).not.toContain("open.canada.ca");
   });
 
+  // datashades.info lists active portals with no default locale (3 of 945 on
+  // 2026-11-15): the language filter crashed on them, for every language.
+  it("filters by language when a portal has no locale", async () => {
+    const noLocale = { ...portal("https://ckan.example.org", "No locale", "Italy"), SiteInfo: { site_title: "No locale", locale_default: null } };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ portals: [
+        noLocale,
+        portal("https://dati.comune.milano.it", "Open Data Comune di Milano", "Italy")
+      ] }), { status: 200, headers: { "content-type": "application/json" } })
+    ));
+
+    const result = await callFindPortals({ language: "it" });
+
+    expect(result.isError).toBeFalsy();
+    expect(result.content[0].text).toContain("dati.comune.milano.it");
+    expect(result.content[0].text).not.toContain("ckan.example.org");
+  });
+
   it("reports a non-2xx registry answer as an error", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("down", { status: 503, statusText: "Service Unavailable" })));
 
