@@ -129,6 +129,22 @@ export function getPortalApiPath(serverUrl: string): string {
   return portal?.api_path || '/api/3/action';
 }
 
+/**
+ * The action endpoint base a request to `serverUrl` really goes to: configured
+ * portals are routed by hostname, as `makeCkanRequest` does, so a link built from
+ * the caller's spelling can miss the API (data.gov.au answers only under /data).
+ */
+export function getPortalActionBase(serverUrl: string): string {
+  let base = serverUrl;
+  try {
+    base = getPortalApiUrlForHostname(new URL(serverUrl).hostname) ?? serverUrl;
+  } catch {
+    // Keep the provided URL if parsing fails
+  }
+  base = base.replace(/\/$/, '');
+  return `${base}${getPortalApiPath(base)}`;
+}
+
 export function requiresMultilingualNormalization(serverUrl: string): boolean {
   const portal = getPortalConfig(serverUrl);
   return portal?.normalize === 'multilingual';

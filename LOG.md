@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-11-15
+
+### find_portals language filter, data.gov.au API path
+
+From the Worker telemetry (2026-11-12 to 2026-11-15, ~900 calls), each reproduced live. `ckan_find_portals` failed on every `language` filter with `Cannot read properties of null (reading 'toLowerCase')`, reported as "Could not fetch portal list": 3 of 945 active datashades.info portals have no `locale_default`; the filters now read null fields as empty. data.gov.au was unreachable through any URL: requests are routed by hostname and `portals.json` pointed at `https://data.gov.au`, whose `/api/3` answers 404; the API is under `/data` (6 failed calls by one client on 2026-11-14). `api_url` is now `https://data.gov.au/data`, and Data.NSW (`data.nsw.gov.au/data`) is added. The "Full JSON metadata" links and `api_json_url` are built on the routed base (`getPortalActionBase`), so `https://data.gov.au` no longer links a 404. Tests 743 passed; HTTP e2e on Node and `wrangler dev`.
+
 ## 2026-11-12
 
 ### v0.4.142

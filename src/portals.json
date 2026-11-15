@@ -87,14 +87,26 @@
     {
       "id": "data-gov-au",
       "name": "data.gov.au",
-      "api_url": "https://data.gov.au",
+      "api_url": "https://data.gov.au/data",
       "api_url_aliases": [
+        "https://data.gov.au",
         "http://data.gov.au",
         "https://www.data.gov.au",
         "http://www.data.gov.au"
       ],
       "dataset_view_url": "https://data.gov.au/data/dataset/{name}",
       "organization_view_url": "https://data.gov.au/data/organization/{name}"
+    },
+    {
+      "id": "data-nsw-gov-au",
+      "name": "Data.NSW",
+      "api_url": "https://data.nsw.gov.au/data",
+      "api_url_aliases": [
+        "https://data.nsw.gov.au",
+        "http://data.nsw.gov.au"
+      ],
+      "dataset_view_url": "https://data.nsw.gov.au/data/dataset/{name}",
+      "organization_view_url": "https://data.nsw.gov.au/data/organization/{name}"
     },
     {
       "id": "opendata-swiss",
