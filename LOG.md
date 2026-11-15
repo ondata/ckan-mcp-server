@@ -4,7 +4,7 @@
 
 ### v0.4.143
 
-Ships #598. For callers: `ckan_find_portals` accepts a `language` filter again (it failed for every language); data.gov.au works through any of its URLs, and Data.NSW (`data.nsw.gov.au`) is configured; "Full JSON metadata" links and `api_json_url` point at the API the request really used. Tests 743 passed, smoke 18/18.
+Ships #598. For callers: `ckan_find_portals` accepts a `language` filter again (it failed for every language); data.gov.au works through any of its URLs, and Data.NSW (`data.nsw.gov.au`) is configured; "Full JSON metadata" links and `api_json_url` point at the API the request really used. Tests 743 passed, smoke 18/18. Live: npm `latest` 0.4.143 with SLSA provenance, MCP Registry `isLatest`, GitHub release (DXT + skill), Worker `/health` 0.4.143; on the public Worker `language: "it"` lists portals and `https://data.gov.au` returns 908 results for `bushfire`.
 
 ### find_portals language filter, data.gov.au API path
 
