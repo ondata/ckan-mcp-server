@@ -4,7 +4,7 @@
 
 ### v0.4.144
 
-Ships #600. For callers: a CKAN tool pointed at data.europa.eu (any of its URLs) now says it is not a CKAN portal and to use `sparql_query` on `https://data.europa.eu/sparql`, instead of a bare 404; `ckan_find_portals` accepts `response_format: "json"`. Released the same day as the change, by explicit decision (exception to "Release Cadence"). Tests 752 passed, smoke 18/18.
+Ships #600. For callers: a CKAN tool pointed at data.europa.eu (any of its URLs) now says it is not a CKAN portal and to use `sparql_query` on `https://data.europa.eu/sparql`, instead of a bare 404; `ckan_find_portals` accepts `response_format: "json"`. Released the same day as the change, by explicit decision (exception to "Release Cadence"). Tests 752 passed, smoke 18/18. Live: npm `latest` 0.4.144 with provenance, MCP Registry `isLatest`, GitHub release (DXT + skill), Worker `/health` 0.4.144; on the public Worker `https://data.europa.eu/data` returns the not-CKAN notice and `ckan_find_portals` returns JSON.
 
 ### Worker telemetry: data.europa.eu, find_portals response_format
 
