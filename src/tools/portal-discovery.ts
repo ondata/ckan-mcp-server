@@ -3,7 +3,8 @@
  */
 
 import { z } from "zod";
-import { truncateText, cappedStructured, addDemoFooter } from "../utils/formatting.js";
+import { truncateText, cappedStructured, addDemoFooter, jsonToolResult, formatError } from "../utils/formatting.js";
+import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { formatCkanError, safeFetch } from "../utils/http.js";
 import { getCache, getCacheConfig } from "../utils/cache.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -146,6 +147,7 @@ Args:
   - language (string): Portal default locale code (e.g. "it", "en", "pt_BR", "fr")
   - has_datastore (boolean): If true, return only portals with DataStore enabled (supports SQL queries)
   - limit (number): Max results to return (default 10, max 50)
+  - response_format ('markdown' | 'json'): Output format (default: 'markdown')
 
 Returns:
   Ranked list of matching portals with URL, country, CKAN version, dataset count, and DataStore status.
@@ -157,7 +159,8 @@ Typical workflow: ckan_find_portals (discover portal URL) → ckan_status_show (
         min_datasets: z.coerce.number().int().min(0).optional().describe("Minimum number of datasets"),
         language: z.string().optional().describe("Portal default locale code (e.g. 'it', 'en', 'pt_BR')"),
         has_datastore: z.boolean().optional().describe("If true, return only portals with DataStore plugin (required for SQL queries)"),
-        limit: z.coerce.number().int().min(1).max(50).optional().default(10).describe("Max results (default 10, max 50)")
+        limit: z.coerce.number().int().min(1).max(50).optional().default(10).describe("Max results (default 10, max 50)"),
+        response_format: ResponseFormatSchema
       }).strict(),
       annotations: {
         readOnlyHint: true,
@@ -179,6 +182,20 @@ Typical workflow: ckan_find_portals (discover portal URL) → ckan_status_show (
           limit: params.limit
         });
 
+        const portals = results.map(p => ({
+          url: p.Href,
+          title: p.SiteInfo.site_title,
+          country: p.Coordinates.country_name,
+          version: p.Version,
+          datasets: p.DatasetsNumber,
+          locale: p.SiteInfo.locale_default,
+          has_datastore: (p.Plugins || []).includes("datastore")
+        }));
+
+        if (params.response_format === ResponseFormat.JSON) {
+          return jsonToolResult({ portals });
+        }
+
         const markdown = formatMarkdown(results, active.length, params.limit);
 
         // Text channel is Markdown, so cap the structured payload on its own. The 50-result
@@ -186,19 +203,11 @@ Typical workflow: ckan_find_portals (discover portal URL) → ckan_status_show (
         // datashades.info and have no length bound (#39).
         return {
           content: [{ type: "text", text: truncateText(addDemoFooter(markdown)) }],
-          structuredContent: cappedStructured({ portals: results.map(p => ({
-            url: p.Href,
-            title: p.SiteInfo.site_title,
-            country: p.Coordinates.country_name,
-            version: p.Version,
-            datasets: p.DatasetsNumber,
-            locale: p.SiteInfo.locale_default,
-            has_datastore: (p.Plugins || []).includes("datastore")
-          }))})
+          structuredContent: cappedStructured({ portals })
         };
       } catch (error) {
         return {
-          content: [{ type: "text", text: `Could not fetch portal list from datashades.info:\n${formatCkanError(error, "ckan_find_portals")}` }],
+          content: [{ type: "text", text: formatError(`Could not fetch portal list from datashades.info:\n${formatCkanError(error, "ckan_find_portals")}`, params.response_format === ResponseFormat.JSON) }],
           isError: true
         };
       }

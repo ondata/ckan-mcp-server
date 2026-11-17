@@ -10,7 +10,7 @@ JSON output uses safe truncation (`truncateJson`): when a response exceeds the 5
 
 Error paths respect the requested format too: with `response_format: "json"` a failure returns `{"error": "...", "_error": true}` and `isError: true`, never bare prose. Note that Zod input-validation failures are emitted by the MCP SDK before the tool handler runs, so those remain plain text.
 
-`structuredContent`, where present, carries the **same capped payload** as the text: it is the parsed form of the truncated JSON, so the two channels cannot disagree and `_truncated`/`_original_count` reach structured readers too. Tools whose text channel is Markdown — `ckan_status_show` and `ckan_find_portals` — have no truncated JSON to derive the structured payload from, so they cap it on its own via `cappedStructured()`. The only responses outside the cap are the `all_fields=false` branches of `ckan_organization_list`/`ckan_group_list`, which return a single integer count and have nothing to shrink.
+`structuredContent`, where present, carries the **same capped payload** as the text: it is the parsed form of the truncated JSON, so the two channels cannot disagree and `_truncated`/`_original_count` reach structured readers too. Tools whose text channel is Markdown — `ckan_status_show`, and `ckan_find_portals` in its default `markdown` format — have no truncated JSON to derive the structured payload from, so they cap it on its own via `cappedStructured()`. The only responses outside the cap are the `all_fields=false` branches of `ckan_organization_list`/`ckan_group_list`, which return a single integer count and have nothing to shrink.
 
 ---
 
@@ -283,6 +283,7 @@ These tools already return minimal JSON and were not changed:
 - `ckan_analyze_datasets` — statistical summary
 - `ckan_catalog_stats` — aggregate counts
 - `ckan_status_show` — portal status
+- `ckan_find_portals` — `{portals: [{url, title, country, version, datasets, locale, has_datastore}]}`, the same object as its `structuredContent` (`response_format` accepted since 2026-11-17)
 
 ## ckan_find_relevant_datasets
 

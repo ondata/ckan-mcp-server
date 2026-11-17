@@ -79,6 +79,46 @@ describe("ckan_find_portals", () => {
     expect(result.content[0].text).toContain("503");
   });
 
+  // Every other tool takes response_format; clients sent it here too and the strict
+  // schema rejected the call (2 events on 2026-11-17).
+  describe("response_format", () => {
+    const registry = () => new Response(JSON.stringify({ portals: [
+      portal("https://dati.comune.milano.it", "Open Data Comune di Milano", "Italy")
+    ] }), { status: 200, headers: { "content-type": "application/json" } });
+
+    it("json returns the portal list as parseable JSON", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(registry()));
+
+      const result = await callFindPortals({ country: "Italy", response_format: "json" }) as Awaited<ReturnType<typeof callFindPortals>> & { structuredContent?: unknown };
+
+      expect(result.isError).toBeFalsy();
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.portals[0].url).toBe("https://dati.comune.milano.it");
+      expect(parsed.portals[0].has_datastore).toBe(true);
+      expect(result.structuredContent).toEqual(parsed);
+    });
+
+    it("markdown keeps the table", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(registry()));
+
+      const result = await callFindPortals({ country: "Italy", response_format: "markdown" });
+
+      expect(result.isError).toBeFalsy();
+      expect(result.content[0].text).toContain("| Portal |");
+    });
+
+    it("json errors stay JSON", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("down", { status: 503, statusText: "Service Unavailable" })));
+
+      const result = await callFindPortals({ country: "Italy", response_format: "json" });
+
+      expect(result.isError).toBe(true);
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed._error).toBe(true);
+      expect(parsed.error).toContain("503");
+    });
+  });
+
   describe("registry cache", () => {
     const originalEnv = process.env.CKAN_CACHE_ENABLED;
     const registry = () => new Response(JSON.stringify({ portals: [
