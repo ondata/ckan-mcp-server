@@ -51,6 +51,17 @@ describe("ckan_status_show on a site that is not the CKAN API", () => {
     expect(text).not.toContain("ckan_find_portals");
   });
 
+  it("on data.europa.eu says it is not CKAN, not that it is offline", async () => {
+    vi.mocked(axios.get).mockRejectedValue({ response: { status: 404, data: {} } });
+
+    const result = await callStatus("https://data.europa.eu");
+    const text = result.content[0].text;
+
+    expect(result.isError).toBe(true);
+    expect(text).toContain("not a CKAN portal");
+    expect(text).not.toContain("offline");
+  });
+
   it("routes open.toronto.ca to its CKAN API host", async () => {
     vi.mocked(axios.get).mockResolvedValue({
       data: { success: true, result: { ckan_version: "2.10", site_title: "Toronto", site_url: "https://open.toronto.ca" } }

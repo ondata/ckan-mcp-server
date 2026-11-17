@@ -65,6 +65,15 @@
       }
     },
     {
+      "id": "data-europa-eu",
+      "name": "data.europa.eu",
+      "api_url": "https://data.europa.eu",
+      "migrated": {
+        "notice": "data.europa.eu is not a CKAN portal: the old EU Open Data Portal CKAN API is gone, so CKAN tools cannot search it. Use `sparql_query` with endpoint_url https://data.europa.eu/sparql (keep queries small, with a LIMIT and a filter on title or catalogue; it times out on broad scans).",
+        "docs_url": "https://data.europa.eu/en/about/sparql"
+      }
+    },
+    {
       "id": "open-canada",
       "name": "open.canada.ca",
       "api_url": "https://open.canada.ca/data",

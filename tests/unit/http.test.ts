@@ -1149,6 +1149,22 @@ describe('formatCkanError', () => {
     }
   });
 
+  it('data.europa.eu gets the not-CKAN notice on 404 and on success=false', () => {
+    const notFound = new CkanApiError('CKAN API error (404): Not Found', 404, 'package_search', 'https://data.europa.eu/data');
+    const noSuccess = new CkanApiError('CKAN API returned success=false for action "package_search".', undefined, 'package_search', 'https://data.europa.eu/euodp/en/data/');
+    for (const err of [notFound, noSuccess]) {
+      const result = formatCkanError(err, 'ckan_package_search');
+      expect(result).toContain('not a CKAN portal');
+      expect(result).toContain('sparql_query');
+    }
+  });
+
+  it('a plain error mentioning data.europa.eu (MQA path) keeps its own message', () => {
+    // MQA calls data.europa.eu through safeFetch, which throws plain Errors: no notice.
+    const result = formatCkanError(new Error('MQA API error: Network error'), 'ckan_get_mqa_quality');
+    expect(result).toBe('MQA API error: Network error');
+  });
+
   it('a working portal keeps the status-based hint', () => {
     const err = new CkanApiError('CKAN API error (500): Internal Server Error', 500, 'package_search', 'https://open.canada.ca/data');
     const result = formatCkanError(err, 'ckan_package_search');

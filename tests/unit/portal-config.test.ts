@@ -26,6 +26,22 @@ describe('getPortalMigration', () => {
   });
 });
 
+describe('getPortalMigration for data.europa.eu', () => {
+  // Clients pass data.europa.eu to CKAN tools (15+ failures in the 2026-11-13/17 telemetry):
+  // its old CKAN API is gone, every spelling answers 404 or success=false.
+  it.each([
+    'https://data.europa.eu',
+    'https://data.europa.eu/data',
+    'https://data.europa.eu/euodp/en/data/'
+  ])('points %s at sparql_query', (url) => {
+    const m = getPortalMigration(url);
+    expect(m?.notice).toContain('not a CKAN portal');
+    expect(m?.notice).toContain('sparql_query');
+    expect(m?.notice).toContain('endpoint_url https://data.europa.eu/sparql');
+    expect(m?.docs_url).toBe('https://data.europa.eu/en/about/sparql');
+  });
+});
+
 describe('getPortalApiUrlForHostname', () => {
   // Requests are routed by hostname, so a wrong api_url breaks every spelling of the
   // portal: data.gov.au answers only under /data/api/3 (404 on /api/3, 2026-11-15).
