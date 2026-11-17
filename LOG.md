@@ -2,6 +2,10 @@
 
 ## 2026-11-17
 
+### v0.4.144
+
+Ships #600. For callers: a CKAN tool pointed at data.europa.eu (any of its URLs) now says it is not a CKAN portal and to use `sparql_query` on `https://data.europa.eu/sparql`, instead of a bare 404; `ckan_find_portals` accepts `response_format: "json"`. Released the same day as the change, by explicit decision (exception to "Release Cadence"). Tests 752 passed, smoke 18/18.
+
 ### Worker telemetry: data.europa.eu, find_portals response_format
 
 From telemetry 2026-11-13/17 (1,638 calls, 135 errors). `src/portals.json` marks data.europa.eu as not CKAN (`migrated` notice): CKAN tools on any of its URLs now say so and point to `sparql_query` with `endpoint_url https://data.europa.eu/sparql`, instead of a bare 404 or `success=false` (15+ failures). `ckan_find_portals` accepts `response_format` (`json` returns `{portals}`, errors stay JSON); it was the only tool without it, and 2 calls were rejected. Tests 752 passed, smoke 18/18 (17/18 on a first run, not reproduced); e2e on Node HTTP and `wrangler dev`.
