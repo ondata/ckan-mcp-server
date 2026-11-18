@@ -335,6 +335,10 @@ export function formatCkanError(error: unknown, _toolName: string): string {
     }
   } else if (status === 409 && action === 'datastore_search_sql') {
     hint = '→ The portal rejected the SQL (reason above). Check table and column names with `ckan_datastore_search` (limit 1), then fix the query.';
+  } else if (status === 409 && action === 'datastore_search' && /full text search is not supported/i.test(error.ckanReason ?? '')) {
+    // ckanext-canada (open.canada.ca) refuses a plain-string q on tables over its row limit;
+    // a column-scoped q is not affected.
+    hint = '→ This portal refuses full-text search over the whole table on large tables. Search one column instead: `q: {"column":"word"}` (column names from `limit: 0`). Otherwise use `filters` for exact matches, or `ckan_datastore_search_sql` with `WHERE "column" ILIKE \'%word%\'`.';
   } else if (status === 409 || status === 422) {
     hint = '→ Portal rejected the request — parameters may conflict; simplify filters and retry.';
   } else if (status === 503 || status === 502 || status === 504) {

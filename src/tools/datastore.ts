@@ -188,7 +188,7 @@ to avoid guessing column names and getting HTTP 400 errors.
 Args:
   - server_url (string): Base URL of CKAN server
   - resource_id (string): ID of the DataStore resource
-  - q (string): Full-text search query (optional)
+  - q (string | object): Full-text search (optional). A string searches all fields; an object such as { "column": "word" } searches only that column. Some portals refuse whole-table full-text search on large tables but accept the column form
   - filters (object): Key-value filters (e.g., { "anno": 2023 })
   - limit (number): Max rows to return (default: 100, max: 32000)
   - offset (number): Pagination offset (default: 0)
@@ -210,7 +210,7 @@ Typical workflow: ckan_package_search → ckan_package_show (find resource_id wi
       inputSchema: z.object({
         server_url: z.string().url().describe("Base URL of the CKAN server (e.g., https://dati.gov.it/opendata)"),
         resource_id: z.string().min(1).describe("UUID of the DataStore resource (from ckan_package_show resource.id where datastore_active is true)"),
-        q: z.string().optional().describe("Full-text search across all fields"),
+        q: z.union([z.string(), z.record(z.string())]).optional().describe("Full-text search: a string searches all fields; an object { \"column\": \"word\" } searches only that column (accepted by some portals that refuse full-text search on large tables)"),
         filters: z.record(z.any()).optional().describe("Key-value filters for exact matches (e.g., { \"regione\": \"Sicilia\", \"anno\": 2023 })"),
         limit: z.coerce.number().int().min(0).max(32000).optional().default(100).describe("Max rows to return (default 100, max 32000); use 0 to get only column names without data"),
         offset: z.coerce.number().int().min(0).optional().default(0).describe("Pagination offset"),
@@ -235,7 +235,11 @@ Typical workflow: ckan_package_search → ckan_package_show (find resource_id wi
           distinct: params.distinct
         };
 
-        if (params.q) apiParams.q = params.q;
+        if (typeof params.q === 'string') {
+          if (params.q) apiParams.q = params.q;
+        } else if (params.q && Object.keys(params.q).length > 0) {
+          apiParams.q = JSON.stringify(params.q);
+        }
         if (params.filters) apiParams.filters = JSON.stringify(params.filters);
         if (params.fields) apiParams.fields = params.fields.join(',');
         if (params.sort) apiParams.sort = params.sort;
