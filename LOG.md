@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-11-18
+
+### Issue #574: column-scoped `q` in `ckan_datastore_search`
+
+The portal's error message already reached the caller since #578 (existing tests on axios and fetch green). New: `q` also accepts an object `{"column": "word"}`, sent to CKAN as JSON, which restricts full-text search to one column; when a portal answers 409 "Full text search is not supported" (open.canada.ca, ckanext-canada row limit) the hint suggests that form first, then `filters` or SQL `ILIKE`. Tests 755 passed (3 new in `tests/integration/datastore-q-column.test.ts`). Live on open.canada.ca resource `027ee7f8-...`, Node HTTP and `wrangler dev`: string `q` → 409 with message and new hint; column `q` → 31,481 records.
+
 ## 2026-11-17
 
 ### v0.4.144
