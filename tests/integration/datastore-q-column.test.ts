@@ -16,14 +16,22 @@ const FTS_LIMIT = {
   error: { message: "Invalid request. Full text search is not supported for data with more than 100000 rows.", __type: "Validation Error" }
 };
 
+function sentQ(): unknown {
+  const config = vi.mocked(axios.get).mock.calls[0][1] as { params?: Record<string, unknown> } | undefined;
+  return config?.params?.q;
+}
+
 async function search(args: Record<string, unknown>): Promise<{ text: string; isError: boolean }> {
   const mcp = new McpServer({ name: "test", version: "0.0.0" });
   registerDatastoreTools(mcp);
   const client = new Client({ name: "test-client", version: "0.0.0" });
   const [a, b] = InMemoryTransport.createLinkedPair();
   await Promise.all([mcp.connect(b), client.connect(a)]);
-  const res: any = await client.callTool({ name: "ckan_datastore_search", arguments: { server_url: SERVER, resource_id: "big-1", ...args } });
-  return { text: res.content[0].text, isError: Boolean(res.isError) };
+  const res = await client.callTool({ name: "ckan_datastore_search", arguments: { server_url: SERVER, resource_id: "big-1", ...args } });
+  const content = res.content as Array<{ type: string; text?: string }>;
+  const first = content[0];
+  if (first?.type !== "text" || typeof first.text !== "string") throw new Error("expected a text content item");
+  return { text: first.text, isError: Boolean(res.isError) };
 }
 
 describe("ckan_datastore_search q (issue #574)", () => {
@@ -34,14 +42,14 @@ describe("ckan_datastore_search q (issue #574)", () => {
   it("keeps a string q as is", async () => {
     vi.mocked(axios.get).mockResolvedValue({ data: OK });
     await search({ q: "loan" });
-    expect(vi.mocked(axios.get).mock.calls[0][1]?.params.q).toBe("loan");
+    expect(sentQ()).toBe("loan");
   });
 
   it("accepts a column-scoped q object and sends it to CKAN as JSON", async () => {
     vi.mocked(axios.get).mockResolvedValue({ data: OK });
     const { isError } = await search({ q: { "Data Point Address Label": "loan" } });
     expect(isError).toBe(false);
-    expect(vi.mocked(axios.get).mock.calls[0][1]?.params.q).toBe('{"Data Point Address Label":"loan"}');
+    expect(sentQ()).toBe('{"Data Point Address Label":"loan"}');
   });
 
   it("on the full-text row limit, suggests column-scoped q first, then filters or SQL ILIKE", async () => {
