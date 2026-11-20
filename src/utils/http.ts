@@ -358,18 +358,34 @@ export function getLastCacheHit(): boolean | null {
   return _lastCacheHit;
 }
 
+type AuditLogLevel = 'full' | 'minimal' | 'off';
+
+/**
+ * `CKAN_AUDIT_LOG`, read on every call: `full` (default), `minimal` (no `q`, `fq`,
+ * `sql` or `id`, which can carry what the user typed) or `off`. Any other value is `full`.
+ */
+function ckanAuditLog(): AuditLogLevel {
+  const raw = typeof process !== 'undefined' ? (process.env.CKAN_AUDIT_LOG ?? '') : '';
+  const level = raw.trim().toLowerCase();
+  return level === 'minimal' || level === 'off' ? level : 'full';
+}
+
 function auditLog(serverUrl: string, action: string, params: Record<string, any>, cacheHit: boolean): void {
   if (typeof process === 'undefined' || !(process as { versions?: { node?: string } }).versions?.node) return;
+  const level = ckanAuditLog();
+  if (level === 'off') return;
   const entry: Record<string, unknown> = {
     ts: new Date().toISOString(),
     server: serverUrl,
     action,
     cache_hit: cacheHit
   };
-  if (params.q !== undefined)    entry.q    = params.q;
-  if (params.fq !== undefined)   entry.fq   = params.fq;
-  if (params.sql !== undefined)  entry.sql  = String(params.sql).slice(0, 200);
-  if (params.id !== undefined)   entry.id   = params.id;
+  if (level === 'full') {
+    if (params.q !== undefined)    entry.q    = params.q;
+    if (params.fq !== undefined)   entry.fq   = params.fq;
+    if (params.sql !== undefined)  entry.sql  = String(params.sql).slice(0, 200);
+    if (params.id !== undefined)   entry.id   = params.id;
+  }
   if (params.rows !== undefined) entry.rows = params.rows;
   if (params.limit !== undefined) entry.limit = params.limit;
   try { process.stderr.write(JSON.stringify(entry) + '\n'); } catch { /* ignore */ }
@@ -614,11 +630,13 @@ export async function makeCkanRequest<T>(
       // pointed/redirected at a non-CKAN host it could carry internal detail,
       // turning blind SSRF into a return-value channel (GHSA-6f9w). Log it
       // server-side only (truncated) and return a generic, action-scoped error.
+      // The body can echo the request parameters, so `CKAN_AUDIT_LOG=minimal` keeps
+      // only the action and `off` writes nothing.
       try {
-        if (typeof process !== "undefined") {
-          process.stderr.write(
-            `[ckan] success=false action=${action}: ${JSON.stringify(decodedData).slice(0, 500)}\n`
-          );
+        const level = ckanAuditLog();
+        if (typeof process !== "undefined" && level !== "off") {
+          const detail = level === "full" ? `: ${JSON.stringify(decodedData).slice(0, 500)}` : "";
+          process.stderr.write(`[ckan] success=false action=${action}${detail}\n`);
         }
       } catch { /* ignore logging failures */ }
       throw new CkanApiError(
