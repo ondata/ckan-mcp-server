@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated: 2026-11-04**
+**Last updated: 2026-11-21**
 
 ## Overview
 
@@ -23,7 +23,9 @@ The hosted endpoint `https://ckan-mcp-server.andy-pr.workers.dev/mcp` logs each 
 
 The server's logging code does not record your IP address, request headers, any identifier of you or your client, or your conversation.
 
-These records are kept by Cloudflare Workers Observability for 7 days. An archive containing only the fields listed above is published in this repository as open data ([`data/worker_events_flat.jsonl`](https://github.com/ondata/ckan-mcp-server/blob/main/data/README.md), CC BY-SA 4.0). Since the search text is published, **do not put personal information in queries sent to the demo instance**. Cloudflare, as the hosting provider, processes connection data under its own [privacy policy](https://www.cloudflare.com/privacypolicy/).
+Separately, Cloudflare Workers Observability, which is enabled for this instance, records every HTTP request at platform level: your IP address, the request headers (including the user agent), your network (AS) and an approximate location (country, region, city). These request records are kept for 7 days, are not published and are visible only to the maintainers of the Cloudflare account. They are used to diagnose errors and abuse, and to set the hosted endpoint's request limit. That limit (200 requests per minute) counts requests per IP address, using a Cloudflare counter over a one-minute window.
+
+The tool-call records listed above are also kept by Cloudflare Workers Observability for 7 days. An archive containing only the fields listed above is published in this repository as open data ([`data/worker_events_flat.jsonl`](https://github.com/ondata/ckan-mcp-server/blob/main/data/README.md), CC BY-SA 4.0). Since the search text is published, **do not put personal information in queries sent to the demo instance**. Cloudflare, as the hosting provider, processes connection data under its own [privacy policy](https://www.cloudflare.com/privacypolicy/).
 
 If you prefer that nothing is logged, use a local installation.
 
