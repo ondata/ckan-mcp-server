@@ -2,9 +2,13 @@
 
 ## 2026-11-21
 
+### Hosted endpoint: fair-use MCP instructions
+
+The Worker now sends MCP `instructions` at initialize (`HOSTED_ENDPOINT_INSTRUCTIONS` in `src/server.ts`, passed by `src/worker.ts` to `createServer`): shared instance for interactive use, no bulk downloads, catalog crawling or parallel batches, suggest a local install or the CKAN API for bulk access. stdio and Node HTTP send none. It is advice to the model, not a limit: a script like the 2026-11-20 one ignores it. Tests 757 passed (2 new in `tests/unit/server-instructions.test.ts`). Checked with `wrangler dev` (instructions present, search still answers) and Node HTTP (`instructions` null).
+
 ### Hosted endpoint: fair-use note
 
-On 2026-11-20, 13:30-16:37 UTC, one client (`Go-http-client/2.0`, a single residential network) crawled dati.puglia.it through the public Worker: in about 40 seconds, 1,317 `ckan_datastore_search` and 608 `ckan_list_resources` calls, one resource or dataset each. 1,466 requests hit the free-plan CPU limit (10-14 ms each), and Cloudflare sent the "CPU time limit" email. None since then (Observability API, last 48 h). README and `.readme-npm.md` now say the hosted endpoint is for trying the server and interactive use, not bulk work. Open: MCP `instructions` on the Worker only; a per-IP rate limit on `/mcp` if it happens again; the archive has no tool calls for 13-16 UTC that day although the API shows successful requests from the same client, to check in the archiver.
+On 2026-11-20, 13:30-16:37 UTC, one client (`Go-http-client/2.0`, a single residential network) crawled dati.puglia.it through the public Worker: in about 40 seconds, 1,317 `ckan_datastore_search` and 608 `ckan_list_resources` calls, one resource or dataset each. 1,466 requests hit the free-plan CPU limit (10-14 ms each), and Cloudflare sent the "CPU time limit" email. None since then (Observability API, last 48 h). README and `.readme-npm.md` now say the hosted endpoint is for trying the server and interactive use, not bulk work. Open: a per-IP rate limit on `/mcp` if it happens again; the archive has no tool calls for 13-16 UTC that day although the API shows successful requests from the same client, to check in the archiver.
 
 ## 2026-11-18
 

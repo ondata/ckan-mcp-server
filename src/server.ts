@@ -16,11 +16,25 @@ import { registerPortalDiscoveryTools } from "./tools/portal-discovery.js";
 import { registerAllResources } from "./resources/index.js";
 import { registerAllPrompts } from "./prompts/index.js";
 
-export function createServer(): McpServer {
-  return new McpServer({
-    name: "ckan-mcp-server",
-    version: "0.4.144"
-  });
+/**
+ * Sent once at initialize by the public Worker only: the hosted endpoint is a
+ * shared free-plan instance (10 ms CPU per request), not meant for bulk work.
+ */
+export const HOSTED_ENDPOINT_INSTRUCTIONS =
+  "This is the public hosted instance of CKAN MCP Server, shared by all its users and meant for interactive use. " +
+  "Do not use it for bulk work: do not download whole datasets page by page, crawl entire catalogs, or call tools in large automated batches or in parallel. " +
+  "Each request has a small CPU budget, so heavy load makes calls fail for everyone. " +
+  "Fetch only what the user's question needs. If the user needs bulk access, suggest installing the server locally " +
+  "(https://github.com/ondata/ckan-mcp-server) or calling the portal's CKAN API directly.";
+
+export function createServer(options: { instructions?: string } = {}): McpServer {
+  return new McpServer(
+    {
+      name: "ckan-mcp-server",
+      version: "0.4.144"
+    },
+    options.instructions ? { instructions: options.instructions } : undefined
+  );
 }
 
 export function registerAll(server: McpServer): void {
