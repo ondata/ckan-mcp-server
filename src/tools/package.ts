@@ -9,7 +9,7 @@ import { recordSearchResults } from "../utils/search-telemetry.js";
 import { truncateText, truncateJson, formatDate, formatBytes, addDemoFooter, wrapUntrusted, safeUrlText, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
 import { getDatasetSchema, renderSchemaFields, formatFieldsMarkdown, type RenderedField } from "../utils/scheming.js";
 import { getDatasetViewUrl, extractSourcePortal } from "../utils/url-generator.js";
-import { resolveSearchQuery, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery, mayNeedTextWrapping, hasExplicitBooleanOperator } from "../utils/search.js";
+import { resolveSearchQuery, normalizeMatchAll, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery, mayNeedTextWrapping, hasExplicitBooleanOperator } from "../utils/search.js";
 import { getPortalHvdConfig, getPortalActionBase, requiresMultilingualNormalization } from "../utils/portal-config.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -1035,6 +1035,7 @@ Typical workflow: ckan_status_show (check locale) → ckan_package_search (query
     },
     async (params) => {
       try {
+        params.q = normalizeMatchAll(params.q);
         const userQuery = params.q;
         let query = userQuery;
         let effectiveSort = params.sort;

@@ -333,6 +333,10 @@ export function formatCkanError(error: unknown, _toolName: string): string {
       // CKAN allows a fixed list of SQL functions and no system tables.
       hint = '→ This SQL uses something not permitted on this portal (CKAN accepts a limited list of functions and no system tables such as information_schema). Rewrite the query without it, or use `ckan_datastore_search`. For a type conversion write `"col"::float` instead of `CAST(...)`: the `::` operator is not a function call.';
     }
+  } else if (status === 409 && action === 'datastore_search_sql' && /UndefinedColumn|column "[^"]*" does not exist|SyntaxError|syntax error/i.test(error.ckanReason ?? '')) {
+    // Most of these are unquoted column names: PostgreSQL lowercases `Comune` to `comune`
+    // and splits `Luogo di nascita` at the spaces (Worker telemetry, 2026-11-19).
+    hint = '→ Column names with capital letters, spaces or accents must be in double quotes: `SELECT "Comune", "Luogo di nascita" FROM "<resource_id>"`. Without quotes PostgreSQL lowercases them (`Comune` becomes `comune`) or breaks at the spaces. Get the exact names with `ckan_datastore_search` and `limit: 0`.';
   } else if (status === 409 && action === 'datastore_search_sql') {
     hint = '→ The portal rejected the SQL (reason above). Check table and column names with `ckan_datastore_search` (limit 1), then fix the query.';
   } else if (status === 409 && action === 'datastore_search' && /full text search is not supported/i.test(error.ckanReason ?? '')) {
