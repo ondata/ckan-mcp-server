@@ -21,9 +21,10 @@ import { registerAllPrompts } from "./prompts/index.js";
  * shared free-plan instance (10 ms CPU per request), not meant for bulk work.
  */
 export const HOSTED_ENDPOINT_INSTRUCTIONS =
-  "This is the public hosted instance of CKAN MCP Server, shared by all its users and meant for interactive use. " +
+  "This is the free public hosted instance of CKAN MCP Server, shared by all its users and meant for interactive use. " +
+  "The limits below apply to this hosted instance only, not to the server itself: a local installation has none. " +
   "Do not use it for bulk work: do not download whole datasets page by page, crawl entire catalogs, or call tools in large automated batches or in parallel. " +
-  "Each request has a small CPU budget, so heavy load makes calls fail for everyone. " +
+  "Each request on this instance has a small CPU budget, so heavy load makes calls fail for everyone. " +
   "Fetch only what the user's question needs. If the user needs bulk access, suggest installing the server locally " +
   "(https://github.com/ondata/ckan-mcp-server) or calling the portal's CKAN API directly.";
 
