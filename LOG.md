@@ -2,6 +2,10 @@
 
 ## 2026-11-21
 
+### Next release waits for #606
+
+No release today (one-day rule, #608 merged today). v0.4.145 goes out after #606 (`CKAN_AUDIT_LOG`, Nathan Storey) is merged, with #603 and #608: Nathan moves his pinned copy to the release that carries the setting.
+
 ### Hosted endpoint: per-IP rate limit
 
 `/mcp` on the Worker now allows 200 requests per minute per IP (`CF-Connecting-IP`), through the Workers Rate Limiting binding (`[[ratelimits]]` `MCP_RATE_LIMITER` in `wrangler.toml`); beyond that it answers HTTP 429 with a JSON-RPC error that points to a local install or the CKAN API. Fails open if the binding is missing or throws. Threshold from the Observability API, 2026-11-14/21, ~138k requests counted per IP per minute: assistants peaked at 105 (Claude Desktop), claude.ai connectors at 14 per IP over 97 IPs; abuse at 465 (`curl` script), 764 (daily scanner) and 3,620 (the 2026-11-20 scraper). Count is approximate and per Cloudflare location. Tests: `tests/integration/worker-rate-limit.test.ts` (4). `wrangler dev`: 210 requests from one IP → 200 ok, 10 × 429; another IP still 200. README fair-use paragraph mentions the limit. Deployed (version `42cba9f5`): the deploy lists `env.MCP_RATE_LIMITER (200 requests/60s)`, so the free plan has the binding. Live: 300 parallel requests in 3 s all passed; a following 800 in 13 s gave 563 × 200 and 237 × 429, so the count lags and a burst can pass well over 200 before it bites (Cloudflare: counts are eventually consistent). Also live: `q: "*"` on dati.gov.it 74,694 results, the SQL quoting hint on dati.regione.umbria.it.
