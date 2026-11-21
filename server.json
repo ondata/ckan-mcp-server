@@ -27,6 +27,12 @@
           "description": "Comma-separated host names that may be private (loopback, RFC 1918, IPv6 unique-local), e.g. a CKAN on localhost or an intranet. Empty = none.",
           "isRequired": false,
           "placeholder": "localhost,ckan.intra.example"
+        },
+        {
+          "name": "CKAN_AUDIT_LOG",
+          "description": "Audit lines on standard error: full (default), minimal (no search text, SQL or id) or off.",
+          "isRequired": false,
+          "placeholder": "full"
         }
       ]
     }
