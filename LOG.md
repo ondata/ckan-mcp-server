@@ -2,6 +2,10 @@
 
 ## 2026-11-21
 
+### Hosted endpoint: per-IP rate limit
+
+`/mcp` on the Worker now allows 200 requests per minute per IP (`CF-Connecting-IP`), through the Workers Rate Limiting binding (`[[ratelimits]]` `MCP_RATE_LIMITER` in `wrangler.toml`); beyond that it answers HTTP 429 with a JSON-RPC error that points to a local install or the CKAN API. Fails open if the binding is missing or throws. Threshold from the Observability API, 2026-11-14/21, ~138k requests counted per IP per minute: assistants peaked at 105 (Claude Desktop), claude.ai connectors at 14 per IP over 97 IPs; abuse at 465 (`curl` script), 764 (daily scanner) and 3,620 (the 2026-11-20 scraper). Count is approximate and per Cloudflare location. Tests: `tests/integration/worker-rate-limit.test.ts` (4). `wrangler dev`: 210 requests from one IP → 200 ok, 10 × 429; another IP still 200. README fair-use paragraph mentions the limit.
+
 ### SQL column quoting hint, bare `*` in package search
 
 From Worker telemetry (2026-11-18/21). `ckan_datastore_search_sql`: a 409 whose reason is `UndefinedColumn` or a syntax error now says to double-quote column names with capitals, spaces or accents, and to read the exact names with `limit: 0`; 23 such errors in three days, almost all unquoted columns (`SELECT Comune`, `SELECT Luogo di nascita`). The tool description says it too. `ckan_package_search`: `q` of `*` or empty becomes `*:*` (`normalizeMatchAll`), since a bare `*` returns 0 on CKAN (dati.gov.it, open.canada.ca, datos.gob.cl). Tests 770 passed. Live with Node HTTP: `q: "*"` on dati.gov.it 74,694 results (was 0); unquoted `Sezione` and `Denominazione struttura` on dati.regione.umbria.it get the new hint, quoted `"Sezione"` answers.
@@ -12,7 +16,7 @@ The Worker now sends MCP `instructions` at initialize (`HOSTED_ENDPOINT_INSTRUCT
 
 ### Hosted endpoint: fair-use note
 
-On 2026-11-20, 13:30-16:37 UTC, one client (`Go-http-client/2.0`, a single residential network) crawled dati.puglia.it through the public Worker: in about 40 seconds, 1,317 `ckan_datastore_search` and 608 `ckan_list_resources` calls, one resource or dataset each. 1,466 requests hit the free-plan CPU limit (10-14 ms each), and Cloudflare sent the "CPU time limit" email. None since then (Observability API, last 48 h). README and `.readme-npm.md` now say the hosted endpoint is for trying the server and interactive use, not bulk work. Open: a per-IP rate limit on `/mcp` if it happens again; the archive has no tool calls for 13-16 UTC that day although the API shows successful requests from the same client, to check in the archiver.
+On 2026-11-20, 13:30-16:37 UTC, one client (`Go-http-client/2.0`, a single residential network) crawled dati.puglia.it through the public Worker: in about 40 seconds, 1,317 `ckan_datastore_search` and 608 `ckan_list_resources` calls, one resource or dataset each. 1,466 requests hit the free-plan CPU limit (10-14 ms each), and Cloudflare sent the "CPU time limit" email. None since then (Observability API, last 48 h). README and `.readme-npm.md` now say the hosted endpoint is for trying the server and interactive use, not bulk work. Open: the archive has no tool calls for 13-16 UTC that day although the API shows successful requests from the same client, to check in the archiver.
 
 ## 2026-11-18
 

@@ -12,3 +12,12 @@ command = "npm run build:worker"
 [[analytics_engine_datasets]]
 binding = "ANALYTICS"
 dataset = "ckan_tool_calls"
+
+# Per-IP request limit on /mcp for the free hosted instance (see src/worker.ts).
+[[ratelimits]]
+name = "MCP_RATE_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 200
+  period = 60
