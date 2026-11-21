@@ -298,7 +298,7 @@ Typical workflow: ckan_package_show (get resource_id) → ckan_datastore_search_
 Security note: SQL queries are forwarded directly to the CKAN DataStore API. The CKAN server enforces its own access controls and read-only permissions. No local database is exposed. Queries are limited to public DataStore resources on the target portal.`,
       inputSchema: z.object({
         server_url: z.string().url().describe("Base URL of the CKAN server (e.g., https://dati.gov.it/opendata)"),
-        sql: z.string().min(1).describe("SQL SELECT query; resource_id is the table name, must be double-quoted (e.g., SELECT * FROM \"abc-123\" LIMIT 10)"),
+        sql: z.string().min(1).describe("SQL SELECT query; resource_id is the table name, must be double-quoted (e.g., SELECT * FROM \"abc-123\" LIMIT 10). Column names with capitals, spaces or accents must be double-quoted too (SELECT \"Comune\" ...)"),
         response_format: ResponseFormatSchema
       }).strict(),
       annotations: {

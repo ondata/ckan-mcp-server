@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { resolveSearchQuery, escapeSolrQuery, escapeForTextWrapping, convertDateMathForUnsupportedFields, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery, hasExplicitBooleanOperator, mayNeedTextWrapping } from '../../src/utils/search';
+import { resolveSearchQuery, normalizeMatchAll, escapeSolrQuery, escapeForTextWrapping, convertDateMathForUnsupportedFields, stripAccents, hasAccents, isPlainMultiTermQuery, buildOrQuery, hasExplicitBooleanOperator, mayNeedTextWrapping } from '../../src/utils/search';
+
+describe('normalizeMatchAll', () => {
+  it.each(['*', ' * ', '', '  '])('turns %j into *:*', (q) => {
+    expect(normalizeMatchAll(q)).toBe('*:*');
+  });
+
+  it.each(['*:*', 'ambiente', 'title:*', 'acqu*'])('leaves %j as it is', (q) => {
+    expect(normalizeMatchAll(q)).toBe(q);
+  });
+});
 
 describe('resolveSearchQuery', () => {
   it('keeps query unchanged for non-configured portals', () => {

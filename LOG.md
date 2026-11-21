@@ -2,6 +2,10 @@
 
 ## 2026-11-21
 
+### SQL column quoting hint, bare `*` in package search
+
+From Worker telemetry (2026-11-18/21). `ckan_datastore_search_sql`: a 409 whose reason is `UndefinedColumn` or a syntax error now says to double-quote column names with capitals, spaces or accents, and to read the exact names with `limit: 0`; 23 such errors in three days, almost all unquoted columns (`SELECT Comune`, `SELECT Luogo di nascita`). The tool description says it too. `ckan_package_search`: `q` of `*` or empty becomes `*:*` (`normalizeMatchAll`), since a bare `*` returns 0 on CKAN (dati.gov.it, open.canada.ca, datos.gob.cl). Tests 770 passed. Live with Node HTTP: `q: "*"` on dati.gov.it 74,694 results (was 0); unquoted `Sezione` and `Denominazione struttura` on dati.regione.umbria.it get the new hint, quoted `"Sezione"` answers.
+
 ### Hosted endpoint: fair-use MCP instructions
 
 The Worker now sends MCP `instructions` at initialize (`HOSTED_ENDPOINT_INSTRUCTIONS` in `src/server.ts`, passed by `src/worker.ts` to `createServer`): shared instance for interactive use, no bulk downloads, catalog crawling or parallel batches, suggest a local install or the CKAN API for bulk access. stdio and Node HTTP send none. It is advice to the model, not a limit: a script like the 2026-11-20 one ignores it. Tests 757 passed (2 new in `tests/unit/server-instructions.test.ts`). Checked with `wrangler dev` (instructions present, search still answers) and Node HTTP (`instructions` null).
