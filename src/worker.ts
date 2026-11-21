@@ -4,7 +4,7 @@
  * Provides MCP tools via HTTP for global edge deployment.
  */
 
-import { createServer, registerAll } from "./server.js";
+import { createServer, registerAll, HOSTED_ENDPOINT_INSTRUCTIONS } from "./server.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { getLastCacheHit } from "./utils/http.js";
 import { takeSearchResults } from "./utils/search-telemetry.js";
@@ -263,7 +263,7 @@ export default {
 
       try {
         // Create server + transport per request (stateless mode requirement)
-        const server = createServer();
+        const server = createServer({ instructions: HOSTED_ENDPOINT_INSTRUCTIONS });
         registerAll(server);
         const transport = new WebStandardStreamableHTTPServerTransport({
           sessionIdGenerator: undefined,  // Stateless mode
