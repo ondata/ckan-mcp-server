@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-11-21
+
+### Hosted endpoint: fair-use note
+
+On 2026-11-20, 13:30-16:37 UTC, one client (`Go-http-client/2.0`, a single residential network) crawled dati.puglia.it through the public Worker: in about 40 seconds, 1,317 `ckan_datastore_search` and 608 `ckan_list_resources` calls, one resource or dataset each. 1,466 requests hit the free-plan CPU limit (10-14 ms each), and Cloudflare sent the "CPU time limit" email. None since then (Observability API, last 48 h). README and `.readme-npm.md` now say the hosted endpoint is for trying the server and interactive use, not bulk work. Open: MCP `instructions` on the Worker only; a per-IP rate limit on `/mcp` if it happens again; the archive has no tool calls for 13-16 UTC that day although the API shows successful requests from the same client, to check in the archiver.
+
 ## 2026-11-18
 
 ### Issue #574: column-scoped `q` in `ckan_datastore_search`

@@ -31,6 +31,8 @@ Hosted endpoint: `https://ckan-mcp-server.andy-pr.workers.dev/mcp`
 
 > **Recommendation**: Option B is a great way to get started and try things out without any setup. Once you're familiar with what the server can do, switching to Option A (local install) gives you unlimited usage with no shared quotas.
 
+**Fair use of the hosted endpoint.** It is meant for trying the server and for interactive use from an AI assistant, not for bulk work: downloading data in bulk, crawling whole catalogs or firing automated calls in parallel. It runs on the Cloudflare Workers free plan, where each request gets at most 10 ms of CPU, so under that kind of load calls fail. For bulk work, install the server locally (Option A), or call the portal's CKAN API directly: a script does not need the MCP layer and its formatting.
+
 👉 Want to explore the codebase? The [**AI-generated DeepWiki**](https://deepwiki.com/ondata/ckan-mcp-server) is a great starting point.
 
 **License**: MIT — see [LICENSE](LICENSE) for complete details. Third-party notices: [NOTICE.md](NOTICE.md).
