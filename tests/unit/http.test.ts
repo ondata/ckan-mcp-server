@@ -1076,9 +1076,17 @@ describe('validateServerUrl — CKAN_ALLOWED_DOMAINS', () => {
 });
 
 describe('audit logging', () => {
+  // These tests expect the default (full) line, whatever CKAN_AUDIT_LOG the caller set.
+  const origAuditLog = process.env.CKAN_AUDIT_LOG;
+
   beforeEach(() => {
     vi.clearAllMocks();
     __resetCacheForTests();
+    delete process.env.CKAN_AUDIT_LOG;
+  });
+
+  afterEach(() => {
+    if (origAuditLog === undefined) delete process.env.CKAN_AUDIT_LOG; else process.env.CKAN_AUDIT_LOG = origAuditLog;
   });
 
   it('writes JSON log to stderr after successful HTTP request', async () => {
