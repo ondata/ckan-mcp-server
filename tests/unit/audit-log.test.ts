@@ -183,4 +183,41 @@ describe("CKAN_AUDIT_LOG", () => {
       expect(writeSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe("server URL", () => {
+    // Userinfo, a query and a fragment: each can carry what the user typed.
+    const DIRTY_SERVER = "https://user:pass@www.dati.gov.it/opendata?q=segreto#x";
+
+    it("minimal: every line logs the server as origin plus path only", async () => {
+      // Arrange
+      process.env.CKAN_AUDIT_LOG = "minimal";
+      vi.mocked(axios.get)
+        .mockResolvedValueOnce({ data: searchResponse })
+        .mockResolvedValueOnce({ data: echoingFailure });
+
+      // Act: one call that succeeds (audit line), one that fails (success=false line)
+      await makeCkanRequest(DIRTY_SERVER, "package_search", PARAMS);
+      await expect(makeCkanRequest(DIRTY_SERVER, "package_search", PARAMS)).rejects.toThrow("success=false");
+
+      // Assert
+      const lines = writtenLines();
+      expect(lines).toHaveLength(2);
+      expect((JSON.parse(lines[0]) as Record<string, unknown>).server).toBe("https://www.dati.gov.it/opendata");
+      expect(lines[1]).toBe("[ckan] success=false action=package_search\n");
+      for (const line of lines) expect(line).not.toMatch(/user|pass|segreto|#x/);
+    });
+
+    it("full: logs the server URL as given, as before", async () => {
+      // Arrange: CKAN_AUDIT_LOG is unset by beforeEach
+      vi.mocked(axios.get).mockResolvedValue({ data: searchResponse });
+
+      // Act
+      await makeCkanRequest(DIRTY_SERVER, "package_search", PARAMS);
+
+      // Assert
+      const log = JSON.parse(writtenLines()[0]) as Record<string, unknown>;
+      expect(Object.keys(log)).toEqual(FULL_KEYS);
+      expect(log.server).toBe(DIRTY_SERVER);
+    });
+  });
 });

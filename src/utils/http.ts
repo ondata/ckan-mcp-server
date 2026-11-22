@@ -370,13 +370,26 @@ function ckanAuditLog(): AuditLogLevel {
   return level === 'minimal' || level === 'off' ? level : 'full';
 }
 
+/**
+ * The server URL as `minimal` logs it: origin plus path, without the userinfo, query or
+ * fragment a caller can put in `server_url`. `validateServerUrl` has parsed it already.
+ */
+function auditServerUrl(serverUrl: string): string {
+  try {
+    const url = new URL(serverUrl);
+    return `${url.origin}${url.pathname}`;
+  } catch {
+    return '';
+  }
+}
+
 function auditLog(serverUrl: string, action: string, params: Record<string, any>, cacheHit: boolean): void {
   if (typeof process === 'undefined' || !(process as { versions?: { node?: string } }).versions?.node) return;
   const level = ckanAuditLog();
   if (level === 'off') return;
   const entry: Record<string, unknown> = {
     ts: new Date().toISOString(),
-    server: serverUrl,
+    server: level === 'full' ? serverUrl : auditServerUrl(serverUrl),
     action,
     cache_hit: cacheHit
   };
