@@ -1498,6 +1498,23 @@ describe('formatCkanError', () => {
     expect(text).not.toContain('parameters may conflict');
   });
 
+  it.each([
+    ['unquoted capital letters', '(psycopg2.errors.UndefinedColumn) column "sezione" does not exist'],
+    ['unquoted spaces', '(psycopg2.errors.SyntaxError) syntax error at or near "struttura"']
+  ])('409 on datastore_search_sql with %s tells to double-quote column names', (_label, reason) => {
+    const err = new CkanApiError(`CKAN API error (409): query: ${reason}`, 409, 'datastore_search_sql', undefined, `query: ${reason}`);
+    const text = formatCkanError(err, 'ckan_datastore_search_sql');
+    expect(text).toContain('must be in double quotes');
+    expect(text).toContain('limit: 0');
+  });
+
+  it('409 on datastore_search_sql for another reason keeps the generic SQL hint', () => {
+    const err = new CkanApiError('CKAN API error (409): query: permission denied for relation x', 409, 'datastore_search_sql', undefined, 'query: permission denied for relation x');
+    const text = formatCkanError(err, 'ckan_datastore_search_sql');
+    expect(text).toContain('The portal rejected the SQL');
+    expect(text).not.toContain('double quotes');
+  });
+
   it('500 mentions portal internal error', () => {
     const err = new CkanApiError('CKAN API error (500): Internal Server Error', 500, 'package_search');
     const result = formatCkanError(err, 'ckan_package_search');

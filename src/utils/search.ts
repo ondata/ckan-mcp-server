@@ -227,6 +227,15 @@ export function hasAccents(text: string): boolean {
   return text !== stripAccents(text);
 }
 
+/**
+ * A bare `*` (or an empty q) matches nothing on CKAN's Solr: 0 results on dati.gov.it,
+ * open.canada.ca and datos.gob.cl, which a model reads as an empty portal. Match-all is `*:*`.
+ */
+export function normalizeMatchAll(query: string): string {
+  const trimmed = query.trim();
+  return trimmed === "" || trimmed === "*" ? DEFAULT_SEARCH_QUERY : query;
+}
+
 export function resolveSearchQuery(
   serverUrl: string,
   query: string,

@@ -4,7 +4,7 @@
  * Provides MCP tools via HTTP for global edge deployment.
  */
 
-import { createServer, registerAll } from "./server.js";
+import { createServer, registerAll, HOSTED_ENDPOINT_INSTRUCTIONS } from "./server.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import { getLastCacheHit } from "./utils/http.js";
 import { takeSearchResults } from "./utils/search-telemetry.js";
@@ -14,9 +14,21 @@ interface AnalyticsEngineDataset {
   writeDataPoint(event: { blobs?: string[]; doubles?: number[]; indexes?: string[] }): void;
 }
 
+// Cloudflare Workers Rate Limiting binding (`[[ratelimits]]` in wrangler.toml).
+interface RateLimit {
+  limit(options: { key: string }): Promise<{ success: boolean }>;
+}
+
 interface Env {
   ANALYTICS?: AnalyticsEngineDataset;
+  MCP_RATE_LIMITER?: RateLimit;
 }
+
+const RATE_LIMITED_MESSAGE =
+  "Too many requests from this address to the free hosted instance of CKAN MCP Server " +
+  "(limit: 200 per minute). It is meant for interactive use, not bulk work. " +
+  "For bulk access install the server locally or call the portal's CKAN API directly: " +
+  "https://github.com/ondata/ckan-mcp-server";
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -261,9 +273,34 @@ export default {
         });
       }
 
+      // Per-IP limit (200/min, see wrangler.toml). Measured 2026-11-14/21: assistants peaked
+      // at 105 requests/min per IP, bulk scrapers at 465-3,620. Approximate and per
+      // Cloudflare location; if the binding is missing or fails, requests go through.
+      const clientIp = request.headers.get('CF-Connecting-IP');
+      if (env.MCP_RATE_LIMITER && clientIp) {
+        let allowed = true;
+        try {
+          allowed = (await env.MCP_RATE_LIMITER.limit({ key: clientIp })).success;
+        } catch { /* fail open */ }
+        if (!allowed) {
+          return new Response(JSON.stringify({
+            jsonrpc: '2.0',
+            id: null,
+            error: { code: -32000, message: RATE_LIMITED_MESSAGE }
+          }), {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              'Retry-After': '60',
+              'Access-Control-Allow-Origin': '*'
+            }
+          });
+        }
+      }
+
       try {
         // Create server + transport per request (stateless mode requirement)
-        const server = createServer();
+        const server = createServer({ instructions: HOSTED_ENDPOINT_INSTRUCTIONS });
         registerAll(server);
         const transport = new WebStandardStreamableHTTPServerTransport({
           sessionIdGenerator: undefined,  // Stateless mode

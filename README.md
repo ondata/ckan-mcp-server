@@ -31,6 +31,8 @@ Hosted endpoint: `https://ckan-mcp-server.andy-pr.workers.dev/mcp`
 
 > **Recommendation**: Option B is a great way to get started and try things out without any setup. Once you're familiar with what the server can do, switching to Option A (local install) gives you unlimited usage with no shared quotas.
 
+**Fair use of the hosted endpoint.** It is meant for trying the server and for interactive use from an AI assistant, not for bulk work: downloading data in bulk, crawling whole catalogs or firing automated calls in parallel. It runs on the Cloudflare Workers free plan, where each request gets at most 10 ms of CPU, so under that kind of load calls fail. Each address can also send at most 200 requests per minute: beyond that the endpoint answers HTTP 429 for the rest of the minute. These limits belong to this free hosted endpoint only, not to the server: a local installation has none. For bulk work, install the server locally (Option A), or call the portal's CKAN API directly: a script does not need the MCP layer and its formatting.
+
 👉 Want to explore the codebase? The [**AI-generated DeepWiki**](https://deepwiki.com/ondata/ckan-mcp-server) is a great starting point.
 
 **License**: MIT — see [LICENSE](LICENSE) for complete details. Third-party notices: [NOTICE.md](NOTICE.md).
@@ -943,7 +945,7 @@ For issues or questions, [open an issue on GitHub](https://github.com/ondata/cka
 
 ## Privacy Policy
 
-A local installation (npm, Claude Desktop extension, stdio or your own HTTP server) sends nothing to us: queries go straight to the CKAN portal you specify, and the only log is an audit line on the server's standard error (on a hosting platform, that goes to the platform's log store; `CKAN_AUDIT_LOG=minimal` leaves out the search text, `off` turns it off). The public demo instance on Cloudflare Workers logs the arguments of each tool call (tool, portal, search text and parameters, datasets returned, outcome), never IP addresses, headers or conversation content; an archive of those fields is published as open data in [`data/`](https://github.com/ondata/ckan-mcp-server/blob/main/data/README.md), so do not put personal information in queries sent to it.
+A local installation (npm, Claude Desktop extension, stdio or your own HTTP server) sends nothing to us: queries go straight to the CKAN portal you specify, and the only log is an audit line on the server's standard error (on a hosting platform, that goes to the platform's log store; `CKAN_AUDIT_LOG=minimal` leaves out the search text, `off` turns it off). The public demo instance on Cloudflare Workers logs the arguments of each tool call (tool, portal, search text and parameters, datasets returned, outcome), never conversation content; an archive of those fields is published as open data in [`data/`](https://github.com/ondata/ckan-mcp-server/blob/main/data/README.md), so do not put personal information in queries sent to it. Separately, Cloudflare keeps each request's IP address and headers for 7 days, unpublished and visible only to the maintainers, to diagnose errors and abuse.
 
 See the full [Privacy Policy](https://github.com/ondata/ckan-mcp-server/blob/main/PRIVACY.md).
 
