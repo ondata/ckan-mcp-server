@@ -867,7 +867,7 @@ start** unless you set a domain allowlist:
 | `CKAN_HTTP_HOST` | Interface to bind (default `127.0.0.1`). Set `0.0.0.0` to expose it, ideally behind an authenticating reverse proxy. |
 | `CKAN_HTTP_ALLOWED_HOSTS` | Extra `Host` header values accepted by the DNS-rebinding guard (comma-separated). Add your public hostname when binding beyond loopback. |
 | `CKAN_HTTP_ALLOWED_ORIGINS` | Allowed `Origin` header values for browser clients (comma-separated). |
-| `CKAN_AUDIT_LOG` | The audit lines on standard error, which a hosting platform usually keeps in its log store. `full` (default): one line per CKAN request with its `q`, `fq`, `sql` (first 200 characters) and `id`, and up to 500 characters of the portal's response when it answers `success=false`. `minimal`: time, portal, action, cache result, `rows` and `limit` only, and only the action for `success=false`. `off`: neither line. Applies to stdio too. Node only. |
+| `CKAN_AUDIT_LOG` | The audit lines on standard error, which a hosting platform usually keeps in its log store. `full` (default): one line per CKAN request with its `q`, `fq`, `sql` (first 200 characters) and `id`, and up to 500 characters of the portal's response when it answers `success=false`. `minimal`: time, portal URL (origin and path only, no credentials, query or fragment), action, cache result, `rows` and `limit` only, and only the action for `success=false`. `off`: neither line. Applies to stdio too. Node only. |
 
 The default `stdio` transport is unaffected — it stays open so you can query any portal
 locally. Regardless of allowlist, all requests are also validated against private/internal
