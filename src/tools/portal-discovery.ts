@@ -28,6 +28,15 @@ interface DatashadesPortal {
 // portals weigh ~129 KB, under the default per-entry cap.
 const REGISTRY_CACHE_KEY = "datashades-portal-list-v1";
 const REGISTRY_TTL_SECONDS = 6 * 3600;
+const REGISTRY_LAST_GOOD_KEY = "datashades-portal-list-last-good-v1";
+const REGISTRY_LAST_GOOD_TTL_SECONDS = 7 * 24 * 3600;
+
+interface LastGoodPortals {
+  fetchedAt: string;
+  portals: DatashadesPortal[];
+}
+
+let inflightFetch: Promise<DatashadesPortal[]> | null = null;
 
 function slimPortal(p: DatashadesPortal): DatashadesPortal {
   return {
@@ -42,15 +51,7 @@ function slimPortal(p: DatashadesPortal): DatashadesPortal {
   };
 }
 
-// fetch, not axios: axios's fetch adapter breaks on Workers ("'cache' field ... not implemented")
-async function fetchPortals(): Promise<DatashadesPortal[]> {
-  const config = getCacheConfig();
-  const cache = config.enabled ? getCache() : null;
-  if (cache) {
-    const cached = await cache.get(REGISTRY_CACHE_KEY);
-    if (Array.isArray(cached)) return cached as DatashadesPortal[];
-  }
-
+async function refreshPortals(): Promise<DatashadesPortal[]> {
   const resp = await safeFetch(DATASHADES_URL, {
     headers: { "User-Agent": "CKAN-MCP-Server/1.0" },
     signal: AbortSignal.timeout(15000)
@@ -59,12 +60,50 @@ async function fetchPortals(): Promise<DatashadesPortal[]> {
     throw new Error(`datashades.info returned ${resp.status} ${resp.statusText}`);
   }
   const data = await resp.json() as { portals: DatashadesPortal[] };
-  const portals = data.portals.filter(p => p.status === "active" && p.Href).map(slimPortal);
+  const portals = (data.portals || []).filter(p => p && p.status === "active" && p.Href).map(slimPortal);
 
-  if (cache && JSON.stringify(portals).length <= config.maxEntryBytes) {
-    await cache.set(REGISTRY_CACHE_KEY, portals, REGISTRY_TTL_SECONDS);
+  const config = getCacheConfig();
+  const cache = config.enabled ? getCache() : null;
+  const lastGood: LastGoodPortals = {
+    fetchedAt: new Date(Date.now()).toISOString().slice(0, 10),
+    portals
+  };
+  if (cache && JSON.stringify(lastGood).length <= config.maxEntryBytes) {
+    await Promise.all([
+      cache.set(REGISTRY_CACHE_KEY, portals, REGISTRY_TTL_SECONDS),
+      cache.set(REGISTRY_LAST_GOOD_KEY, lastGood, REGISTRY_LAST_GOOD_TTL_SECONDS)
+    ]);
   }
   return portals;
+}
+
+// fetch, not axios: axios's fetch adapter breaks on Workers ("'cache' field ... not implemented")
+async function fetchPortals(): Promise<{ portals: DatashadesPortal[]; staleFrom?: string }> {
+  const config = getCacheConfig();
+  const cache = config.enabled ? getCache() : null;
+  if (cache) {
+    const cached = await cache.get(REGISTRY_CACHE_KEY);
+    if (Array.isArray(cached)) return { portals: cached as DatashadesPortal[] };
+  }
+
+  if (!inflightFetch) {
+    inflightFetch = refreshPortals().finally(() => {
+      inflightFetch = null;
+    });
+  }
+
+  try {
+    const portals = await inflightFetch;
+    return { portals };
+  } catch (error) {
+    if (cache) {
+      const lastGood = await cache.get(REGISTRY_LAST_GOOD_KEY) as LastGoodPortals | undefined;
+      if (lastGood && Array.isArray(lastGood.portals) && typeof lastGood.fetchedAt === "string") {
+        return { portals: lastGood.portals, staleFrom: lastGood.fetchedAt };
+      }
+    }
+    throw error;
+  }
 }
 
 function deduplicateByHostname(portals: DatashadesPortal[]): DatashadesPortal[] {
@@ -106,16 +145,21 @@ function filterPortals(
     .slice(0, params.limit);
 }
 
-function formatMarkdown(portals: DatashadesPortal[], total: number, limit: number): string {
-  if (portals.length === 0) return "No CKAN portals found matching the given filters.";
+function formatMarkdown(portals: DatashadesPortal[], total: number, limit: number, staleFrom?: string): string {
+  const staleSuffix = staleFrom ? `\n\n(portal list from ${staleFrom}, datashades.info did not answer)` : "";
+  if (portals.length === 0) return `No CKAN portals found matching the given filters.${staleSuffix}`;
 
   const rows = portals.map(p =>
-    `| [${p.SiteInfo.site_title || p.Href}](${p.Href}) | ${p.Coordinates.country_name} | ${p.Version} | ${p.DatasetsNumber.toLocaleString()} | ${p.SiteInfo.locale_default ?? ""} | ${(p.Plugins || []).includes("datastore") ? "✅" : "❌"} |`
+    `| [${p.SiteInfo.site_title || p.Href}](${p.Href}) | ${p.Coordinates.country_name} | ${p.Version} | ${(p.DatasetsNumber ?? 0).toLocaleString()} | ${p.SiteInfo.locale_default ?? ""} | ${(p.Plugins || []).includes("datastore") ? "✅" : "❌"} |`
   ).join("\n");
+
+  const sourceLine = staleFrom
+    ? `**Source**: [datashades.info](https://datashades.info/portals) — portal list from ${staleFrom}, datashades.info did not answer (${total} active portals)`
+    : `**Source**: [datashades.info](https://datashades.info/portals) — live registry of ${total} active portals`;
 
   return `# CKAN Portals
 
-**Source**: [datashades.info](https://datashades.info/portals) — live registry of ${total} active portals
+${sourceLine}
 **Showing**: ${portals.length} of ${total} (filtered, sorted by dataset count)
 
 | Portal | Country | CKAN | Datasets | Locale | DataStore |
@@ -171,7 +215,7 @@ Typical workflow: ckan_find_portals (discover portal URL) → ckan_status_show (
     },
     async (params) => {
       try {
-        const all = await fetchPortals();
+        const { portals: all, staleFrom } = await fetchPortals();
         const active = all.filter(p => p.status === "active");
         const results = filterPortals(all, {
           country: params.country,
@@ -192,18 +236,23 @@ Typical workflow: ckan_find_portals (discover portal URL) → ckan_status_show (
           has_datastore: (p.Plugins || []).includes("datastore")
         }));
 
-        if (params.response_format === ResponseFormat.JSON) {
-          return jsonToolResult({ portals });
+        const payload: { portals: typeof portals; note?: string } = { portals };
+        if (staleFrom) {
+          payload.note = `portal list from ${staleFrom}, datashades.info did not answer`;
         }
 
-        const markdown = formatMarkdown(results, active.length, params.limit);
+        if (params.response_format === ResponseFormat.JSON) {
+          return jsonToolResult(payload);
+        }
+
+        const markdown = formatMarkdown(results, active.length, params.limit, staleFrom);
 
         // Text channel is Markdown, so cap the structured payload on its own. The 50-result
         // limit bounds the number of entries, not their size: titles and URLs come from
         // datashades.info and have no length bound (#39).
         return {
           content: [{ type: "text", text: truncateText(addDemoFooter(markdown)) }],
-          structuredContent: cappedStructured({ portals })
+          structuredContent: cappedStructured(payload)
         };
       } catch (error) {
         return {
