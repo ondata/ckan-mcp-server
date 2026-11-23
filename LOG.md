@@ -2,6 +2,10 @@
 
 ## 2026-11-23
 
+### #611 merged: last good portal list (closes #610)
+
+By effectustasi. `ckan_find_portals` keeps a second cache entry (`datashades-portal-list-last-good-v1`, 7 days) and serves it, with the line "portal list from <date>, datashades.info did not answer", when a refresh fails; concurrent calls share one refresh. Greptile P1 confirmed and fixed on the branch (`7e30e43`): a 200 without a `portals` array, or with no active portal, now throws instead of overwriting the last good copy with an empty list (3 tests, failing without the fix). Squash-merged as `856e8ce`; on main tests 792 passed. Not released. Open from #610: after deploy, check on the Worker that the 7-day entry survives across isolates, and a live check.
+
 ### v0.4.145
 
 Ships #603, #606, #607, #608, #609. For callers: `CKAN_AUDIT_LOG` (`full` default, `minimal`, `off`) trims or turns off the stderr audit lines, by Nathan Storey (#606, closes #602); `ckan_datastore_search` accepts a column-scoped `q` object and hints at it on the full-text row limit (#603); a DataStore SQL error on an unquoted column says to double-quote it, and a bare `*` in package search becomes `*:*` (#608); the hosted Worker sends fair-use `instructions` (#607) and limits `/mcp` to 200 requests per minute per IP (#609). Released the same day as the #606 merge, by explicit decision (exception to the release cadence rule), since Nathan moves his pin to it. #611 (last good portal list) not included. Gate: tests 786 passed, smoke 18/18. Live: npm `latest` 0.4.145 with provenance, GitHub release (DXT + skill), Worker `/health` 0.4.145 (version `e9767a47`, rate limit binding listed), MCP Registry `isLatest` 0.4.145.
