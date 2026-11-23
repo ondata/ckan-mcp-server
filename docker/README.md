@@ -58,6 +58,7 @@ docker run -d \
 | `CKAN_ALLOWED_DOMAINS` | — | **Required** for HTTP: comma-separated hostname allowlist. Or set `CKAN_HTTP_ALLOW_ALL=true` to opt out. |
 | `CKAN_PRIVATE_HOSTS` | — | Host names that may be private (loopback, RFC 1918, IPv6 unique-local), e.g. a CKAN on the same network. Exact match, any port. Link-local and metadata addresses stay blocked. Every client of the server can reach the listed hosts. |
 | `CKAN_HTTP_ALLOWED_HOSTS` | loopback | Extra `Host` header values accepted by the DNS-rebinding guard. |
+| `CKAN_AUDIT_LOG` | `full` | Audit lines on standard error, which `docker compose logs` shows. `full` includes each request's `q`, `fq`, `sql` and `id`; `minimal` leaves them out; `off` writes none. |
 
 ## Configuring Claude Desktop with the Container
 

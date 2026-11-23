@@ -869,6 +869,7 @@ start** unless you set a domain allowlist:
 | `CKAN_HTTP_HOST` | Interface to bind (default `127.0.0.1`). Set `0.0.0.0` to expose it, ideally behind an authenticating reverse proxy. |
 | `CKAN_HTTP_ALLOWED_HOSTS` | Extra `Host` header values accepted by the DNS-rebinding guard (comma-separated). Add your public hostname when binding beyond loopback. |
 | `CKAN_HTTP_ALLOWED_ORIGINS` | Allowed `Origin` header values for browser clients (comma-separated). |
+| `CKAN_AUDIT_LOG` | The audit lines on standard error, which a hosting platform usually keeps in its log store. `full` (default): one line per CKAN request with its `q`, `fq`, `sql` (first 200 characters) and `id`, and up to 500 characters of the portal's response when it answers `success=false`. `minimal`: time, portal URL (origin and path only, no credentials, query or fragment), action, cache result, `rows` and `limit` only, and only the action for `success=false`. `off`: neither line. Applies to stdio too. Node only. |
 
 The default `stdio` transport is unaffected — it stays open so you can query any portal
 locally. Regardless of allowlist, all requests are also validated against private/internal
@@ -944,7 +945,7 @@ For issues or questions, [open an issue on GitHub](https://github.com/ondata/cka
 
 ## Privacy Policy
 
-A local installation (npm, Claude Desktop extension, stdio or your own HTTP server) sends nothing to us: queries go straight to the CKAN portal you specify, and the only log is an audit line on your machine's standard error. The public demo instance on Cloudflare Workers logs the arguments of each tool call (tool, portal, search text and parameters, datasets returned, outcome), never conversation content; an archive of those fields is published as open data in [`data/`](https://github.com/ondata/ckan-mcp-server/blob/main/data/README.md), so do not put personal information in queries sent to it. Separately, Cloudflare keeps each request's IP address and headers for 7 days, unpublished and visible only to the maintainers, to diagnose errors and abuse.
+A local installation (npm, Claude Desktop extension, stdio or your own HTTP server) sends nothing to us: queries go straight to the CKAN portal you specify, and the only log is an audit line on the server's standard error (on a hosting platform, that goes to the platform's log store; `CKAN_AUDIT_LOG=minimal` leaves out the search text, `off` turns it off). The public demo instance on Cloudflare Workers logs the arguments of each tool call (tool, portal, search text and parameters, datasets returned, outcome), never conversation content; an archive of those fields is published as open data in [`data/`](https://github.com/ondata/ckan-mcp-server/blob/main/data/README.md), so do not put personal information in queries sent to it. Separately, Cloudflare keeps each request's IP address and headers for 7 days, unpublished and visible only to the maintainers, to diagnose errors and abuse.
 
 See the full [Privacy Policy](https://github.com/ondata/ckan-mcp-server/blob/main/PRIVACY.md).
 

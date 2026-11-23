@@ -10,7 +10,13 @@ What is recorded depends on how you use it.
 
 ## Local installation (npm, Claude Desktop extension, stdio or your own HTTP server)
 
-Nothing is collected or sent to us. The server writes a one-line audit log of each CKAN request to its own standard error, on your machine, and nowhere else. No analytics or telemetry leave your computer.
+Nothing is collected or sent to us, and the server sends no analytics or telemetry. It writes a one-line audit log of each CKAN request to its own standard error. If the server runs on your computer, the line stays there. On a hosting platform or in a container, standard error usually goes to the platform's log store, which keeps it for the platform's retention period.
+
+The audit line records the time, the portal URL as given, the CKAN action, whether the cache answered, and the request's `q`, `fq`, `sql` (first 200 characters), `id`, `rows` and `limit`. When a portal answers `success=false`, a second line records up to 500 characters of its response, which can repeat the request. The `CKAN_AUDIT_LOG` setting controls both lines:
+
+- `full` (default): both lines as described above
+- `minimal`: the audit line without `q`, `fq`, `sql` and `id`, and with the portal URL cut to its origin and path (no credentials, query or fragment); the `success=false` line with the action only
+- `off`: neither line
 
 ## Public demo instance (Cloudflare Workers)
 

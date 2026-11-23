@@ -1,0 +1,8 @@
+{
+  "help": "https://www.dati.gov.it/opendata/api/3/action/help_show?name=package_search",
+  "success": false,
+  "error": {
+    "__type": "Search Query Error",
+    "message": "Search Query is invalid: \"Invalid search query: private search text\""
+  }
+}
