@@ -2,6 +2,10 @@
 
 ## 2026-11-23
 
+### v0.4.146
+
+Ships #611. For callers: when datashades.info does not answer, `ckan_find_portals` answers from the last good portal list (up to 7 days old) with the line "portal list from <date>, datashades.info did not answer" (`note` in JSON), instead of failing; concurrent calls share one download of the 22 MB registry. Released the same day as the merge and as v0.4.145, by explicit decision (exception to the release cadence rule). Gate: tests 792 passed, smoke 18/18.
+
 ### #611 merged: last good portal list (closes #610)
 
 By effectustasi. `ckan_find_portals` keeps a second cache entry (`datashades-portal-list-last-good-v1`, 7 days) and serves it, with the line "portal list from <date>, datashades.info did not answer", when a refresh fails; concurrent calls share one refresh. Greptile P1 confirmed and fixed on the branch (`7e30e43`): a 200 without a `portals` array, or with no active portal, now throws instead of overwriting the last good copy with an empty list (3 tests, failing without the fix). Squash-merged as `856e8ce`; on main tests 792 passed. Not released. Open from #610: after deploy, check on the Worker that the 7-day entry survives across isolates, and a live check.
