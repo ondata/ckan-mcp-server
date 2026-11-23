@@ -30,6 +30,7 @@ async function callFindPortals(args: Record<string, unknown>) {
 
 describe("ckan_find_portals", () => {
   afterEach(() => {
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
@@ -162,6 +163,87 @@ describe("ckan_find_portals", () => {
       await callFindPortals({ country: "Italy" });
 
       expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("serves the last good portal list with a stale-date line when a refresh fails", async () => {
+      let now = Date.parse("2026-11-18T00:00:00Z");
+      vi.spyOn(Date, "now").mockImplementation(() => now);
+
+      const fetchMock = vi.fn()
+        .mockResolvedValueOnce(registry())
+        .mockRejectedValue(new DOMException("The operation was aborted due to timeout", "TimeoutError"));
+      vi.stubGlobal("fetch", fetchMock);
+
+      const fresh = await callFindPortals({ country: "Italy" });
+      expect(fresh.isError).toBeFalsy();
+      expect(fresh.content[0].text).not.toContain("datashades.info did not answer");
+
+      // Advance past the 6 h fresh TTL while staying within the 7 d last-good TTL
+      now += 7 * 3600 * 1000;
+
+      const staleMd = await callFindPortals({ country: "Italy" });
+      expect(staleMd.isError).toBeFalsy();
+      expect(staleMd.content[0].text).toContain("dati.comune.milano.it");
+      expect(staleMd.content[0].text).toContain("portal list from 2026-11-18, datashades.info did not answer");
+
+      const staleJson = await callFindPortals({ country: "Italy", response_format: "json" });
+      expect(staleJson.isError).toBeFalsy();
+      const parsed = JSON.parse(staleJson.content[0].text);
+      expect(parsed.portals[0].url).toBe("https://dati.comune.milano.it");
+      expect(parsed.note).toBe("portal list from 2026-11-18, datashades.info did not answer");
+    });
+
+    // A 200 with no usable list must not overwrite the last good copy with an empty one.
+    it.each([
+      ["no portals field", { error: "maintenance" }],
+      ["null portals", { portals: null }],
+      ["no active portals", { portals: [] }]
+    ])("keeps the last good portal list when a refresh answers 200 with %s", async (_label, body) => {
+      let now = Date.parse("2026-11-18T00:00:00Z");
+      vi.spyOn(Date, "now").mockImplementation(() => now);
+
+      const fetchMock = vi.fn()
+        .mockResolvedValueOnce(registry())
+        .mockImplementation(async () => new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } }));
+      vi.stubGlobal("fetch", fetchMock);
+
+      await callFindPortals({ country: "Italy" });
+      now += 7 * 3600 * 1000;
+
+      const stale = await callFindPortals({ country: "Italy" });
+      expect(stale.isError).toBeFalsy();
+      expect(stale.content[0].text).toContain("dati.comune.milano.it");
+      expect(stale.content[0].text).toContain("portal list from 2026-11-18, datashades.info did not answer");
+
+      // The fallback did not overwrite the last good copy: a later failure still finds it.
+      const again = await callFindPortals({ country: "Italy" });
+      expect(again.content[0].text).toContain("dati.comune.milano.it");
+    });
+
+    it("fails when fetch rejects and no last good copy exists", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockRejectedValue(new DOMException("The operation was aborted due to timeout", "TimeoutError"))
+      );
+
+      const result = await callFindPortals({ country: "Italy" });
+
+      expect(result.isError).toBe(true);
+      expect(result.content[0].text).toContain("Could not fetch portal list from datashades.info");
+    });
+
+    it("shares one in-flight fetch across concurrent calls during a refresh", async () => {
+      const fetchMock = vi.fn().mockImplementation(async () => registry());
+      vi.stubGlobal("fetch", fetchMock);
+
+      const [italy, canada] = await Promise.all([
+        callFindPortals({ country: "Italy" }),
+        callFindPortals({ country: "Canada" })
+      ]);
+
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(italy.content[0].text).toContain("dati.comune.milano.it");
+      expect(canada.content[0].text).toContain("open.canada.ca");
     });
   });
 });
