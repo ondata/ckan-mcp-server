@@ -254,4 +254,4 @@
 {"date":"2026-11-20","calls":2176,"ok":2094,"errors":73,"invalid_input":9}
 {"date":"2026-11-21","calls":2131,"ok":1642,"errors":476,"invalid_input":13}
 {"date":"2026-11-22","calls":204,"ok":144,"errors":42,"invalid_input":18}
-{"date":"2026-11-23","calls":59,"ok":33,"errors":20,"invalid_input":6}
+{"date":"2026-11-23","calls":96,"ok":57,"errors":25,"invalid_input":14}
