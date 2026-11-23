@@ -1,5 +1,15 @@
 # LOG
 
+## 2026-11-23
+
+### v0.4.145
+
+Ships #603, #606, #607, #608, #609. For callers: `CKAN_AUDIT_LOG` (`full` default, `minimal`, `off`) trims or turns off the stderr audit lines, by Nathan Storey (#606, closes #602); `ckan_datastore_search` accepts a column-scoped `q` object and hints at it on the full-text row limit (#603); a DataStore SQL error on an unquoted column says to double-quote it, and a bare `*` in package search becomes `*:*` (#608); the hosted Worker sends fair-use `instructions` (#607) and limits `/mcp` to 200 requests per minute per IP (#609). Released the same day as the #606 merge, by explicit decision (exception to the release cadence rule), since Nathan moves his pin to it. #611 (last good portal list) not included. Gate: tests 786 passed, smoke 18/18.
+
+### #606 merged (`CKAN_AUDIT_LOG`)
+
+Checked on the branch at `dbdd526` before merge: build ok, tests 786 passed; Node HTTP against dati.gov.it with `server_url` `https://user:pass@www.dati.gov.it/opendata?x=segreto#frag`: `full` logs the URL as given with `q`, `minimal` logs `https://www.dati.gov.it/opendata` without `q`, `off` writes no line. The `success=false` line was not seen live (dati.gov.it answers 404 for a missing dataset), only in unit tests. Greptile re-review on `dbdd526`: no findings. Both Copilot threads answered and resolved. 17 `claude.yml` runs awaiting approval (fork PR events, job would skip without `@claude`) deleted. Squash-merged as `63deb9b`.
+
 ## 2026-11-21
 
 ### Next release waits for #606
