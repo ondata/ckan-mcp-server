@@ -4,7 +4,7 @@
 
 ### v0.4.145
 
-Ships #603, #606, #607, #608, #609. For callers: `CKAN_AUDIT_LOG` (`full` default, `minimal`, `off`) trims or turns off the stderr audit lines, by Nathan Storey (#606, closes #602); `ckan_datastore_search` accepts a column-scoped `q` object and hints at it on the full-text row limit (#603); a DataStore SQL error on an unquoted column says to double-quote it, and a bare `*` in package search becomes `*:*` (#608); the hosted Worker sends fair-use `instructions` (#607) and limits `/mcp` to 200 requests per minute per IP (#609). Released the same day as the #606 merge, by explicit decision (exception to the release cadence rule), since Nathan moves his pin to it. #611 (last good portal list) not included. Gate: tests 786 passed, smoke 18/18.
+Ships #603, #606, #607, #608, #609. For callers: `CKAN_AUDIT_LOG` (`full` default, `minimal`, `off`) trims or turns off the stderr audit lines, by Nathan Storey (#606, closes #602); `ckan_datastore_search` accepts a column-scoped `q` object and hints at it on the full-text row limit (#603); a DataStore SQL error on an unquoted column says to double-quote it, and a bare `*` in package search becomes `*:*` (#608); the hosted Worker sends fair-use `instructions` (#607) and limits `/mcp` to 200 requests per minute per IP (#609). Released the same day as the #606 merge, by explicit decision (exception to the release cadence rule), since Nathan moves his pin to it. #611 (last good portal list) not included. Gate: tests 786 passed, smoke 18/18. Live: npm `latest` 0.4.145 with provenance, GitHub release (DXT + skill), Worker `/health` 0.4.145 (version `e9767a47`, rate limit binding listed). MCP Registry pending.
 
 ### #606 merged (`CKAN_AUDIT_LOG`)
 
