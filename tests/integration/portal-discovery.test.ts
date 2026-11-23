@@ -193,6 +193,33 @@ describe("ckan_find_portals", () => {
       expect(parsed.note).toBe("portal list from 2026-11-18, datashades.info did not answer");
     });
 
+    // A 200 with no usable list must not overwrite the last good copy with an empty one.
+    it.each([
+      ["no portals field", { error: "maintenance" }],
+      ["null portals", { portals: null }],
+      ["no active portals", { portals: [] }]
+    ])("keeps the last good portal list when a refresh answers 200 with %s", async (_label, body) => {
+      let now = Date.parse("2026-11-18T00:00:00Z");
+      vi.spyOn(Date, "now").mockImplementation(() => now);
+
+      const fetchMock = vi.fn()
+        .mockResolvedValueOnce(registry())
+        .mockImplementation(async () => new Response(JSON.stringify(body), { status: 200, headers: { "content-type": "application/json" } }));
+      vi.stubGlobal("fetch", fetchMock);
+
+      await callFindPortals({ country: "Italy" });
+      now += 7 * 3600 * 1000;
+
+      const stale = await callFindPortals({ country: "Italy" });
+      expect(stale.isError).toBeFalsy();
+      expect(stale.content[0].text).toContain("dati.comune.milano.it");
+      expect(stale.content[0].text).toContain("portal list from 2026-11-18, datashades.info did not answer");
+
+      // The fallback did not overwrite the last good copy: a later failure still finds it.
+      const again = await callFindPortals({ country: "Italy" });
+      expect(again.content[0].text).toContain("dati.comune.milano.it");
+    });
+
     it("fails when fetch rejects and no last good copy exists", async () => {
       vi.stubGlobal(
         "fetch",

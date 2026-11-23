@@ -60,7 +60,15 @@ async function refreshPortals(): Promise<DatashadesPortal[]> {
     throw new Error(`datashades.info returned ${resp.status} ${resp.statusText}`);
   }
   const data = await resp.json() as { portals: DatashadesPortal[] };
-  const portals = (data.portals || []).filter(p => p && p.status === "active" && p.Href).map(slimPortal);
+  // A 200 without a usable list (maintenance page, partial body) must not overwrite
+  // the last good copy: throw so the caller falls back to it.
+  if (!Array.isArray(data?.portals)) {
+    throw new Error("datashades.info returned no portal list");
+  }
+  const portals = data.portals.filter(p => p && p.status === "active" && p.Href).map(slimPortal);
+  if (portals.length === 0) {
+    throw new Error("datashades.info returned no active portals");
+  }
 
   const config = getCacheConfig();
   const cache = config.enabled ? getCache() : null;
