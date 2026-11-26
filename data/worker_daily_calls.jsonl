@@ -257,4 +257,4 @@
 {"date":"2026-11-23","calls":120,"ok":72,"errors":32,"invalid_input":16}
 {"date":"2026-11-24","calls":110,"ok":78,"errors":14,"invalid_input":18}
 {"date":"2026-11-25","calls":108,"ok":79,"errors":14,"invalid_input":15}
-{"date":"2026-11-26","calls":13,"ok":7,"errors":1,"invalid_input":5}
+{"date":"2026-11-26","calls":113,"ok":91,"errors":9,"invalid_input":13}
