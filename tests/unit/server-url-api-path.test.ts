@@ -2,10 +2,10 @@
 // appended a second time: 5 of 6 such calls on the Worker answered 404 (Nov 2026).
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import axios from "axios";
-import { makeCkanRequest } from "../../src/utils/http";
-import { __resetCacheForTests } from "../../src/utils/cache";
-import { stripApiPath, getPortalActionBase } from "../../src/utils/portal-config";
-import { getDatasetViewUrl } from "../../src/utils/url-generator";
+import { makeCkanRequest } from "../../src/utils/http.js";
+import { __resetCacheForTests } from "../../src/utils/cache.js";
+import { stripApiPath, getPortalActionBase } from "../../src/utils/portal-config.js";
+import { getDatasetViewUrl } from "../../src/utils/url-generator.js";
 
 vi.mock("axios");
 
