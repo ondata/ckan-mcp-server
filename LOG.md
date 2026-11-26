@@ -2,9 +2,9 @@
 
 ## 2026-11-26
 
-### `server_url` with the API path (branch `fix/server-url-api-path`)
+### `server_url` with the API path (PR #617, merged `fead8c9`, not released)
 
-Found in Worker telemetry: since 2026-11-01, 6 calls passed `.../api/3/action`, `.../api/3` or `.../api/` as `server_url`, and 5 got a 404 because the path was appended twice. New `stripApiPath` drops that suffix in `makeCkanRequest`, `getPortalActionBase` and `normalizePortalUrl` (dataset and organization links). Checked live on Node HTTP and `wrangler dev`: Messina with `/api/3/action` 404 before, 3 results after (same as the plain URL); opendata.swiss with `/api` 26. Tests 814 passed. Other telemetry follow-ups of the same analysis in `docs/future-ideas.md` (local file).
+Found in Worker telemetry: since 2026-11-01, 6 calls passed `.../api/3/action`, `.../api/3` or `.../api/` as `server_url`, and 5 got a 404 because the path was appended twice. New `stripApiPath` drops that suffix in `makeCkanRequest`, `getPortalActionBase` and `normalizePortalUrl` (dataset and organization links). Checked live on Node HTTP and `wrangler dev`: Messina with `/api/3/action` 404 before, 3 results after (same as the plain URL); opendata.swiss with `/api` 26. Greptile found that configured portals lost their link template (`getPortalConfig` now strips the path too); tests 815 passed. Other telemetry follow-ups of the same analysis in `docs/future-ideas.md` (local file).
 
 ### v0.4.147
 
