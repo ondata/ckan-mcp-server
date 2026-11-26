@@ -1,13 +1,13 @@
 // A `server_url` copied with the API path (`.../api/3/action`) must not get the path
 // appended a second time: 5 of 6 such calls on the Worker answered 404 (Nov 2026).
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import axios from 'axios';
-import { makeCkanRequest } from '../../src/utils/http';
-import { __resetCacheForTests } from '../../src/utils/cache';
-import { stripApiPath, getPortalActionBase } from '../../src/utils/portal-config';
-import { getDatasetViewUrl } from '../../src/utils/url-generator';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import axios from "axios";
+import { makeCkanRequest } from "../../src/utils/http";
+import { __resetCacheForTests } from "../../src/utils/cache";
+import { stripApiPath, getPortalActionBase } from "../../src/utils/portal-config";
+import { getDatasetViewUrl } from "../../src/utils/url-generator";
 
-vi.mock('axios');
+vi.mock("axios");
 
 describe('stripApiPath', () => {
   it.each([
@@ -43,5 +43,13 @@ describe('server_url with the API path', () => {
   it('builds links from the portal root', () => {
     expect(getPortalActionBase('https://ckan.example.org/data/api/3/action')).toBe('https://ckan.example.org/data/api/3/action');
     expect(getDatasetViewUrl('https://ckan.example.org/data/api/3', { id: '1', name: 'd' })).toBe('https://ckan.example.org/data/dataset/d');
+  });
+
+  it('keeps the configured link template of a known portal', () => {
+    // dati.gov.it has its own dataset page; the default `{server_url}/dataset/{name}` is wrong there.
+    expect(getDatasetViewUrl('https://www.dati.gov.it/opendata/api/3/action', { id: 'abc', name: 'd' }))
+      .toBe(getDatasetViewUrl('https://www.dati.gov.it/opendata', { id: 'abc', name: 'd' }));
+    expect(getDatasetViewUrl('https://www.dati.gov.it/opendata/api/3/action', { id: 'abc', name: 'd' }))
+      .toContain('view-dataset');
   });
 });

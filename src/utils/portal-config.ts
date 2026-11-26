@@ -51,7 +51,7 @@ function extractHostname(url: string): string | null {
 }
 
 export function getPortalConfig(serverUrl: string): PortalConfig | null {
-  const cleanServerUrl = normalizeUrl(serverUrl);
+  const cleanServerUrl = normalizeUrl(stripApiPath(serverUrl));
 
   const portal = (portalsConfig.portals as PortalConfig[]).find((p) => {
     const mainUrl = normalizeUrl(p.api_url);
