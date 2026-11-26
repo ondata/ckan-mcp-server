@@ -144,7 +144,9 @@ export function sanitizeInline(text: unknown): string {
  * the target early. A URL that is not http(s) leaves the text alone, without a link.
  */
 export function markdownLink(text: unknown, url: unknown): string {
-  const label = sanitizeInline(text).replace(/[[\]]/g, '\\$&');
+  // Backslashes too, or `\]` becomes `\\]`: a literal backslash, then a live bracket.
+  // Before sanitizeInline, whose `\|` must keep its single backslash.
+  const label = sanitizeInline(String(text ?? '').replace(/[\\[\]]/g, '\\$&'));
   let parsed: URL;
   try {
     parsed = new URL(String(url ?? ''));
@@ -152,7 +154,8 @@ export function markdownLink(text: unknown, url: unknown): string {
     return label;
   }
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return label;
-  const href = parsed.href.replace(/\(/g, '%28').replace(/\)/g, '%29');
+  // `|` survives URL parsing and would add a table cell.
+  const href = parsed.href.replace(/\(/g, '%28').replace(/\)/g, '%29').replace(/\|/g, '%7C');
   return `[${label}](${href})`;
 }
 

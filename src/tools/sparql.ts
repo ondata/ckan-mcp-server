@@ -166,7 +166,11 @@ async function readHead(response: Response, maxBytes: number, signal: AbortSigna
 async function readCappedJson(response: Response, maxBytes: number): Promise<unknown> {
   const tooLarge = () => new Error(`SPARQL response too large (over ${maxBytes} bytes). Add a LIMIT or select fewer variables.`);
   const declared = Number(response.headers?.get?.("content-length"));
-  if (Number.isFinite(declared) && declared > maxBytes) throw tooLarge();
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    // Release the body, or the endpoint keeps the connection open after the refusal.
+    await response.body?.cancel().catch(() => undefined);
+    throw tooLarge();
+  }
   const reader = response.body?.getReader();
   if (!reader) throw new Error("SPARQL endpoint returned an empty body");
   const chunks: Uint8Array[] = [];

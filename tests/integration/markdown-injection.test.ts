@@ -11,6 +11,7 @@ import { registerPortalDiscoveryTools } from "../../src/tools/portal-discovery.j
 import { formatStatusMarkdown } from "../../src/tools/status.js";
 import { formatSparqlMarkdown } from "../../src/tools/sparql.js";
 import { formatPackageShowMarkdown } from "../../src/tools/package.js";
+import { markdownLink } from "../../src/utils/formatting.js";
 import { __resetCacheForTests } from "../../src/utils/cache.js";
 
 vi.mock("axios");
@@ -121,6 +122,23 @@ describe("Markdown injection from upstream strings (GHSA-r5rr)", () => {
     } as never, SERVER);
     expect(md).toContain("FORGED HEADING");
     expectNoForgedLine(md);
+  });
+
+  it("markdownLink: a backslash before a bracket does not undo the escape", () => {
+    const link = markdownLink("Evil\\](https://evil.example)", "https://portal.example");
+    // Every bracket in the label is preceded by an odd number of backslashes.
+    expect(link).not.toMatch(/(^|[^\\])(\\\\)*\]\(https:\/\/evil/);
+    expect(link.endsWith("](https://portal.example/)")).toBe(true);
+  });
+
+  it("markdownLink: a pipe in the label stays escaped", () => {
+    expect(markdownLink("a|b", "https://portal.example")).toBe("[a\\|b](https://portal.example/)");
+  });
+
+  it("markdownLink: a pipe in the target cannot add a table cell", () => {
+    const link = markdownLink("Portal", "https://portal.example/?filter=a|b");
+    expect(link).not.toContain("|");
+    expect(link).toContain("%7C");
   });
 
   it("ckan_find_portals: a registry Href with a closing paren cannot end the link early", async () => {

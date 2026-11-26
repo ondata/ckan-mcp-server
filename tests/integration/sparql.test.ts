@@ -216,12 +216,13 @@ describe('sparql_query', () => {
     // GHSA-3x8h: a hostile endpoint must not be able to buffer an unbounded body.
     it('rejects a response whose Content-Length exceeds the cap', async () => {
       const json = vi.fn();
+      const cancel = vi.fn().mockResolvedValue(undefined);
       (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
         ok: true,
         status: 200,
         statusText: 'OK',
         headers: { get: (h: string) => (h.toLowerCase() === 'content-length' ? String(SPARQL_MAX_RESPONSE_BYTES + 1) : null) },
-        body: new Response('{}').body,
+        body: { cancel },
         json
       });
 
@@ -229,6 +230,8 @@ describe('sparql_query', () => {
         querySparqlEndpoint('https://data.europa.eu/sparql', 'SELECT * WHERE { }')
       ).rejects.toThrow('SPARQL response too large');
       expect(json).not.toHaveBeenCalled();
+      // The refused body is released, not left open on the endpoint's connection.
+      expect(cancel).toHaveBeenCalled();
     });
 
     it('stops reading a body without Content-Length once it passes the cap', async () => {
