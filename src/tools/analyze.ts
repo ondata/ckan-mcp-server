@@ -66,7 +66,7 @@ export function formatAnalyzeDatasetsMarkdown(
         md += `- **Resource ID**: \`${sanitizeInline(resource.id)}\`\n`;
         if (resource.format) md += `- **Format**: ${sanitizeInline(resource.format)}\n`;
         if (error) {
-          md += `- **Error**: ${error}\n`;
+          md += `- **Error**: ${sanitizeInline(error)}\n`;
         } else if (schema) {
           md += `- **Total Records**: ${schema.total}\n`;
           const fields = schema.fields.filter(f => f.id !== '_id');

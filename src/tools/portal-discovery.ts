@@ -3,7 +3,7 @@
  */
 
 import { z } from "zod";
-import { truncateText, cappedStructured, addDemoFooter, jsonToolResult, formatError } from "../utils/formatting.js";
+import { truncateText, cappedStructured, addDemoFooter, jsonToolResult, formatError, sanitizeInline, markdownLink } from "../utils/formatting.js";
 import { ResponseFormat, ResponseFormatSchema } from "../types.js";
 import { formatCkanError, safeFetch } from "../utils/http.js";
 import { getCache, getCacheConfig } from "../utils/cache.js";
@@ -158,7 +158,7 @@ function formatMarkdown(portals: DatashadesPortal[], total: number, limit: numbe
   if (portals.length === 0) return `No CKAN portals found matching the given filters.${staleSuffix}`;
 
   const rows = portals.map(p =>
-    `| [${p.SiteInfo.site_title || p.Href}](${p.Href}) | ${p.Coordinates.country_name} | ${p.Version} | ${(p.DatasetsNumber ?? 0).toLocaleString()} | ${p.SiteInfo.locale_default ?? ""} | ${(p.Plugins || []).includes("datastore") ? "✅" : "❌"} |`
+    `| ${markdownLink(p.SiteInfo.site_title || p.Href, p.Href)} | ${sanitizeInline(p.Coordinates.country_name)} | ${sanitizeInline(p.Version)} | ${(p.DatasetsNumber ?? 0).toLocaleString()} | ${sanitizeInline(p.SiteInfo.locale_default ?? "")} | ${(p.Plugins || []).includes("datastore") ? "✅" : "❌"} |`
   ).join("\n");
 
   const sourceLine = staleFrom

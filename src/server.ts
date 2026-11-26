@@ -32,7 +32,7 @@ export function createServer(options: { instructions?: string } = {}): McpServer
   return new McpServer(
     {
       name: "ckan-mcp-server",
-      version: "0.4.146"
+      version: "0.4.147"
     },
     options.instructions ? { instructions: options.instructions } : undefined
   );

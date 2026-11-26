@@ -7,13 +7,20 @@ import { ResponseFormatSchema, ResponseFormat } from "../types.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getSparqlConfig } from "../utils/portal-config.js";
 import { validateServerUrl, assertHostnameResolvesSafe, safeFetch } from "../utils/http.js";
-import { truncateText, formatError, jsonToolResult } from "../utils/formatting.js";
+import { truncateText, formatError, jsonToolResult, sanitizeInline } from "../utils/formatting.js";
 
 const DEFAULT_LIMIT = 25;
 const MAX_LIMIT = 1000;
 const TIMEOUT_MS = 15000;
 const ERROR_HEAD_BYTES = 4 * 1024;
 const MAX_REASON_LENGTH = 300;
+/**
+ * Most a SPARQL answer may weigh, decoded (GHSA-3x8h). The endpoint is caller-chosen and
+ * may ignore LIMIT; output is cut at CHARACTER_LIMIT anyway, so more than this is never
+ * shown. Kept well under the CKAN cap: parsed JSON takes several times its size in
+ * memory, and a Workers isolate has 128 MB.
+ */
+export const SPARQL_MAX_RESPONSE_BYTES = 8 * 1024 * 1024;
 
 interface SparqlBinding {
   type: string;
@@ -110,7 +117,7 @@ export async function querySparqlEndpoint(endpointUrl: string, query: string): P
       );
     }
 
-    return (await response.json()) as SparqlResults;
+    return (await readCappedJson(response, SPARQL_MAX_RESPONSE_BYTES)) as SparqlResults;
   } catch (error) {
     if (error instanceof Error && error.name === "AbortError") {
       throw new Error(
@@ -153,6 +160,41 @@ async function readHead(response: Response, maxBytes: number, signal: AbortSigna
 }
 
 /**
+ * Parse a body as JSON without ever holding more than `maxBytes` of it. fetch hands over
+ * the stream already decompressed, so a compressed bomb is stopped by the same count.
+ */
+async function readCappedJson(response: Response, maxBytes: number): Promise<unknown> {
+  const tooLarge = () => new Error(`SPARQL response too large (over ${maxBytes} bytes). Add a LIMIT or select fewer variables.`);
+  const declared = Number(response.headers?.get?.("content-length"));
+  if (Number.isFinite(declared) && declared > maxBytes) {
+    // Release the body, or the endpoint keeps the connection open after the refusal.
+    await response.body?.cancel().catch(() => undefined);
+    throw tooLarge();
+  }
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("SPARQL endpoint returned an empty body");
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel().catch(() => undefined);
+      throw tooLarge();
+    }
+    chunks.push(value);
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+/**
  * The endpoint's own explanation of a failed query, as one short line. Wikidata answers
  * a parse error with an echo of the (possibly multiline) query and a Java stack trace;
  * Virtuoso puts the message first. Without it the caller sees only "Bad Request" and retries blind.
@@ -191,14 +233,13 @@ export function formatSparqlMarkdown(data: SparqlResults, endpointUrl: string): 
   }
 
   // Table header
-  md += `| ${vars.join(" | ")} |\n`;
+  md += `| ${vars.map(sanitizeInline).join(" | ")} |\n`;
   md += `| ${vars.map(() => "---").join(" | ")} |\n`;
 
   // Table rows
   for (const row of bindings) {
     const cells = vars.map(v => {
-      const val = row[v]?.value ?? "";
-      return val.replace(/\|/g, "\\|");
+      return sanitizeInline(row[v]?.value ?? "");
     });
     md += `| ${cells.join(" | ")} |\n`;
   }
