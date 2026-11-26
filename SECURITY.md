@@ -24,6 +24,8 @@ with the fix released to npm before publication.
 
 | Published | Advisory | CVE | Severity | Fixed in | Issue |
 |---|---|---|---|---|---|
+| 2026-11-26 | [GHSA-3x8h-9fx2-x647](https://github.com/ondata/ckan-mcp-server/security/advisories/GHSA-3x8h-9fx2-x647) | requested | Medium | 0.4.147 | `sparql_query` reads SPARQL responses with no size limit (DoS) |
+| 2026-11-26 | [GHSA-r5rr-xv9x-8mj8](https://github.com/ondata/ckan-mcp-server/security/advisories/GHSA-r5rr-xv9x-8mj8) | requested | Medium | 0.4.147 | Unsanitized portal fields in Markdown tool output (indirect prompt injection) — incomplete fix of CVE-2026-76895 |
 | 2026-10-19 | [GHSA-w3gp-3hrh-v465](https://github.com/ondata/ckan-mcp-server/security/advisories/GHSA-w3gp-3hrh-v465) | requested | Medium | 0.4.130 | Quadratic shrink loop in `truncateJson` blocks the event loop (DoS via oversized portal response) |
 | 2026-09-28 | [GHSA-279h-fmcr-4rwv](https://github.com/ondata/ckan-mcp-server/security/advisories/GHSA-279h-fmcr-4rwv) | requested | Medium | 0.4.128 | SSRF via redirect to an IP literal in `makeCkanRequest` (agent `lookup` skipped for IP literals) |
 | 2026-08-20 | [GHSA-x32r-mh7g-q2rf](https://github.com/ondata/ckan-mcp-server/security/advisories/GHSA-x32r-mh7g-q2rf) | CVE-2026-92146 | Medium | 0.4.119 | SSRF guard missed IPv6 ranges embedding IPv4 (NAT64 / 6to4 / IPv4-compatible) |
@@ -41,5 +43,6 @@ with the fix released to npm before publication.
 | 2026-05-31 | [GHSA-g84h-j7jj-x32p](https://github.com/ondata/ckan-mcp-server/security/advisories/GHSA-g84h-j7jj-x32p) | CVE-2026-53509 | Medium | 0.4.106 | Fix bypass of CVE-2026-33060 |
 | 2026-03-16 | [GHSA-3xm7-qw7j-qc8v](https://github.com/ondata/ckan-mcp-server/security/advisories/GHSA-3xm7-qw7j-qc8v) | CVE-2026-33060 | Medium | 0.4.85 | SSRF via `base_url` allows access to internal networks |
 
-`GHSA-279h-fmcr-4rwv` has a CVE requested; GitHub had not assigned an ID at the
-time of writing. Every other published advisory now carries one.
+`GHSA-3x8h-9fx2-x647`, `GHSA-r5rr-xv9x-8mj8`, `GHSA-w3gp-3hrh-v465` and
+`GHSA-279h-fmcr-4rwv` have a CVE requested; GitHub had not assigned an ID at the
+time of writing. Every other published advisory carries one.

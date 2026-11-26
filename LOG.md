@@ -4,7 +4,7 @@
 
 ### v0.4.147
 
-Released the same day as the fix, by explicit decision (exception to the release cadence rule). Live: npm `latest` 0.4.147 with provenance (visible on npm about 5 minutes after the workflow, two registry publishes rejected with 404 in between), GitHub release (DXT + skill), Worker `/health` 0.4.147 (version `8aaf8a14`, `sparql_query`, `ckan_find_portals`, `ckan_package_search` with facets checked live), MCP Registry `isLatest` 0.4.147. Advisories accepted (draft), severity Medium, package `@aborruso/ckan-mcp-server`, CVEs requested; publication pending. The Workers fetch-branch cap moved to "when next touching `makeCkanRequest`" (low impact, no advisory).
+Released the same day as the fix, by explicit decision (exception to the release cadence rule). Live: npm `latest` 0.4.147 with provenance (visible on npm about 5 minutes after the workflow, two registry publishes rejected with 404 in between), GitHub release (DXT + skill), Worker `/health` 0.4.147 (version `8aaf8a14`, `sparql_query`, `ckan_find_portals`, `ckan_package_search` with facets checked live), MCP Registry `isLatest` 0.4.147. Both advisories published 2026-11-26 07:27 UTC (Medium, package `@aborruso/ckan-mcp-server`), CVEs requested and not yet assigned; added to SECURITY.md. The Workers fetch-branch cap moved to "when next touching `makeCkanRequest`" (low impact, no advisory).
 
 ### Security fixes for GHSA-3x8h and GHSA-r5rr (PR #616, merged `55e6f57`)
 
