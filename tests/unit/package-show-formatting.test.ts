@@ -24,7 +24,7 @@ describe("ckan_package_show formatting", () => {
     expect(markdown).toContain("**Issued**: 2023-12-20");
     expect(markdown).toContain("**Modified (Content)**: 2024-01-10");
     expect(markdown).toContain("**Metadata Modified (Record)**: 2024-01-15");
-    expect(markdown).toContain("**Access Service Endpoints**: https://api.example.com/data");
+    expect(markdown).toContain("**Access Service Endpoints**: `https://api.example.com/data`");
     // Portal-controlled URLs are rendered in inline code (GHSA-c499 containment)
     expect(markdown).toContain("**Effective Download URL**: `http://example.com/resource.csv`");
   });

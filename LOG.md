@@ -1,5 +1,11 @@
 # LOG
 
+## 2026-11-26
+
+### Security fixes for GHSA-3x8h and GHSA-r5rr (version 0.4.147, not tagged)
+
+Two reports by adityasunny06help-coder, both verified in the v0.4.146 code. GHSA-3x8h: `sparql_query` read the endpoint's answer with an unbounded `response.json()`; now it rejects a declared `Content-Length` over 8 MiB and streams the decoded body with the same cap, so a gzip bomb stops too (tested with real undici fetch and a gzip body under 1 MiB that inflates to 16 MiB). GHSA-r5rr: incomplete fix of CVE-2026-76895. `sanitizeInline` now covers `ckan_package_search` notes and facets, `ckan_status_show` fields, `ckan_organization_list` names, SPARQL variables and cells, and, found in the sweep, `ckan_package_show` mimetype and access-service endpoints and `ckan_analyze_datasets` errors. New `markdownLink` for the `ckan_find_portals` table: brackets escaped in the text, http(s) only, parentheses percent-encoded in the target (portal URLs now end with `/`). Gate: tests 803 passed, smoke 18/18, live Node HTTP and `wrangler dev`. Open: tag after the release-cadence day, then advisory metadata (package name `@aborruso/ckan-mcp-server`, severity, CVE request) and publication. Not touched: the Workers fetch path in `makeCkanRequest` buffers the whole body before its size check when `Content-Length` is missing.
+
 ## 2026-11-23
 
 ### v0.4.146

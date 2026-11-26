@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
-import { formatSparqlMarkdown, formatSparqlJson, querySparqlEndpoint, validateSelectQuery, injectLimit } from '../../src/tools/sparql';
+import { formatSparqlMarkdown, formatSparqlJson, querySparqlEndpoint, validateSelectQuery, injectLimit, SPARQL_MAX_RESPONSE_BYTES } from '../../src/tools/sparql';
 import { __setDnsResolverForTests } from '../../src/utils/http';
 import { summarizeToolError } from '../../src/utils/error-telemetry';
 
@@ -16,13 +16,10 @@ describe('sparql_query', () => {
   });
 
   const mockFetch = (payload: unknown, ok = true, status = 200) => {
-    (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
-      ok,
-      status,
-      statusText: ok ? 'OK' : 'Bad Request',
-      headers: { get: () => null },
-      json: async () => payload
-    });
+    // A fresh Response per call: a body can be read only once.
+    (fetch as unknown as ReturnType<typeof vi.fn>).mockImplementation(async () =>
+      new Response(JSON.stringify(payload), { status: ok ? 200 : status, statusText: ok ? 'OK' : 'Bad Request' })
+    );
   };
 
   const sampleSparqlResponse = {
@@ -214,6 +211,82 @@ describe('sparql_query', () => {
       await expect(
         querySparqlEndpoint('https://data.europa.eu/sparql', 'SELECT * WHERE { }')
       ).rejects.toThrow('Network failure');
+    });
+
+    // GHSA-3x8h: a hostile endpoint must not be able to buffer an unbounded body.
+    it('rejects a response whose Content-Length exceeds the cap', async () => {
+      const json = vi.fn();
+      (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: { get: (h: string) => (h.toLowerCase() === 'content-length' ? String(SPARQL_MAX_RESPONSE_BYTES + 1) : null) },
+        body: new Response('{}').body,
+        json
+      });
+
+      await expect(
+        querySparqlEndpoint('https://data.europa.eu/sparql', 'SELECT * WHERE { }')
+      ).rejects.toThrow('SPARQL response too large');
+      expect(json).not.toHaveBeenCalled();
+    });
+
+    it('stops reading a body without Content-Length once it passes the cap', async () => {
+      const chunk = new Uint8Array(1024 * 1024).fill(0x20);
+      let sent = 0;
+      const body = new ReadableStream<Uint8Array>({
+        pull(controller) {
+          // Endless: the reader has to stop on its own.
+          sent += chunk.byteLength;
+          controller.enqueue(chunk);
+        }
+      });
+      (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(new Response(body, { status: 200 }));
+
+      await expect(
+        querySparqlEndpoint('https://data.europa.eu/sparql', 'SELECT * WHERE { }')
+      ).rejects.toThrow('SPARQL response too large');
+      expect(sent).toBeLessThanOrEqual(SPARQL_MAX_RESPONSE_BYTES + 2 * chunk.byteLength);
+    });
+
+    // Real fetch, real gzip: the cap counts decoded bytes, so a small compressed body
+    // that inflates past it is refused too.
+    it('stops a gzip bomb by its decoded size', async () => {
+      const { createServer } = await import('node:http');
+      const { gzipSync } = await import('node:zlib');
+      const bomb = gzipSync(Buffer.alloc(SPARQL_MAX_RESPONSE_BYTES * 2, 0x20));
+      const server = createServer((_req, res) => {
+        res.writeHead(200, { 'content-type': 'application/sparql-results+json', 'content-encoding': 'gzip' });
+        res.end(bomb);
+      });
+      await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+      const port = (server.address() as { port: number }).port;
+      const realFetch = (await import('undici')).fetch;
+      // Send the request to the local server; drop the pinned dispatcher, which would
+      // connect to the fake public address the DNS stub returns.
+      (fetch as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+        (_url: string, init: Record<string, unknown>) => {
+          const { dispatcher: _d, ...rest } = init ?? {};
+          return realFetch(`http://127.0.0.1:${port}/`, rest as never);
+        }
+      );
+      try {
+        expect(bomb.byteLength).toBeLessThan(SPARQL_MAX_RESPONSE_BYTES);
+        await expect(
+          querySparqlEndpoint('https://data.europa.eu/sparql', 'SELECT * WHERE { }')
+        ).rejects.toThrow('SPARQL response too large');
+      } finally {
+        server.close();
+      }
+    });
+
+    it('parses a streamed body under the cap', async () => {
+      (fetch as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+        new Response(JSON.stringify(sampleSparqlResponse), { status: 200 })
+      );
+
+      const result = await querySparqlEndpoint('https://data.europa.eu/sparql', 'SELECT * WHERE { }');
+      expect(result.results.bindings).toHaveLength(2);
     });
   });
 

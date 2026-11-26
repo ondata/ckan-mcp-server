@@ -139,6 +139,24 @@ export function sanitizeInline(text: unknown): string {
 }
 
 /**
+ * A Markdown link from portal-provided text and URL (GHSA-r5rr). A bracket in the text
+ * would close the link and open one of the portal's; a parenthesis in the URL would end
+ * the target early. A URL that is not http(s) leaves the text alone, without a link.
+ */
+export function markdownLink(text: unknown, url: unknown): string {
+  const label = sanitizeInline(text).replace(/[[\]]/g, '\\$&');
+  let parsed: URL;
+  try {
+    parsed = new URL(String(url ?? ''));
+  } catch {
+    return label;
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return label;
+  const href = parsed.href.replace(/\(/g, '%28').replace(/\)/g, '%29');
+  return `[${label}](${href})`;
+}
+
+/**
  * Wrap portal-provided free text (notes/description) — which is attacker-influenced —
  * in a clearly delimited, non-authoritative block, so a downstream agent does not treat
  * it as system instructions (indirect prompt injection containment — GHSA-c499).

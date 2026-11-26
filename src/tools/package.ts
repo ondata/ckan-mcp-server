@@ -585,7 +585,7 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
       const accessServices = parseAccessServices(resource);
       const accessEndpoints = extractServiceEndpoints(accessServices);
       if (accessEndpoints.length > 0) {
-        markdown += `- **Access Service Endpoints**: ${accessEndpoints.join(', ')}\n`;
+        markdown += `- **Access Service Endpoints**: ${accessEndpoints.map(safeUrlText).join(', ')}\n`;
       }
       const effectiveDownloadUrl = resolveDownloadUrl(resource);
       if (effectiveDownloadUrl) {
@@ -601,7 +601,7 @@ export const formatPackageShowMarkdown = (result: CkanPackage, serverUrl: string
         };
         markdown += `- **Size**: ${formatBytes(resource.size)}\n`;
       }
-      if (resource.mimetype) markdown += `- **MIME Type**: ${resource.mimetype}\n`;
+      if (resource.mimetype) markdown += `- **MIME Type**: ${sanitizeInline(resource.mimetype)}\n`;
       markdown += `- **Created**: ${formatDate(resource.created)}\n`;
       if (resource.last_modified) markdown += `- **Modified**: ${formatDate(resource.last_modified)}\n`;
       if (resource.datastore_active === true) {
@@ -1166,13 +1166,13 @@ ${hvdNote}`;
         if (result.facets && Object.keys(result.facets).length > 0) {
           markdown += `## Facets\n\n`;
           for (const [field, values] of Object.entries(result.facets)) {
-            markdown += `### ${field}\n\n`;
+            markdown += `### ${sanitizeInline(field)}\n\n`;
             const facetValues = values as Record<string, number>;
             const sorted = Object.entries(facetValues)
               .sort((a, b) => b[1] - a[1])
               .slice(0, 10);
             for (const [value, count] of sorted) {
-              markdown += `- **${value}**: ${count}\n`;
+              markdown += `- **${sanitizeInline(value)}**: ${count}\n`;
             }
             if (Object.keys(facetValues).length > sorted.length) {
               markdown += `\nNote: showing top ${sorted.length} only. Use \`response_format: json\` or increase \`facet_limit\`.\n`;
@@ -1196,7 +1196,7 @@ ${hvdNote}`;
             }
             if (pkg.notes) {
               const notes = pkg.notes.substring(0, 200);
-              markdown += `- **Description**: ${notes}${pkg.notes.length > 200 ? '...' : ''}\n`;
+              markdown += `- **Description**: ${sanitizeInline(notes)}${pkg.notes.length > 200 ? '...' : ''}\n`;
             }
             if (pkg.tags && pkg.tags.length > 0) {
               const tags = pkg.tags.slice(0, 5).map((t: CkanTag) => t.name).join(', ');

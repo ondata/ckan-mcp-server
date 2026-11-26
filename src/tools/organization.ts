@@ -256,7 +256,7 @@ Typical workflow: ckan_organization_list → ckan_organization_show (inspect one
               markdown += `- **Link**: ${getOrganizationViewUrl(params.server_url, org)}\n\n`;
             }
           } else {
-            markdown += result.map((name: string) => `- ${name}`).join('\n');
+            markdown += result.map((name: string) => `- ${sanitizeInline(name)}`).join('\n');
           }
         }
 
