@@ -91,8 +91,17 @@ export function isPortalSearchExplicitlyConfigured(serverUrl: string): boolean {
   return portal?.search?.force_text_field !== undefined;
 }
 
+/**
+ * Drop an API path copied into `server_url` (`.../api/3/action`, `.../api/3`, `.../api`):
+ * the server appends `/api/3/action` itself, so leaving it in doubles the path and the
+ * portal answers 404.
+ */
+export function stripApiPath(serverUrl: string): string {
+  return serverUrl.replace(/\/api(?:\/3(?:\/action)?)?\/?$/i, '');
+}
+
 export function normalizePortalUrl(serverUrl: string): string {
-  return normalizeUrl(serverUrl);
+  return normalizeUrl(stripApiPath(serverUrl));
 }
 
 export function getPortalApiUrlForHostname(hostname: string): string | null {
@@ -135,6 +144,7 @@ export function getPortalApiPath(serverUrl: string): string {
  * the caller's spelling can miss the API (data.gov.au answers only under /data).
  */
 export function getPortalActionBase(serverUrl: string): string {
+  serverUrl = stripApiPath(serverUrl);
   let base = serverUrl;
   try {
     base = getPortalApiUrlForHostname(new URL(serverUrl).hostname) ?? serverUrl;

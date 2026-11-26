@@ -2,6 +2,10 @@
 
 ## 2026-11-26
 
+### `server_url` with the API path (branch `fix/server-url-api-path`)
+
+Found in Worker telemetry: since 2026-11-01, 6 calls passed `.../api/3/action`, `.../api/3` or `.../api/` as `server_url`, and 5 got a 404 because the path was appended twice. New `stripApiPath` drops that suffix in `makeCkanRequest`, `getPortalActionBase` and `normalizePortalUrl` (dataset and organization links). Checked live on Node HTTP and `wrangler dev`: Messina with `/api/3/action` 404 before, 3 results after (same as the plain URL); opendata.swiss with `/api` 26. Tests 814 passed. Other telemetry follow-ups of the same analysis in `docs/future-ideas.md` (local file).
+
 ### v0.4.147
 
 Released the same day as the fix, by explicit decision (exception to the release cadence rule). Live: npm `latest` 0.4.147 with provenance (visible on npm about 5 minutes after the workflow, two registry publishes rejected with 404 in between), GitHub release (DXT + skill), Worker `/health` 0.4.147 (version `8aaf8a14`, `sparql_query`, `ckan_find_portals`, `ckan_package_search` with facets checked live), MCP Registry `isLatest` 0.4.147. Both advisories published 2026-11-26 07:27 UTC (Medium, package `@aborruso/ckan-mcp-server`), CVEs requested and not yet assigned; added to SECURITY.md. The Workers fetch-branch cap moved to "when next touching `makeCkanRequest`" (low impact, no advisory).

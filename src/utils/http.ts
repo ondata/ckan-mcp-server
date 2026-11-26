@@ -3,7 +3,7 @@
  */
 
 import axios, { AxiosError } from "axios";
-import { getPortalApiUrlForHostname, getPortalApiPath, getPortalMigration } from "./portal-config.js";
+import { getPortalApiUrlForHostname, getPortalApiPath, getPortalMigration, stripApiPath } from "./portal-config.js";
 import {
   buildCacheKey,
   getCache,
@@ -437,6 +437,7 @@ export async function makeCkanRequest<T>(
     !!(process as { versions?: { node?: string } }).versions?.node;
 
   validateServerUrl(serverUrl);
+  serverUrl = stripApiPath(serverUrl);
 
   let resolvedServerUrl = serverUrl;
   try {
